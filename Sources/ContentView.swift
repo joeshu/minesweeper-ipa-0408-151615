@@ -1,4 +1,4 @@
-// Last updated: 2026-04-08 17:07 CST
+// Last updated: 2026-04-08 17:25 CST
 import SwiftUI
 
 struct ContentView: View {
@@ -16,11 +16,9 @@ struct ContentView: View {
                 .pickerStyle(.segmented)
 
                 HStack {
-                    Label("\(game.remainingMinesEstimate)", systemImage: "flag.fill")
-                        .foregroundStyle(.orange)
+                    StatusBadge(systemImage: "flag.fill", text: "\(game.remainingMinesEstimate)", color: .orange)
                     Spacer()
-                    Label("\(game.elapsedSeconds)s", systemImage: "timer")
-                        .foregroundStyle(.blue)
+                    StatusBadge(systemImage: "timer", text: "\(game.elapsedSeconds)s", color: .blue)
                     Spacer()
                     Button {
                         game.reset()
@@ -45,7 +43,7 @@ struct ContentView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("玩法")
                         .font(.subheadline.bold())
-                    Text("点按翻开格子，长按插旗。首点保证不是雷。初级为 9×9，支持切换中级与高级。")
+                    Text("点按翻开格子，长按插旗。首点会保护周围九宫格，更容易展开。踩雷后会显示误旗。")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -66,7 +64,7 @@ struct ContentView: View {
                 }
                 Button("关闭", role: .cancel) {}
             } message: {
-                Text(game.didWin ? "用时 \(game.elapsedSeconds) 秒，已自动标出剩余地雷。" : "别灰心，下一局一定行。")
+                Text(game.didWin ? "用时 \(game.elapsedSeconds) 秒，已自动标出剩余地雷。" : "这次有误旗提示，方便你复盘。")
             }
         }
     }
@@ -89,6 +87,25 @@ struct ContentView: View {
     }
 }
 
+struct StatusBadge: View {
+    let systemImage: String
+    let text: String
+    let color: Color
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: systemImage)
+            Text(text)
+                .monospacedDigit()
+        }
+        .font(.subheadline.weight(.semibold))
+        .foregroundStyle(color)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(color.opacity(0.12), in: Capsule())
+    }
+}
+
 struct BoardView: View {
     @ObservedObject var game: MinesweeperGame
 
@@ -103,7 +120,7 @@ struct BoardView: View {
                             .onTapGesture {
                                 game.reveal(row: r, col: c)
                             }
-                            .onLongPressGesture {
+                            .onLongPressGesture(minimumDuration: 0.35) {
                                 game.toggleFlag(row: r, col: c)
                             }
                     }
@@ -126,11 +143,16 @@ struct CellView: View {
                         .stroke(borderColor, lineWidth: 1)
                 )
                 .frame(width: size, height: size)
-            if cell.isRevealed {
+
+            if cell.wrongFlag {
+                Image(systemName: "xmark")
+                    .font(.system(size: max(9, size * 0.38), weight: .bold))
+                    .foregroundStyle(.red)
+            } else if cell.isRevealed {
                 if cell.isMine {
-                    Image(systemName: "burst.fill")
+                    Image(systemName: cell.didExplode ? "flame.fill" : "burst.fill")
                         .font(.system(size: max(10, size * 0.5)))
-                        .foregroundStyle(.red)
+                        .foregroundStyle(cell.didExplode ? .red : .primary)
                 } else if cell.adjacent > 0 {
                     Text("\(cell.adjacent)")
                         .font(.system(size: max(10, size * 0.45), weight: .bold, design: .rounded))
@@ -145,12 +167,14 @@ struct CellView: View {
     }
 
     private var backgroundColor: Color {
+        if cell.wrongFlag { return .red.opacity(0.12) }
         if cell.isRevealed { return cell.isMine ? .red.opacity(0.18) : .gray.opacity(0.18) }
         return .blue.opacity(0.12)
     }
 
     private var borderColor: Color {
-        cell.isRevealed ? .gray.opacity(0.2) : .blue.opacity(0.3)
+        if cell.didExplode { return .red.opacity(0.6) }
+        return cell.isRevealed ? .gray.opacity(0.2) : .blue.opacity(0.3)
     }
 
     private var numberColor: Color {

@@ -1,4 +1,4 @@
-// Last updated: 2026-04-08 16:59 CST
+// Last updated: 2026-04-08 17:25 CST
 import Foundation
 
 enum Difficulty: String, CaseIterable, Identifiable {
@@ -25,6 +25,8 @@ struct Cell: Identifiable {
     var adjacent: Int = 0
     var isRevealed: Bool = false
     var isFlagged: Bool = false
+    var didExplode: Bool = false
+    var wrongFlag: Bool = false
 }
 
 final class MinesweeperGame: ObservableObject {
@@ -68,7 +70,7 @@ final class MinesweeperGame: ObservableObject {
         board = (0..<rows).map { r in
             (0..<cols).map { c in Cell(row: r, col: c) }
         }
-        placeMines(excluding: nil)
+        placeMines(excludingZone: nil)
         calculateAdjacents()
     }
 
@@ -80,20 +82,32 @@ final class MinesweeperGame: ObservableObject {
         }
     }
 
-    private func placeMines(excluding safeSpot: (Int, Int)?) {
+    private func protectedZone(row: Int, col: Int) -> Set<String> {
+        var zone: Set<String> = []
+        for r in max(0, row - 1)...min(rows - 1, row + 1) {
+            for c in max(0, col - 1)...min(cols - 1, col + 1) {
+                zone.insert("\(r)-\(c)")
+            }
+        }
+        return zone
+    }
+
+    private func placeMines(excludingZone safeZone: Set<String>?) {
         for r in 0..<rows {
             for c in 0..<cols {
                 board[r][c].isMine = false
                 board[r][c].adjacent = 0
                 board[r][c].isRevealed = false
                 board[r][c].isFlagged = false
+                board[r][c].didExplode = false
+                board[r][c].wrongFlag = false
             }
         }
         var placed = 0
         while placed < mines {
             let r = Int.random(in: 0..<rows)
             let c = Int.random(in: 0..<cols)
-            if let safeSpot, safeSpot.0 == r && safeSpot.1 == c { continue }
+            if let safeZone, safeZone.contains("\(r)-\(c)") { continue }
             if !board[r][c].isMine {
                 board[r][c].isMine = true
                 placed += 1
@@ -133,7 +147,7 @@ final class MinesweeperGame: ObservableObject {
 
         if !firstMoveMade {
             firstMoveMade = true
-            placeMines(excluding: (row, col))
+            placeMines(excludingZone: protectedZone(row: row, col: col))
             calculateAdjacents()
             startTimerIfNeeded()
         }
@@ -142,8 +156,9 @@ final class MinesweeperGame: ObservableObject {
         if board[row][col].isMine {
             gameOver = true
             didWin = false
+            board[row][col].didExplode = true
             timer?.invalidate()
-            revealAllMines()
+            revealAllMinesAndWrongFlags()
             objectWillChange.send()
             return
         }
@@ -172,10 +187,15 @@ final class MinesweeperGame: ObservableObject {
         }
     }
 
-    private func revealAllMines() {
+    private func revealAllMinesAndWrongFlags() {
         for r in 0..<rows {
-            for c in 0..<cols where board[r][c].isMine {
-                board[r][c].isRevealed = true
+            for c in 0..<cols {
+                if board[r][c].isMine {
+                    board[r][c].isRevealed = true
+                } else if board[r][c].isFlagged {
+                    board[r][c].wrongFlag = true
+                    board[r][c].isRevealed = true
+                }
             }
         }
     }
@@ -200,7 +220,7 @@ final class MinesweeperGame: ObservableObject {
 
     var remainingMinesEstimate: Int {
         let flags = board.flatMap { $0 }.filter { $0.isFlagged }.count
-        return max(0, mines - flags)
+        return mines - flags
     }
 
     var boardWidth: Double {
