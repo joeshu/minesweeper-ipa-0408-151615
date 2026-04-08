@@ -1,4 +1,4 @@
-// Last updated: 2026-04-08 15:16 CST
+// Last updated: 2026-04-08 16:30 CST
 import Foundation
 
 struct Cell: Identifiable {
@@ -15,10 +15,14 @@ final class MinesweeperGame: ObservableObject {
     @Published var board: [[Cell]] = []
     @Published var gameOver = false
     @Published var didWin = false
+    @Published var elapsedSeconds = 0
 
     let rows: Int
     let cols: Int
     let mines: Int
+
+    private var firstMoveMade = false
+    private var timer: Timer?
 
     init(rows: Int = 9, cols: Int = 9, mines: Int = 10) {
         self.rows = rows
@@ -27,21 +31,44 @@ final class MinesweeperGame: ObservableObject {
         reset()
     }
 
+    deinit {
+        timer?.invalidate()
+    }
+
     func reset() {
+        timer?.invalidate()
+        timer = nil
+        elapsedSeconds = 0
         gameOver = false
         didWin = false
+        firstMoveMade = false
         board = (0..<rows).map { r in
             (0..<cols).map { c in Cell(row: r, col: c) }
         }
-        placeMines()
+        placeMines(excluding: nil)
         calculateAdjacents()
     }
 
-    private func placeMines() {
+    private func startTimerIfNeeded() {
+        guard timer == nil else { return }
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            guard let self, !self.gameOver else { return }
+            self.elapsedSeconds += 1
+        }
+    }
+
+    private func placeMines(excluding safeSpot: (Int, Int)?) {
+        for r in 0..<rows {
+            for c in 0..<cols {
+                board[r][c].isMine = false
+                board[r][c].adjacent = 0
+            }
+        }
         var placed = 0
         while placed < mines {
             let r = Int.random(in: 0..<rows)
             let c = Int.random(in: 0..<cols)
+            if let safeSpot, safeSpot.0 == r && safeSpot.1 == c { continue }
             if !board[r][c].isMine {
                 board[r][c].isMine = true
                 placed += 1
@@ -79,10 +106,18 @@ final class MinesweeperGame: ObservableObject {
         guard !gameOver else { return }
         guard !board[row][col].isRevealed, !board[row][col].isFlagged else { return }
 
+        if !firstMoveMade {
+            firstMoveMade = true
+            placeMines(excluding: (row, col))
+            calculateAdjacents()
+            startTimerIfNeeded()
+        }
+
         board[row][col].isRevealed = true
         if board[row][col].isMine {
             gameOver = true
             didWin = false
+            timer?.invalidate()
             revealAllMines()
             objectWillChange.send()
             return
@@ -95,6 +130,7 @@ final class MinesweeperGame: ObservableObject {
         if checkWin() {
             gameOver = true
             didWin = true
+            timer?.invalidate()
         }
         objectWillChange.send()
     }
