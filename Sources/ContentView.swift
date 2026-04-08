@@ -1,7 +1,8 @@
-// Last updated: 2026-04-08 18:23 CST
+// Last updated: 2026-04-08 18:36 CST
 import SwiftUI
 
 struct ContentView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @StateObject private var game = MinesweeperGame()
     @State private var showingResultAlert = false
 
@@ -9,7 +10,7 @@ struct ContentView: View {
         NavigationStack {
             ZStack {
                 LinearGradient(
-                    colors: [Color.blue.opacity(0.18), Color.cyan.opacity(0.10), Color.white],
+                    colors: backgroundGradient,
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
@@ -50,28 +51,28 @@ struct ContentView: View {
                         }
                     }
                     .padding(16)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-                    .shadow(color: .black.opacity(0.06), radius: 18, y: 10)
+                    .background(cardBackground, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                    .shadow(color: .black.opacity(colorScheme == .dark ? 0.22 : 0.06), radius: 18, y: 10)
 
                     ScrollView(.horizontal, showsIndicators: false) {
                         BoardView(game: game)
                             .frame(width: game.boardWidth)
                             .padding(10)
-                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-                            .shadow(color: .blue.opacity(0.10), radius: 16, y: 8)
+                            .background(boardBackground, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                            .shadow(color: .blue.opacity(colorScheme == .dark ? 0.16 : 0.10), radius: 16, y: 8)
                             .padding(.horizontal, 2)
                     }
 
                     VStack(alignment: .leading, spacing: 8) {
                         Label("iPhone 风格扫雷", systemImage: "sparkles")
                             .font(.subheadline.bold())
-                        Text("点按翻开格子，长按插旗。首点会保护周围九宫格，更容易展开。现在会按难度记录最佳通关时间。")
+                        Text("已加入深色模式适配、App 图标和最佳成绩记录。点按翻开格子，长按插旗。")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(16)
-                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .background(cardBackground, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
 
                     Spacer(minLength: 0)
                 }
@@ -124,6 +125,21 @@ struct ContentView: View {
         if game.gameOver { return game.didWin ? .green : .red }
         return .blue
     }
+
+    private var backgroundGradient: [Color] {
+        if colorScheme == .dark {
+            return [Color.black, Color.blue.opacity(0.35), Color.indigo.opacity(0.35)]
+        }
+        return [Color.blue.opacity(0.18), Color.cyan.opacity(0.10), Color.white]
+    }
+
+    private var cardBackground: some ShapeStyle {
+        colorScheme == .dark ? AnyShapeStyle(Color.white.opacity(0.08)) : AnyShapeStyle(.ultraThinMaterial)
+    }
+
+    private var boardBackground: some ShapeStyle {
+        colorScheme == .dark ? AnyShapeStyle(Color.white.opacity(0.10)) : AnyShapeStyle(.regularMaterial)
+    }
 }
 
 struct StatusBadge: View {
@@ -172,6 +188,7 @@ struct BoardView: View {
 }
 
 struct CellView: View {
+    @Environment(\.colorScheme) private var colorScheme
     let cell: Cell
     let size: Double
 
@@ -184,7 +201,7 @@ struct CellView: View {
                         .stroke(borderColor, lineWidth: 1)
                 )
                 .frame(width: size, height: size)
-                .shadow(color: cell.isRevealed ? .clear : .white.opacity(0.5), radius: 1, x: 0, y: -1)
+                .shadow(color: cell.isRevealed ? .clear : .white.opacity(colorScheme == .dark ? 0.08 : 0.5), radius: 1, x: 0, y: -1)
 
             if cell.wrongFlag {
                 Image(systemName: "xmark")
@@ -212,11 +229,11 @@ struct CellView: View {
     private var backgroundFill: some ShapeStyle {
         if cell.wrongFlag { return AnyShapeStyle(Color.red.opacity(0.12)) }
         if cell.isRevealed {
-            return AnyShapeStyle(cell.isMine ? Color.red.opacity(0.18) : Color.gray.opacity(0.18))
+            return AnyShapeStyle(cell.isMine ? Color.red.opacity(0.22) : Color.gray.opacity(colorScheme == .dark ? 0.28 : 0.18))
         }
         return AnyShapeStyle(
             LinearGradient(
-                colors: [Color.white.opacity(0.95), Color.blue.opacity(0.10)],
+                colors: colorScheme == .dark ? [Color.white.opacity(0.10), Color.blue.opacity(0.18)] : [Color.white.opacity(0.95), Color.blue.opacity(0.10)],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -225,7 +242,7 @@ struct CellView: View {
 
     private var borderColor: Color {
         if cell.didExplode { return .red.opacity(0.65) }
-        return cell.isRevealed ? .gray.opacity(0.2) : .blue.opacity(0.18)
+        return cell.isRevealed ? .gray.opacity(0.2) : .blue.opacity(colorScheme == .dark ? 0.28 : 0.18)
     }
 
     private var numberColor: Color {
