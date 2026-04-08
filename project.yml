@@ -1,24 +1,32 @@
+# Last updated: 2026-04-08 15:18 CST
 name: MinesweeperIPA
 options:
   bundleIdPrefix: com.joeshu
-packages: []
 settings:
   base:
     PRODUCT_NAME: MinesweeperIPA
     IPHONEOS_DEPLOYMENT_TARGET: 16.0
+    SWIFT_VERSION: 5.9
+    TARGETED_DEVICE_FAMILY: 1,2
+    SUPPORTS_MACCATALYST: NO
 targets:
   MinesweeperIPA:
     type: application
     platform: iOS
+    deploymentTarget: "16.0"
     sources:
-      - Sources
-      - Resources
+      - path: Sources
+      - path: Resources
     settings:
       base:
         INFOPLIST_FILE: Resources/Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: com.joeshu.MinesweeperIPA
-        SWIFT_VERSION: 5.9
-        TARGETED_DEVICE_FAMILY: 1,2
-        SUPPORTS_MACCATALYST: NO
-    scheme:
-      testTargets: []
+schemes:
+  MinesweeperIPA:
+    build:
+      targets:
+        MinesweeperIPA: all
+    run:
+      config: Debug
+    archive:
+      config: Release
