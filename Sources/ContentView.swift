@@ -1,4 +1,4 @@
-// Last updated: 2026-04-08 17:46 CST
+// Last updated: 2026-04-08 17:52 CST
 import SwiftUI
 
 struct ContentView: View {
@@ -158,7 +158,6 @@ struct BoardView: View {
                 }
             }
         }
-        .animation(.spring(response: 0.25, dampingFraction: 0.88), value: game.board)
     }
 }
 
