@@ -1,5 +1,6 @@
-// Last updated: 2026-04-08 16:53 CST
+// Last updated: 2026-04-08 16:57 CST
 import Foundation
+import CoreGraphics
 
 enum Difficulty: String, CaseIterable, Identifiable {
     case beginner = "初级"
@@ -12,7 +13,7 @@ enum Difficulty: String, CaseIterable, Identifiable {
         switch self {
         case .beginner: return (9, 9, 10)
         case .intermediate: return (16, 16, 40)
-        case .expert: return (16, 30, 99)
+        case .expert: return (16, 16, 60)
         }
     }
 }
@@ -203,13 +204,13 @@ final class MinesweeperGame: ObservableObject {
         return max(0, mines - flags)
     }
 
-    var boardWidth: Double {
-        let cellSize: Double = difficulty == .expert ? 18 : difficulty == .intermediate ? 20 : 34
-        let spacing: Double = 4
-        return Double(cols) * cellSize + Double(max(0, cols - 1)) * spacing
+    var boardWidth: CGFloat {
+        let size = cellSize
+        let spacing: CGFloat = 4
+        return CGFloat(cols) * size + CGFloat(max(0, cols - 1)) * spacing
     }
 
-    var cellSize: Double {
+    var cellSize: CGFloat {
         switch difficulty {
         case .beginner: return 34
         case .intermediate: return 20
