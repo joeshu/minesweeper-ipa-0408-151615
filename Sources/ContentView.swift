@@ -1,4 +1,4 @@
-// Last updated: 2026-04-08 17:52 CST
+// Last updated: 2026-04-08 18:23 CST
 import SwiftUI
 
 struct ContentView: View {
@@ -39,10 +39,15 @@ struct ContentView: View {
                             .tint(.blue)
                         }
 
-                        Text(statusText)
-                            .font(.headline)
-                            .foregroundStyle(statusColor)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                        HStack(spacing: 10) {
+                            Text(statusText)
+                                .font(.headline)
+                                .foregroundStyle(statusColor)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            if let best = BestScoreStore.bestTime(for: game.difficulty) {
+                                StatusBadge(systemImage: "trophy.fill", text: "最佳 \(best)s", color: .green)
+                            }
+                        }
                     }
                     .padding(16)
                     .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
@@ -60,7 +65,7 @@ struct ContentView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Label("iPhone 风格扫雷", systemImage: "sparkles")
                             .font(.subheadline.bold())
-                        Text("点按翻开格子，长按插旗。首点会保护周围九宫格，更容易展开。失败时会高亮踩中的雷并标出误旗。")
+                        Text("点按翻开格子，长按插旗。首点会保护周围九宫格，更容易展开。现在会按难度记录最佳通关时间。")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
@@ -76,6 +81,7 @@ struct ContentView: View {
             .onChange(of: game.gameOver) { newValue in
                 if newValue {
                     if game.didWin {
+                        BestScoreStore.registerWin(seconds: game.elapsedSeconds, difficulty: game.difficulty)
                         Haptics.success()
                     } else {
                         Haptics.error()
@@ -90,7 +96,11 @@ struct ContentView: View {
                 }
                 Button("关闭", role: .cancel) {}
             } message: {
-                Text(game.didWin ? "用时 \(game.elapsedSeconds) 秒，已自动标出剩余地雷。" : "这次有误旗提示，方便你复盘。")
+                if game.didWin, let best = BestScoreStore.bestTime(for: game.difficulty) {
+                    Text("用时 \(game.elapsedSeconds) 秒。当前难度最佳成绩：\(best) 秒。")
+                } else {
+                    Text("这次有误旗提示，方便你复盘。")
+                }
             }
         }
     }
