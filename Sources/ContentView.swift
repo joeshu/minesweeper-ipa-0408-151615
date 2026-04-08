@@ -1,4 +1,4 @@
-// Last updated: 2026-04-08 17:25 CST
+// Last updated: 2026-04-08 17:46 CST
 import SwiftUI
 
 struct ContentView: View {
@@ -7,59 +7,85 @@ struct ContentView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 16) {
-                Picker("难度", selection: difficultyBinding) {
-                    ForEach(Difficulty.allCases) { level in
-                        Text(level.rawValue).tag(level)
-                    }
-                }
-                .pickerStyle(.segmented)
+            ZStack {
+                LinearGradient(
+                    colors: [Color.blue.opacity(0.18), Color.cyan.opacity(0.10), Color.white],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
 
-                HStack {
-                    StatusBadge(systemImage: "flag.fill", text: "\(game.remainingMinesEstimate)", color: .orange)
-                    Spacer()
-                    StatusBadge(systemImage: "timer", text: "\(game.elapsedSeconds)s", color: .blue)
-                    Spacer()
-                    Button {
-                        game.reset()
-                    } label: {
-                        Label("重开", systemImage: "arrow.clockwise")
-                    }
-                    .buttonStyle(.borderedProminent)
-                }
+                VStack(spacing: 18) {
+                    VStack(spacing: 14) {
+                        Picker("难度", selection: difficultyBinding) {
+                            ForEach(Difficulty.allCases) { level in
+                                Text(level.rawValue).tag(level)
+                            }
+                        }
+                        .pickerStyle(.segmented)
 
-                Text(statusText)
-                    .font(.headline)
-                    .foregroundStyle(statusColor)
+                        HStack {
+                            StatusBadge(systemImage: "flag.fill", text: "\(game.remainingMinesEstimate)", color: .orange)
+                            Spacer()
+                            StatusBadge(systemImage: "timer", text: "\(game.elapsedSeconds)s", color: .blue)
+                            Spacer()
+                            Button {
+                                Haptics.tap()
+                                game.reset()
+                            } label: {
+                                Label("重开", systemImage: "arrow.clockwise")
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.blue)
+                        }
+
+                        Text(statusText)
+                            .font(.headline)
+                            .foregroundStyle(statusColor)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .padding(16)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                    .shadow(color: .black.opacity(0.06), radius: 18, y: 10)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        BoardView(game: game)
+                            .frame(width: game.boardWidth)
+                            .padding(10)
+                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                            .shadow(color: .blue.opacity(0.10), radius: 16, y: 8)
+                            .padding(.horizontal, 2)
+                    }
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label("iPhone 风格扫雷", systemImage: "sparkles")
+                            .font(.subheadline.bold())
+                        Text("点按翻开格子，长按插旗。首点会保护周围九宫格，更容易展开。失败时会高亮踩中的雷并标出误旗。")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(16)
+                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
 
-                ScrollView(.horizontal, showsIndicators: false) {
-                    BoardView(game: game)
-                        .frame(width: game.boardWidth)
-                        .padding(8)
-                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+                    Spacer(minLength: 0)
                 }
-
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("玩法")
-                        .font(.subheadline.bold())
-                    Text("点按翻开格子，长按插旗。首点会保护周围九宫格，更容易展开。踩雷后会显示误旗。")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-                Spacer()
+                .padding()
             }
-            .padding()
             .navigationTitle("扫雷")
             .onChange(of: game.gameOver) { newValue in
                 if newValue {
+                    if game.didWin {
+                        Haptics.success()
+                    } else {
+                        Haptics.error()
+                    }
                     showingResultAlert = true
                 }
             }
             .alert(game.didWin ? "你赢了" : "踩雷了", isPresented: $showingResultAlert) {
                 Button("再来一局") {
+                    Haptics.tap()
                     game.reset()
                 }
                 Button("关闭", role: .cancel) {}
@@ -72,7 +98,10 @@ struct ContentView: View {
     private var difficultyBinding: Binding<Difficulty> {
         Binding(
             get: { game.difficulty },
-            set: { game.applyDifficulty($0) }
+            set: {
+                Haptics.tap()
+                game.applyDifficulty($0)
+            }
         )
     }
 
@@ -100,8 +129,8 @@ struct StatusBadge: View {
         }
         .font(.subheadline.weight(.semibold))
         .foregroundStyle(color)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
         .background(color.opacity(0.12), in: Capsule())
     }
 }
@@ -118,15 +147,18 @@ struct BoardView: View {
                         CellView(cell: cell, size: game.cellSize)
                             .contentShape(Rectangle())
                             .onTapGesture {
+                                Haptics.tap()
                                 game.reveal(row: r, col: c)
                             }
                             .onLongPressGesture(minimumDuration: 0.35) {
+                                Haptics.tap()
                                 game.toggleFlag(row: r, col: c)
                             }
                     }
                 }
             }
         }
+        .animation(.spring(response: 0.25, dampingFraction: 0.88), value: game.board)
     }
 }
 
@@ -136,13 +168,14 @@ struct CellView: View {
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 6)
-                .fill(backgroundColor)
+            RoundedRectangle(cornerRadius: 8)
+                .fill(backgroundFill)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 6)
+                    RoundedRectangle(cornerRadius: 8)
                         .stroke(borderColor, lineWidth: 1)
                 )
                 .frame(width: size, height: size)
+                .shadow(color: cell.isRevealed ? .clear : .white.opacity(0.5), radius: 1, x: 0, y: -1)
 
             if cell.wrongFlag {
                 Image(systemName: "xmark")
@@ -164,17 +197,26 @@ struct CellView: View {
                     .foregroundStyle(.orange)
             }
         }
+        .scaleEffect(cell.didExplode ? 1.03 : 1.0)
     }
 
-    private var backgroundColor: Color {
-        if cell.wrongFlag { return .red.opacity(0.12) }
-        if cell.isRevealed { return cell.isMine ? .red.opacity(0.18) : .gray.opacity(0.18) }
-        return .blue.opacity(0.12)
+    private var backgroundFill: some ShapeStyle {
+        if cell.wrongFlag { return AnyShapeStyle(Color.red.opacity(0.12)) }
+        if cell.isRevealed {
+            return AnyShapeStyle(cell.isMine ? Color.red.opacity(0.18) : Color.gray.opacity(0.18))
+        }
+        return AnyShapeStyle(
+            LinearGradient(
+                colors: [Color.white.opacity(0.95), Color.blue.opacity(0.10)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
     }
 
     private var borderColor: Color {
-        if cell.didExplode { return .red.opacity(0.6) }
-        return cell.isRevealed ? .gray.opacity(0.2) : .blue.opacity(0.3)
+        if cell.didExplode { return .red.opacity(0.65) }
+        return cell.isRevealed ? .gray.opacity(0.2) : .blue.opacity(0.18)
     }
 
     private var numberColor: Color {
