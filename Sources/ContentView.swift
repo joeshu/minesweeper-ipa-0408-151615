@@ -1,10 +1,8 @@
-// Last updated: 2026-04-08 15:16 CST
+// Last updated: 2026-04-08 15:24 CST
 import SwiftUI
 
 struct ContentView: View {
     @StateObject private var game = MinesweeperGame()
-
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 9)
 
     var body: some View {
         NavigationStack {
@@ -26,22 +24,9 @@ struct ContentView: View {
                     .foregroundStyle(statusColor)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                LazyVGrid(columns: columns, spacing: 4) {
-                    ForEach(0..<game.rows, id: \.self) { r in
-                        ForEach(0..<game.cols, id: \.self) { c in
-                            let cell = game.board[r][c]
-                            CellView(cell: cell)
-                                .onTapGesture {
-                                    game.reveal(row: r, col: c)
-                                }
-                                .onLongPressGesture {
-                                    game.toggleFlag(row: r, col: c)
-                                }
-                        }
-                    }
-                }
-                .padding(8)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+                BoardView(game: game)
+                    .padding(8)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
 
                 VStack(alignment: .leading, spacing: 6) {
                     Text("玩法")
@@ -67,6 +52,29 @@ struct ContentView: View {
     private var statusColor: Color {
         if game.gameOver { return game.didWin ? .green : .red }
         return .blue
+    }
+}
+
+struct BoardView: View {
+    @ObservedObject var game: MinesweeperGame
+
+    var body: some View {
+        VStack(spacing: 4) {
+            ForEach(0..<game.rows, id: \.self) { r in
+                HStack(spacing: 4) {
+                    ForEach(0..<game.cols, id: \.self) { c in
+                        let cell = game.board[r][c]
+                        CellView(cell: cell)
+                            .onTapGesture {
+                                game.reveal(row: r, col: c)
+                            }
+                            .onLongPressGesture {
+                                game.toggleFlag(row: r, col: c)
+                            }
+                    }
+                }
+            }
+        }
     }
 }
 
