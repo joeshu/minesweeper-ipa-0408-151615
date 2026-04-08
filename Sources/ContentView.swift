@@ -1,4 +1,4 @@
-// Last updated: 2026-04-08 16:59 CST
+// Last updated: 2026-04-08 17:07 CST
 import SwiftUI
 
 struct ContentView: View {
@@ -55,7 +55,7 @@ struct ContentView: View {
             }
             .padding()
             .navigationTitle("扫雷")
-            .onChange(of: game.gameOver) { _, newValue in
+            .onChange(of: game.gameOver) { newValue in
                 if newValue {
                     showingResultAlert = true
                 }
