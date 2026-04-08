@@ -1,0 +1,71 @@
+# Last updated: 2026-04-08 15:16 CST
+name: Build unsigned IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select latest Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build device app (iphoneos, unsigned)
+        run: |
+          xcodebuild build \
+            -project MinesweeperIPA.xcodeproj \
+            -scheme MinesweeperIPA \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/DerivedDataDevice" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            PROVISIONING_PROFILE_SPECIFIER=""
+
+      - name: Pack unsigned device ipa
+        run: |
+          mkdir -p "$RUNNER_TEMP/Payload"
+          APP_PATH="$RUNNER_TEMP/DerivedDataDevice/Build/Products/Release-iphoneos/MinesweeperIPA.app"
+          if [ ! -d "$APP_PATH" ]; then
+            echo 'Device .app not found'
+            find "$RUNNER_TEMP/DerivedDataDevice" -maxdepth 6 -name MinesweeperIPA.app -print
+            exit 1
+          fi
+          cp -R "$APP_PATH" "$RUNNER_TEMP/Payload/MinesweeperIPA.app"
+          cd "$RUNNER_TEMP"
+          /usr/bin/zip -qry MinesweeperIPA-unsigned-device.ipa Payload
+          rm -rf Payload
+          ls -lh MinesweeperIPA-unsigned-device.ipa
+
+      - name: Upload device ipa artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MinesweeperIPA-unsigned-device-ipa
+          path: ${{ runner.temp }}/MinesweeperIPA-unsigned-device.ipa
+
+      - name: Create release and upload device ipa
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: unsigned-v${{ github.run_number }}
+          name: unsigned build #${{ github.run_number }}
+          generate_release_notes: true
+          files: ${{ runner.temp }}/MinesweeperIPA-unsigned-device.ipa
