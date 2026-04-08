@@ -1,5 +1,21 @@
-// Last updated: 2026-04-08 16:30 CST
+// Last updated: 2026-04-08 16:53 CST
 import Foundation
+
+enum Difficulty: String, CaseIterable, Identifiable {
+    case beginner = "初级"
+    case intermediate = "中级"
+    case expert = "高级"
+
+    var id: String { rawValue }
+
+    var config: (rows: Int, cols: Int, mines: Int) {
+        switch self {
+        case .beginner: return (9, 9, 10)
+        case .intermediate: return (16, 16, 40)
+        case .expert: return (16, 30, 99)
+        }
+    }
+}
 
 struct Cell: Identifiable {
     let id = UUID()
@@ -16,23 +32,30 @@ final class MinesweeperGame: ObservableObject {
     @Published var gameOver = false
     @Published var didWin = false
     @Published var elapsedSeconds = 0
+    @Published var difficulty: Difficulty = .beginner
 
-    let rows: Int
-    let cols: Int
-    let mines: Int
+    private(set) var rows: Int = 9
+    private(set) var cols: Int = 9
+    private(set) var mines: Int = 10
 
     private var firstMoveMade = false
     private var timer: Timer?
 
-    init(rows: Int = 9, cols: Int = 9, mines: Int = 10) {
-        self.rows = rows
-        self.cols = cols
-        self.mines = mines
-        reset()
+    init() {
+        applyDifficulty(.beginner)
     }
 
     deinit {
         timer?.invalidate()
+    }
+
+    func applyDifficulty(_ newDifficulty: Difficulty) {
+        difficulty = newDifficulty
+        let cfg = newDifficulty.config
+        rows = cfg.rows
+        cols = cfg.cols
+        mines = cfg.mines
+        reset()
     }
 
     func reset() {
@@ -62,6 +85,8 @@ final class MinesweeperGame: ObservableObject {
             for c in 0..<cols {
                 board[r][c].isMine = false
                 board[r][c].adjacent = 0
+                board[r][c].isRevealed = false
+                board[r][c].isFlagged = false
             }
         }
         var placed = 0
@@ -131,6 +156,7 @@ final class MinesweeperGame: ObservableObject {
             gameOver = true
             didWin = true
             timer?.invalidate()
+            autoFlagRemainingMines()
         }
         objectWillChange.send()
     }
@@ -154,6 +180,14 @@ final class MinesweeperGame: ObservableObject {
         }
     }
 
+    private func autoFlagRemainingMines() {
+        for r in 0..<rows {
+            for c in 0..<cols where board[r][c].isMine {
+                board[r][c].isFlagged = true
+            }
+        }
+    }
+
     private func checkWin() -> Bool {
         for r in 0..<rows {
             for c in 0..<cols {
@@ -167,5 +201,19 @@ final class MinesweeperGame: ObservableObject {
     var remainingMinesEstimate: Int {
         let flags = board.flatMap { $0 }.filter { $0.isFlagged }.count
         return max(0, mines - flags)
+    }
+
+    var boardWidth: Double {
+        let cellSize: Double = difficulty == .expert ? 18 : difficulty == .intermediate ? 20 : 34
+        let spacing: Double = 4
+        return Double(cols) * cellSize + Double(max(0, cols - 1)) * spacing
+    }
+
+    var cellSize: Double {
+        switch difficulty {
+        case .beginner: return 34
+        case .intermediate: return 20
+        case .expert: return 18
+        }
     }
 }

@@ -1,15 +1,26 @@
-// Last updated: 2026-04-08 15:24 CST
+// Last updated: 2026-04-08 16:53 CST
 import SwiftUI
 
 struct ContentView: View {
     @StateObject private var game = MinesweeperGame()
+    @State private var showingResultAlert = false
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
+                Picker("难度", selection: difficultyBinding) {
+                    ForEach(Difficulty.allCases) { level in
+                        Text(level.rawValue).tag(level)
+                    }
+                }
+                .pickerStyle(.segmented)
+
                 HStack {
                     Label("\(game.remainingMinesEstimate)", systemImage: "flag.fill")
                         .foregroundStyle(.orange)
+                    Spacer()
+                    Label("\(game.elapsedSeconds)s", systemImage: "timer")
+                        .foregroundStyle(.blue)
                     Spacer()
                     Button {
                         game.reset()
@@ -24,14 +35,17 @@ struct ContentView: View {
                     .foregroundStyle(statusColor)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                BoardView(game: game)
-                    .padding(8)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+                ScrollView(.horizontal, showsIndicators: false) {
+                    BoardView(game: game)
+                        .frame(width: game.boardWidth)
+                        .padding(8)
+                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+                }
 
                 VStack(alignment: .leading, spacing: 6) {
                     Text("玩法")
                         .font(.subheadline.bold())
-                    Text("点按翻开格子，长按插旗。翻到雷就失败，翻完所有非雷格子即获胜。")
+                    Text("点按翻开格子，长按插旗。首点保证不是雷。初级为 9×9，支持切换中级与高级。")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -41,12 +55,32 @@ struct ContentView: View {
             }
             .padding()
             .navigationTitle("扫雷")
+            .onChange(of: game.gameOver) { _, newValue in
+                if newValue {
+                    showingResultAlert = true
+                }
+            }
+            .alert(game.didWin ? "你赢了" : "踩雷了", isPresented: $showingResultAlert) {
+                Button("再来一局") {
+                    game.reset()
+                }
+                Button("关闭", role: .cancel) {}
+            } message: {
+                Text(game.didWin ? "用时 \(game.elapsedSeconds) 秒，已自动标出剩余地雷。" : "别灰心，下一局一定行。")
+            }
         }
+    }
+
+    private var difficultyBinding: Binding<Difficulty> {
+        Binding(
+            get: { game.difficulty },
+            set: { game.applyDifficulty($0) }
+        )
     }
 
     private var statusText: String {
         if game.gameOver { return game.didWin ? "你赢了！" : "踩雷了，再来一局" }
-        return "进行中"
+        return "进行中 · \(game.difficulty.rawValue)"
     }
 
     private var statusColor: Color {
@@ -64,7 +98,8 @@ struct BoardView: View {
                 HStack(spacing: 4) {
                     ForEach(0..<game.cols, id: \.self) { c in
                         let cell = game.board[r][c]
-                        CellView(cell: cell)
+                        CellView(cell: cell, size: game.cellSize)
+                            .contentShape(Rectangle())
                             .onTapGesture {
                                 game.reveal(row: r, col: c)
                             }
@@ -80,23 +115,30 @@ struct BoardView: View {
 
 struct CellView: View {
     let cell: Cell
+    let size: Double
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: 6)
                 .fill(backgroundColor)
-                .frame(width: 34, height: 34)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(borderColor, lineWidth: 1)
+                )
+                .frame(width: size, height: size)
             if cell.isRevealed {
                 if cell.isMine {
                     Image(systemName: "burst.fill")
+                        .font(.system(size: max(10, size * 0.5)))
                         .foregroundStyle(.red)
                 } else if cell.adjacent > 0 {
                     Text("\(cell.adjacent)")
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .font(.system(size: max(10, size * 0.45), weight: .bold, design: .rounded))
                         .foregroundStyle(numberColor)
                 }
             } else if cell.isFlagged {
                 Image(systemName: "flag.fill")
+                    .font(.system(size: max(10, size * 0.45)))
                     .foregroundStyle(.orange)
             }
         }
@@ -104,7 +146,11 @@ struct CellView: View {
 
     private var backgroundColor: Color {
         if cell.isRevealed { return cell.isMine ? .red.opacity(0.18) : .gray.opacity(0.18) }
-        return .blue.opacity(0.16)
+        return .blue.opacity(0.12)
+    }
+
+    private var borderColor: Color {
+        cell.isRevealed ? .gray.opacity(0.2) : .blue.opacity(0.3)
     }
 
     private var numberColor: Color {
@@ -113,6 +159,8 @@ struct CellView: View {
         case 2: return .green
         case 3: return .red
         case 4: return .purple
+        case 5: return .orange
+        case 6: return .cyan
         default: return .primary
         }
     }
