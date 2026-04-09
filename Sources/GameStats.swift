@@ -9,6 +9,7 @@ struct DailyChallengeStatus: Codable {
 struct HintDescriptor {
     enum Kind {
         case safe
+        case flag
         case risky
         case none
     }

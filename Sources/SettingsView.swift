@@ -121,6 +121,16 @@ struct SettingsView: View {
                 
                 // 挑战模式
                 Section(header: Text("挑战模式")) {
+                    HStack {
+                        Text("每日挑战")
+                        Spacer()
+                        if viewModel.gameStats.getTodayDailyChallengeStatus() != nil {
+                            Label("今日已完成", systemImage: "checkmark.seal.fill")
+                                .font(.caption)
+                                .foregroundColor(.green)
+                        }
+                    }
+                    
                     Picker("模式", selection: Binding(
                         get: { viewModel.challengeMode },
                         set: { viewModel.setChallengeMode($0) }

@@ -390,6 +390,10 @@ class GameViewModel: ObservableObject {
     }
     
     private func computeHintDescriptor() -> HintDescriptor {
+        if let flagTarget = findFlagRecommendation() {
+            return HintDescriptor(position: flagTarget, message: "已高亮建议标雷的位置", kind: .flag)
+        }
+        
         guard let position = gameBoard.getHint() else {
             return HintDescriptor(position: nil, message: "当前没有可用提示", kind: .none)
         }
@@ -404,6 +408,38 @@ class GameViewModel: ObservableObject {
             message: challengeMode == .noGuess ? "已高亮低风险逻辑位" : "已高亮建议点击位置（有一定风险）",
             kind: .risky
         )
+    }
+    
+    private func findFlagRecommendation() -> (row: Int, col: Int)? {
+        for row in 0..<gameBoard.rows {
+            for col in 0..<gameBoard.cols {
+                let cell = gameBoard.cells[row][col]
+                guard cell.isRevealed && cell.neighborMines > 0 else { continue }
+                
+                var hiddenNeighbors: [(Int, Int)] = []
+                var flaggedCount = 0
+                
+                for dr in -1...1 {
+                    for dc in -1...1 {
+                        if dr == 0 && dc == 0 { continue }
+                        let nr = row + dr
+                        let nc = col + dc
+                        guard nr >= 0 && nr < gameBoard.rows && nc >= 0 && nc < gameBoard.cols else { continue }
+                        let neighbor = gameBoard.cells[nr][nc]
+                        if neighbor.isFlagged {
+                            flaggedCount += 1
+                        } else if neighbor.isHidden {
+                            hiddenNeighbors.append((nr, nc))
+                        }
+                    }
+                }
+                
+                if !hiddenNeighbors.isEmpty && hiddenNeighbors.count + flaggedCount == cell.neighborMines {
+                    return hiddenNeighbors.first
+                }
+            }
+        }
+        return nil
     }
     
     private func safeHintConfidence(row: Int, col: Int) -> Bool {

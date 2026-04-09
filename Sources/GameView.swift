@@ -244,6 +244,7 @@ struct GameView: View {
     private var hintColor: Color {
         switch viewModel.hintKind {
         case .safe: return .green
+        case .flag: return .red
         case .risky: return .orange
         case .none: return .secondary
         }
@@ -252,6 +253,7 @@ struct GameView: View {
     private var hintIcon: String {
         switch viewModel.hintKind {
         case .safe: return "checkmark.seal.fill"
+        case .flag: return "flag.fill"
         case .risky: return "exclamationmark.triangle.fill"
         case .none: return "lightbulb.max.fill"
         }
