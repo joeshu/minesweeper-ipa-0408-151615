@@ -25,6 +25,12 @@ struct GameView: View {
                         .padding(.horizontal)
                         .padding(.top, 8)
                     
+                    if !viewModel.gameBoard.generationQualityNote.isEmpty && viewModel.challengeMode == .noGuess {
+                        generationBanner
+                            .padding(.horizontal)
+                            .padding(.top, 8)
+                    }
+                    
                     if !viewModel.hintMessage.isEmpty {
                         hintBanner
                             .padding(.horizontal)
@@ -219,6 +225,22 @@ struct GameView: View {
                 viewModel.showHint()
             }
         }
+    }
+    
+    private var generationBanner: some View {
+        HStack(spacing: 8) {
+            Image(systemName: viewModel.gameBoard.generationQualityNote.contains("严格") ? "shield.checkered" : "wand.and.stars")
+                .foregroundColor(viewModel.gameBoard.generationQualityNote.contains("严格") ? .green : .orange)
+            Text(viewModel.gameBoard.generationQualityNote)
+                .font(.caption)
+                .foregroundColor(.primary)
+            Spacer()
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color(.secondarySystemBackground))
+        )
     }
     
     private var hintBanner: some View {

@@ -9,6 +9,7 @@ class GameBoard: ObservableObject {
     @Published private(set) var gameState: GameState = .playing
     @Published private(set) var flagCount: Int = 0
     @Published private(set) var revealedCount: Int = 0
+    @Published private(set) var generationQualityNote: String = ""
     
     let rows: Int
     let cols: Int
@@ -84,47 +85,53 @@ class GameBoard: ObservableObject {
     
     private func placeMines(excludingRow: Int, excludingCol: Int) {
         let baseSeed = forcedSeed ?? UInt64.random(in: 1...UInt64.max)
+        let strategyRadii: [Int] = requireLogicalSolvable ? [expandedSafeRadius, expandedSafeRadius + 1, expandedSafeRadius + 2] : [expandedSafeRadius]
         
-        for attempt in 0..<maxGenerationAttempts {
-            minePositions.removeAll()
-            initializeBoard()
-            
-            // 使用 Fisher-Yates 洗牌算法的变体来高效放置地雷
-            var availablePositions: [Int] = []
-            
-            for row in 0..<rows {
-                for col in 0..<cols {
-                    // 排除第一点击位置及其周围
-                    let isExcludedArea = abs(row - excludingRow) <= expandedSafeRadius && abs(col - excludingCol) <= expandedSafeRadius
-                    if !isExcludedArea {
-                        availablePositions.append(row * cols + col)
+        for radius in strategyRadii {
+            for attempt in 0..<maxGenerationAttempts {
+                minePositions.removeAll()
+                initializeBoard()
+                
+                // 使用 Fisher-Yates 洗牌算法的变体来高效放置地雷
+                var availablePositions: [Int] = []
+                
+                for row in 0..<rows {
+                    for col in 0..<cols {
+                        // 排除第一点击位置及其周围
+                        let isExcludedArea = abs(row - excludingRow) <= radius && abs(col - excludingCol) <= radius
+                        if !isExcludedArea {
+                            availablePositions.append(row * cols + col)
+                        }
                     }
                 }
-            }
-            
-            var seededGenerator = SeededGenerator(seed: baseSeed &+ UInt64(attempt))
-            
-            // 随机选择地雷位置
-            for i in 0..<min(totalMines, availablePositions.count) {
-                let randomIndex = Int.random(in: i..<availablePositions.count, using: &seededGenerator)
-                let position = availablePositions[randomIndex]
-                minePositions.insert(position)
-                availablePositions.swapAt(i, randomIndex)
-            }
-            
-            // 设置地雷
-            for position in minePositions {
-                let row = position / cols
-                let col = position % cols
-                cells[row][col] = Cell(row: row, col: col, isMine: true)
-            }
-            
-            calculateNeighborMines()
-            
-            if !requireLogicalSolvable || isLogicallySolvable(startRow: excludingRow, startCol: excludingCol) {
-                return
+                
+                var seededGenerator = SeededGenerator(seed: baseSeed &+ UInt64(attempt) &+ UInt64(radius * 10_000))
+                
+                // 随机选择地雷位置
+                for i in 0..<min(totalMines, availablePositions.count) {
+                    let randomIndex = Int.random(in: i..<availablePositions.count, using: &seededGenerator)
+                    let position = availablePositions[randomIndex]
+                    minePositions.insert(position)
+                    availablePositions.swapAt(i, randomIndex)
+                }
+                
+                // 设置地雷
+                for position in minePositions {
+                    let row = position / cols
+                    let col = position % cols
+                    cells[row][col] = Cell(row: row, col: col, isMine: true)
+                }
+                
+                calculateNeighborMines()
+                
+                if !requireLogicalSolvable || isLogicallySolvable(startRow: excludingRow, startCol: excludingCol) {
+                    generationQualityNote = radius == expandedSafeRadius ? "严格无猜盘面" : "回退增强盘面（扩大安全区）"
+                    return
+                }
             }
         }
+        
+        generationQualityNote = requireLogicalSolvable ? "未命中严格无猜，已使用回退策略" : "标准随机盘面"
     }
     
     private func calculateNeighborMines() {

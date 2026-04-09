@@ -152,7 +152,7 @@ class GameViewModel: ObservableObject {
         }
         
         if difficulty == .custom && didChange {
-            gameBoard = GameBoard(rows: customRows, cols: customCols, mineCount: customMines, seed: boardSeed, safeRadius: boardSafeRadius)
+            gameBoard = GameBoard(rows: customRows, cols: customCols, mineCount: customMines, seed: boardSeed, safeRadius: boardSafeRadius, requireLogicalSolvable: requireLogicalSolvableBoard)
             resetTimer()
             if challengeMode == .timed {
                 challengeSecondsRemaining = timedChallengeLimit
