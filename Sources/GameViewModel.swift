@@ -18,7 +18,7 @@ class GameViewModel: ObservableObject {
     @Published var canUndo: Bool = false
     @Published var showPauseOverlay: Bool = false
     @Published var hintPosition: (row: Int, col: Int)? = nil
-    @Published var showHint: Bool = false
+    @Published var isShowingHint: Bool = false
     @Published var hasSavedGame: Bool = false
     
     let gameStats = GameStats()
@@ -121,7 +121,7 @@ class GameViewModel: ObservableObject {
         
         // 清除提示
         hintPosition = nil
-        showHint = false
+        isShowingHint = false
         
         let exploded = gameBoard.revealCell(row: row, col: col)
         
@@ -187,7 +187,6 @@ class GameViewModel: ObservableObject {
     // MARK: - 撤销功能
     
     private func saveStateForUndo() {
-        let snapshot = gameBoard.createSnapshot(elapsedTime: elapsedTime)
         gameStateManager.pushState(
             cells: gameBoard.cells,
             gameState: gameBoard.gameState,
@@ -205,7 +204,7 @@ class GameViewModel: ObservableObject {
         elapsedTime = snapshot.elapsedTime
         canUndo = gameStateManager.canUndo
         hintPosition = nil
-        showHint = false
+        isShowingHint = false
         
         hapticManager.impact(.light)
     }
@@ -255,13 +254,13 @@ class GameViewModel: ObservableObject {
         guard gameBoard.gameState == .playing && !isPaused else { return }
         
         hintPosition = gameBoard.getHint()
-        showHint = hintPosition != nil
+        isShowingHint = hintPosition != nil
         
-        if showHint {
+        if isShowingHint {
             hapticManager.impact(.light)
             // 3秒后自动隐藏提示
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
-                self?.showHint = false
+                self?.isShowingHint = false
             }
         }
     }
@@ -375,7 +374,7 @@ class GameViewModel: ObservableObject {
         showWinAlert = false
         canUndo = false
         hintPosition = nil
-        showHint = false
+        isShowingHint = false
         gameStateManager.clearUndoStack()
         clearSavedGame()
         animationManager.stopAllAnimations()

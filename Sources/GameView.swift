@@ -248,7 +248,7 @@ struct GameView: View {
                         LazyHStack(spacing: spacing) {
                             ForEach(0..<viewModel.gameBoard.cols, id: \.self) { col in
                                 let cell = viewModel.gameBoard.cells[row][col]
-                                let isHint = viewModel.showHint && 
+                                let isHint = viewModel.isShowingHint && 
                                             viewModel.hintPosition?.row == row && 
                                             viewModel.hintPosition?.col == col
                                 
