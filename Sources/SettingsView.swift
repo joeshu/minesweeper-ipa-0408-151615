@@ -269,35 +269,21 @@ struct StepperView: View {
     let range: ClosedRange<Int>
     
     var body: some View {
-        HStack {
-            Text(title)
-            Spacer()
-            HStack(spacing: 16) {
-                Button(action: {
-                    if value > range.lowerBound {
-                        value -= 1
-                    }
-                }) {
-                    Image(systemName: "minus.circle.fill")
-                        .foregroundColor(.blue)
-                        .font(.title3)
-                }
-                .disabled(value <= range.lowerBound)
-                
+        Stepper {
+            HStack {
+                Text(title)
+                Spacer()
                 Text("\(value)")
                     .font(.system(.body, design: .monospaced))
-                    .frame(minWidth: 30)
-                
-                Button(action: {
-                    if value < range.upperBound {
-                        value += 1
-                    }
-                }) {
-                    Image(systemName: "plus.circle.fill")
-                        .foregroundColor(.blue)
-                        .font(.title3)
-                }
-                .disabled(value >= range.upperBound)
+                    .fontWeight(.medium)
+            }
+        } onIncrement: {
+            if value < range.upperBound {
+                value += 1
+            }
+        } onDecrement: {
+            if value > range.lowerBound {
+                value -= 1
             }
         }
     }
