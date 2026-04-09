@@ -76,6 +76,23 @@ struct SettingsView: View {
                         )
                         
                         VStack(alignment: .leading, spacing: 12) {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("当前配置")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text("\(viewModel.customRows) × \(viewModel.customCols) · \(viewModel.customMines) 雷")
+                                    .font(.headline)
+                                Text("雷密度：\(String(format: "%.1f", viewModel.customMineDensity * 100))%")
+                                    .font(.caption)
+                                    .foregroundColor(viewModel.customMineDensity > 0.22 ? .orange : .secondary)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color(.secondarySystemBackground))
+                            )
+                            
                             TextField("预设名称", text: $viewModel.presetNameDraft)
                                 .textInputAutocapitalization(.never)
                             

@@ -196,6 +196,11 @@ class GameViewModel: ObservableObject {
         "自定义 \(customRows)×\(customCols)"
     }
     
+    var customMineDensity: Double {
+        let total = max(1, customRows * customCols)
+        return Double(customMines) / Double(total)
+    }
+    
     func saveCurrentAsPreset() {
         let trimmed = presetNameDraft.trimmingCharacters(in: .whitespacesAndNewlines)
         let name = trimmed.isEmpty ? defaultPresetName : trimmed

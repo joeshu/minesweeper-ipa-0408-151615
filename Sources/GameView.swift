@@ -136,62 +136,97 @@ struct GameView: View {
     
     // MARK: - 游戏信息栏
     private var gameInfoBar: some View {
-        HStack(spacing: 12) {
-            // 剩余地雷数
-            infoCard(
-                icon: "flag.fill",
-                iconColor: .red,
-                value: "\(viewModel.remainingMines)",
-                label: "地雷"
-            )
-            
-            // 难度显示
-            VStack(spacing: 2) {
-                Text(viewModel.challengeMode == .none ? viewModel.difficulty.rawValue : viewModel.challengeMode.badgeTitle)
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(.primary)
-                Text("\(viewModel.gameBoard.rows)×\(viewModel.gameBoard.cols)")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
+        VStack(spacing: 10) {
+            HStack(spacing: 12) {
+                statChip(
+                    icon: "flag.fill",
+                    iconColor: .red,
+                    title: "剩余地雷",
+                    value: "\(viewModel.remainingMines)"
+                )
+                
+                statChip(
+                    icon: viewModel.challengeMode == .timed ? "timer" : "clock",
+                    iconColor: viewModel.challengeMode == .timed ? .orange : .blue,
+                    title: viewModel.challengeMode == .timed ? "倒计时" : "当前时间",
+                    value: viewModel.challengeMode == .timed ? "\(viewModel.challengeSecondsRemaining)s" : viewModel.formattedTime
+                )
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color(.secondarySystemBackground))
-            )
             
-            // 计时器
-            infoCard(
-                icon: viewModel.challengeMode == .timed ? "timer" : "clock",
-                iconColor: viewModel.challengeMode == .timed ? .orange : .blue,
-                value: viewModel.challengeMode == .timed ? "\(viewModel.challengeSecondsRemaining)s" : viewModel.formattedTime,
-                label: viewModel.challengeMode == .timed ? "倒计时" : "时间"
-            )
+            HStack(spacing: 8) {
+                modeBadge(
+                    title: viewModel.challengeMode == .none ? viewModel.difficulty.rawValue : viewModel.challengeMode.badgeTitle,
+                    color: modeBadgeColor
+                )
+                
+                modeBadge(
+                    title: "\(viewModel.gameBoard.rows)×\(viewModel.gameBoard.cols)",
+                    color: .secondary
+                )
+                
+                if viewModel.challengeMode == .noGuess && !viewModel.gameBoard.generationQualityNote.isEmpty {
+                    modeBadge(
+                        title: viewModel.gameBoard.generationQualityNote.contains("严格") ? "严格无猜" : "回退增强",
+                        color: viewModel.gameBoard.generationQualityNote.contains("严格") ? .green : .orange
+                    )
+                }
+                
+                Spacer()
+            }
         }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.secondarySystemBackground).opacity(0.92))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+                )
+        )
     }
     
-    private func infoCard(icon: String, iconColor: Color, value: String, label: String) -> some View {
-        VStack(spacing: 2) {
-            HStack(spacing: 4) {
+    private func statChip(icon: String, iconColor: Color, title: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
                 Image(systemName: icon)
                     .foregroundColor(iconColor)
                     .font(.caption)
-                Text(value)
-                    .font(.system(.body, design: .monospaced))
-                    .fontWeight(.bold)
+                Text(title)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
-            Text(label)
-                .font(.caption2)
-                .foregroundColor(.secondary)
+            Text(value)
+                .font(.system(.title3, design: .rounded))
+                .fontWeight(.bold)
+                .monospacedDigit()
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
         .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color(.secondarySystemBackground))
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color(.systemBackground).opacity(0.8))
         )
+    }
+    
+    private func modeBadge(title: String, color: Color) -> some View {
+        Text(title)
+            .font(.caption.weight(.semibold))
+            .foregroundColor(color == .secondary ? .secondary : color)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .fill((color == .secondary ? Color.gray : color).opacity(0.14))
+            )
+    }
+    
+    private var modeBadgeColor: Color {
+        switch viewModel.challengeMode {
+        case .none: return .blue
+        case .daily: return .purple
+        case .timed: return .orange
+        case .noGuess: return .green
+        }
     }
     
     // MARK: - 快捷操作栏
@@ -337,11 +372,15 @@ struct GameView: View {
                         }
                     }
                 }
-                .padding(4)
+                .padding(6)
                 .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(themeManager.gameTheme.boardBackgroundColor)
-                        .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(themeManager.gameTheme.boardBackgroundColor.opacity(0.95))
+                        .shadow(color: .black.opacity(0.12), radius: 10, x: 0, y: 4)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+                        )
                 )
                 .padding(.horizontal, max(0, offsetX))
                 .padding(.vertical, max(0, offsetY))
