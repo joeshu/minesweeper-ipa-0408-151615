@@ -1,10 +1,11 @@
-// Last updated: 2026-04-08 18:36 CST
+// Last updated: 2026-04-09 12:35 CST - 优化界面显示和性能
 import SwiftUI
 
 struct ContentView: View {
     @Environment(\.colorScheme) private var colorScheme
     @StateObject private var game = MinesweeperGame()
     @State private var showingResultAlert = false
+    @State private var containerWidth: CGFloat = 0
 
     var body: some View {
         NavigationStack {
@@ -16,20 +17,20 @@ struct ContentView: View {
                 )
                 .ignoresSafeArea()
 
-                VStack(spacing: 18) {
-                    VStack(spacing: 14) {
-                        Picker("难度", selection: difficultyBinding) {
-                            ForEach(Difficulty.allCases) { level in
-                                Text(level.rawValue).tag(level)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-
+                VStack(spacing: 16) {
+                    // 顶部控制区域
+                    VStack(spacing: 12) {
                         HStack {
-                            StatusBadge(systemImage: "flag.fill", text: "\(game.remainingMinesEstimate)", color: .orange)
+                            Picker("难度", selection: difficultyBinding) {
+                                ForEach(Difficulty.allCases) { level in
+                                    Text(level.rawValue).tag(level)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+                            .frame(maxWidth: 200)
+                            
                             Spacer()
-                            StatusBadge(systemImage: "timer", text: "\(game.elapsedSeconds)s", color: .blue)
-                            Spacer()
+                            
                             Button {
                                 Haptics.tap()
                                 game.reset()
@@ -40,30 +41,35 @@ struct ContentView: View {
                             .tint(.blue)
                         }
 
-                        HStack(spacing: 10) {
-                            Text(statusText)
-                                .font(.headline)
-                                .foregroundStyle(statusColor)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                        HStack(spacing: 12) {
+                            StatusBadge(systemImage: "flag.fill", text: "\(game.remainingMinesEstimate)", color: .orange)
+                            StatusBadge(systemImage: "timer", text: "\(game.elapsedSeconds)s", color: .blue)
                             if let best = BestScoreStore.bestTime(for: game.difficulty) {
                                 StatusBadge(systemImage: "trophy.fill", text: "最佳 \(best)s", color: .green)
                             }
                         }
                     }
                     .padding(16)
-                    .background(cardBackground, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-                    .shadow(color: .black.opacity(colorScheme == .dark ? 0.22 : 0.06), radius: 18, y: 10)
+                    .background(cardBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .shadow(color: .black.opacity(colorScheme == .dark ? 0.2 : 0.05), radius: 12, y: 6)
 
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        BoardView(game: game)
-                            .frame(width: game.boardWidth)
-                            .padding(10)
-                            .background(boardBackground, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-                            .shadow(color: .blue.opacity(colorScheme == .dark ? 0.16 : 0.10), radius: 16, y: 8)
-                            .padding(.horizontal, 2)
+                    // 游戏棋盘区域 - 优化布局
+                    GeometryReader { geometry in
+                        let boardWidth = min(game.boardWidth, geometry.size.width - 40)
+                        let cellSize = boardWidth / Double(game.cols)
+                        
+                        BoardView(game: game, cellSize: cellSize)
+                            .frame(width: boardWidth, height: cellSize * Double(game.rows) + 4.0 * Double(max(0, game.rows - 1)))
+                            .background(boardBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .shadow(color: .blue.opacity(colorScheme == .dark ? 0.12 : 0.08), radius: 8, y: 4)
+                            .padding(.horizontal, 20)
+                            .onAppear {
+                                containerWidth = geometry.size.width
+                            }
                     }
 
-                    VStack(alignment: .leading, spacing: 8) {
+                    // 底部信息区域
+                    VStack(alignment: .leading, spacing: 6) {
                         Label("iPhone 风格扫雷", systemImage: "sparkles")
                             .font(.subheadline.bold())
                         Text("已加入深色模式适配、App 图标和最佳成绩记录。点按翻开格子，长按插旗。")
@@ -72,11 +78,12 @@ struct ContentView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(16)
-                    .background(cardBackground, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .background(cardBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
 
                     Spacer(minLength: 0)
                 }
-                .padding()
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
             }
             .navigationTitle("扫雷")
             .onChange(of: game.gameOver) { newValue in
@@ -128,17 +135,17 @@ struct ContentView: View {
 
     private var backgroundGradient: [Color] {
         if colorScheme == .dark {
-            return [Color.black, Color.blue.opacity(0.35), Color.indigo.opacity(0.35)]
+            return [Color.black, Color.blue.opacity(0.3), Color.indigo.opacity(0.25)]
         }
-        return [Color.blue.opacity(0.18), Color.cyan.opacity(0.10), Color.white]
+        return [Color.blue.opacity(0.15), Color.cyan.opacity(0.08), Color.white]
     }
 
     private var cardBackground: some ShapeStyle {
-        colorScheme == .dark ? AnyShapeStyle(Color.white.opacity(0.08)) : AnyShapeStyle(.ultraThinMaterial)
+        colorScheme == .dark ? AnyShapeStyle(Color.white.opacity(0.06)) : AnyShapeStyle(.ultraThinMaterial)
     }
 
     private var boardBackground: some ShapeStyle {
-        colorScheme == .dark ? AnyShapeStyle(Color.white.opacity(0.10)) : AnyShapeStyle(.regularMaterial)
+        colorScheme == .dark ? AnyShapeStyle(Color.white.opacity(0.08)) : AnyShapeStyle(.regularMaterial)
     }
 }
 
@@ -148,45 +155,48 @@ struct StatusBadge: View {
     let color: Color
 
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 4) {
             Image(systemName: systemImage)
             Text(text)
                 .monospacedDigit()
         }
-        .font(.subheadline.weight(.semibold))
+        .font(.caption.weight(.semibold))
         .foregroundStyle(color)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(color.opacity(0.12), in: Capsule())
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(color.opacity(0.1), in: Capsule())
     }
 }
 
+// 优化性能的棋盘视图
 struct BoardView: View {
     @ObservedObject var game: MinesweeperGame
+    let cellSize: Double
 
     var body: some View {
-        VStack(spacing: 4) {
-            ForEach(0..<game.rows, id: \.self) { r in
-                HStack(spacing: 4) {
-                    ForEach(0..<game.cols, id: \.self) { c in
-                        let cell = game.board[r][c]
-                        CellView(cell: cell, size: game.cellSize)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                Haptics.tap()
-                                game.reveal(row: r, col: c)
-                            }
-                            .onLongPressGesture(minimumDuration: 0.35) {
-                                Haptics.tap()
-                                game.toggleFlag(row: r, col: c)
-                            }
+        LazyVGrid(columns: Array(repeating: GridItem(.fixed(cellSize + 4), spacing: 4), count: game.cols),
+                  spacing: 4) {
+            ForEach(0..<game.rows * game.cols, id: \.self) { index in
+                let row = index / game.cols
+                let col = index % game.cols
+                let cell = game.board[row][col]
+                
+                CellView(cell: cell, size: cellSize)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        Haptics.tap()
+                        game.reveal(row: row, col: col)
                     }
-                }
+                    .onLongPressGesture(minimumDuration: 0.3) {
+                        Haptics.tap()
+                        game.toggleFlag(row: row, col: col)
+                    }
             }
         }
     }
 }
 
+// 优化性能的单元格视图
 struct CellView: View {
     @Environment(\.colorScheme) private var colorScheme
     let cell: Cell
@@ -194,55 +204,55 @@ struct CellView: View {
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: 6)
                 .fill(backgroundFill)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(borderColor, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(borderColor, lineWidth: 0.5)
                 )
                 .frame(width: size, height: size)
-                .shadow(color: cell.isRevealed ? .clear : .white.opacity(colorScheme == .dark ? 0.08 : 0.5), radius: 1, x: 0, y: -1)
+                .shadow(color: cell.isRevealed ? .clear : .white.opacity(colorScheme == .dark ? 0.06 : 0.3), 
+                       radius: cell.isRevealed ? 0 : 1, x: 0, y: -1)
 
             if cell.wrongFlag {
                 Image(systemName: "xmark")
-                    .font(.system(size: max(9, size * 0.38), weight: .bold))
+                    .font(.system(size: max(8, size * 0.35), weight: .bold))
                     .foregroundStyle(.red)
             } else if cell.isRevealed {
                 if cell.isMine {
                     Image(systemName: cell.didExplode ? "flame.fill" : "burst.fill")
-                        .font(.system(size: max(10, size * 0.5)))
+                        .font(.system(size: max(9, size * 0.45)))
                         .foregroundStyle(cell.didExplode ? .red : .primary)
                 } else if cell.adjacent > 0 {
                     Text("\(cell.adjacent)")
-                        .font(.system(size: max(10, size * 0.45), weight: .bold, design: .rounded))
+                        .font(.system(size: max(9, size * 0.4), weight: .bold, design: .rounded))
                         .foregroundStyle(numberColor)
                 }
             } else if cell.isFlagged {
                 Image(systemName: "flag.fill")
-                    .font(.system(size: max(10, size * 0.45)))
+                    .font(.system(size: max(9, size * 0.4)))
                     .foregroundStyle(.orange)
             }
         }
-        .scaleEffect(cell.didExplode ? 1.03 : 1.0)
+        .scaleEffect(cell.didExplode ? 1.02 : 1.0)
+        .animation(.easeInOut(duration: 0.1), value: cell.didExplode)
     }
 
     private var backgroundFill: some ShapeStyle {
-        if cell.wrongFlag { return AnyShapeStyle(Color.red.opacity(0.12)) }
+        if cell.wrongFlag { return AnyShapeStyle(Color.red.opacity(0.1)) }
         if cell.isRevealed {
-            return AnyShapeStyle(cell.isMine ? Color.red.opacity(0.22) : Color.gray.opacity(colorScheme == .dark ? 0.28 : 0.18))
+            return AnyShapeStyle(cell.isMine ? Color.red.opacity(0.2) : Color.gray.opacity(colorScheme == .dark ? 0.25 : 0.15))
         }
         return AnyShapeStyle(
-            LinearGradient(
-                colors: colorScheme == .dark ? [Color.white.opacity(0.10), Color.blue.opacity(0.18)] : [Color.white.opacity(0.95), Color.blue.opacity(0.10)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+            colorScheme == .dark ? 
+            Color.white.opacity(0.08) : 
+            Color.white.opacity(0.9)
         )
     }
 
     private var borderColor: Color {
-        if cell.didExplode { return .red.opacity(0.65) }
-        return cell.isRevealed ? .gray.opacity(0.2) : .blue.opacity(colorScheme == .dark ? 0.28 : 0.18)
+        if cell.didExplode { return .red.opacity(0.5) }
+        return cell.isRevealed ? .gray.opacity(0.15) : .blue.opacity(colorScheme == .dark ? 0.2 : 0.12)
     }
 
     private var numberColor: Color {
