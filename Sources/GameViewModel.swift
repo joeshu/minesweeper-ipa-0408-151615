@@ -39,6 +39,8 @@ class GameViewModel: ObservableObject {
     private let customPresetsKey = "customPresets"
     private let challengeModeKey = "challengeMode"
     private let timedChallengeLimit = 180
+    private var boardSeed: UInt64?
+    private var boardSafeRadius: Int = 1
     
     init() {
         self.gameBoard = GameBoard(rows: Difficulty.easy.rows, 
@@ -95,11 +97,12 @@ class GameViewModel: ObservableObject {
     // MARK: - 游戏板管理
     
     func updateBoardSize() {
+        configureChallengeDefaultsIfNeeded()
         let rows = difficulty == .custom ? customRows : difficulty.rows
         let cols = difficulty == .custom ? customCols : difficulty.cols
         let mines = difficulty == .custom ? customMines : difficulty.mineCount
         
-        gameBoard = GameBoard(rows: rows, cols: cols, mineCount: mines)
+        gameBoard = GameBoard(rows: rows, cols: cols, mineCount: mines, seed: boardSeed, safeRadius: boardSafeRadius)
         resetTimer()
         if challengeMode == .timed {
             challengeSecondsRemaining = timedChallengeLimit
@@ -146,7 +149,7 @@ class GameViewModel: ObservableObject {
         }
         
         if difficulty == .custom && didChange {
-            gameBoard = GameBoard(rows: customRows, cols: customCols, mineCount: customMines)
+            gameBoard = GameBoard(rows: customRows, cols: customCols, mineCount: customMines, seed: boardSeed, safeRadius: boardSafeRadius)
             resetTimer()
             if challengeMode == .timed {
                 challengeSecondsRemaining = timedChallengeLimit
@@ -166,16 +169,21 @@ class GameViewModel: ObservableObject {
     }
     
     private func configureChallengeDefaultsIfNeeded() {
+        boardSeed = nil
+        boardSafeRadius = 1
+        
         switch challengeMode {
         case .none:
             challengeSecondsRemaining = 0
         case .daily:
             difficulty = .medium
+            boardSeed = stableDailySeed()
         case .timed:
             difficulty = .medium
             challengeSecondsRemaining = timedChallengeLimit
         case .noGuess:
             difficulty = .easy
+            boardSafeRadius = 2
         }
     }
     
@@ -434,6 +442,7 @@ class GameViewModel: ObservableObject {
             // 记录游戏结果
             gameStats.addRecord(
                 difficulty: difficulty,
+                challengeMode: challengeMode,
                 result: .won,
                 duration: elapsedTime,
                 rows: gameBoard.rows,
@@ -454,6 +463,7 @@ class GameViewModel: ObservableObject {
             // 记录游戏结果
             gameStats.addRecord(
                 difficulty: difficulty,
+                challengeMode: challengeMode,
                 result: .lost,
                 duration: elapsedTime,
                 rows: gameBoard.rows,

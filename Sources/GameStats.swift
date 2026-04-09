@@ -4,6 +4,7 @@ struct GameRecord: Codable, Identifiable {
     let id: UUID
     let date: Date
     let difficulty: String
+    let challengeMode: String?
     let result: GameResult
     let duration: TimeInterval
     let rows: Int
@@ -30,11 +31,12 @@ class GameStats: ObservableObject {
         loadRecords()
     }
     
-    func addRecord(difficulty: Difficulty, result: GameRecord.GameResult, duration: TimeInterval, rows: Int, cols: Int, mineCount: Int) {
+    func addRecord(difficulty: Difficulty, challengeMode: ChallengeMode = .none, result: GameRecord.GameResult, duration: TimeInterval, rows: Int, cols: Int, mineCount: Int) {
         let record = GameRecord(
             id: UUID(),
             date: Date(),
             difficulty: difficulty.rawValue,
+            challengeMode: challengeMode == .none ? nil : challengeMode.rawValue,
             result: result,
             duration: duration,
             rows: rows,
@@ -94,6 +96,17 @@ class GameStats: ObservableObject {
         guard !wonGames.isEmpty else { return nil }
         let totalTime = wonGames.reduce(0) { $0 + $1.duration }
         return totalTime / Double(wonGames.count)
+    }
+    
+    func getChallengeRecords() -> [GameRecord] {
+        records.filter { $0.challengeMode != nil }
+    }
+    
+    func getChallengeWinRate() -> Double {
+        let challengeRecords = getChallengeRecords()
+        guard !challengeRecords.isEmpty else { return 0 }
+        let wins = challengeRecords.filter { $0.result == .won }.count
+        return Double(wins) / Double(challengeRecords.count) * 100
     }
     
     func clearAllRecords() {

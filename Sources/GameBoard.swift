@@ -17,6 +17,8 @@ class GameBoard: ObservableObject {
     private var firstMove: Bool = true
     private var minePositions: Set<Int> = [] // 使用 Int 而不是 String，性能更好
     private var neighborCache: [[Int]] = [] // 缓存邻居位置
+    private var forcedSeed: UInt64?
+    private var expandedSafeRadius: Int = 1
     
     // 用于批量更新，减少 UI 刷新
     private var pendingUpdates: Set<String> = []
@@ -28,10 +30,12 @@ class GameBoard: ObservableObject {
         case lost
     }
     
-    init(rows: Int, cols: Int, mineCount: Int) {
+    init(rows: Int, cols: Int, mineCount: Int, seed: UInt64? = nil, safeRadius: Int = 1) {
         self.rows = rows
         self.cols = cols
         self.totalMines = mineCount
+        self.forcedSeed = seed
+        self.expandedSafeRadius = max(1, safeRadius)
         self.cells = Array(repeating: Array(repeating: Cell(row: 0, col: 0), count: cols), count: rows)
         initializeBoard()
         precomputeNeighbors()
@@ -84,16 +88,24 @@ class GameBoard: ObservableObject {
         for row in 0..<rows {
             for col in 0..<cols {
                 // 排除第一点击位置及其周围
-                let isExcludedArea = abs(row - excludingRow) <= 1 && abs(col - excludingCol) <= 1
+                let isExcludedArea = abs(row - excludingRow) <= expandedSafeRadius && abs(col - excludingCol) <= expandedSafeRadius
                 if !isExcludedArea {
                     availablePositions.append(row * cols + col)
                 }
             }
         }
         
+        var seededGenerator = forcedSeed.map { SeededGenerator(seed: $0) }
+        
         // 随机选择地雷位置
         for i in 0..<min(totalMines, availablePositions.count) {
-            let randomIndex = Int.random(in: i..<availablePositions.count)
+            let randomIndex: Int
+            if var generator = seededGenerator {
+                randomIndex = Int.random(in: i..<availablePositions.count, using: &generator)
+                seededGenerator = generator
+            } else {
+                randomIndex = Int.random(in: i..<availablePositions.count)
+            }
             let position = availablePositions[randomIndex]
             minePositions.insert(position)
             

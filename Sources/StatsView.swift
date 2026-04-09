@@ -12,6 +12,9 @@ struct StatsView: View {
                     // 概览卡片
                     overviewCards
                     
+                    // 挑战模式统计
+                    challengeOverviewSection
+                    
                     // 难度选择器
                     difficultySelector
                     
@@ -75,6 +78,60 @@ struct StatsView: View {
                 icon: "xmark.circle.fill",
                 color: .red
             )
+        }
+    }
+    
+    // MARK: - 挑战概览
+    private var challengeOverviewSection: some View {
+        let challengeRecords = viewModel.gameStats.getChallengeRecords()
+        
+        return VStack(alignment: .leading, spacing: 12) {
+            Text("挑战模式")
+                .font(.headline)
+            
+            if challengeRecords.isEmpty {
+                Text("还没有挑战模式记录，去试试每日挑战或限时挑战吧。")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color(.secondarySystemBackground))
+                    )
+            } else {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack {
+                        Label("挑战局数", systemImage: "flag.checkered")
+                        Spacer()
+                        Text("\(challengeRecords.count)")
+                            .fontWeight(.bold)
+                    }
+                    
+                    HStack {
+                        Label("挑战胜率", systemImage: "sparkles")
+                        Spacer()
+                        Text(String(format: "%.1f%%", viewModel.gameStats.getChallengeWinRate()))
+                            .fontWeight(.bold)
+                            .foregroundColor(.green)
+                    }
+                    
+                    if let latest = challengeRecords.first {
+                        HStack {
+                            Label("最近挑战", systemImage: "calendar")
+                            Spacer()
+                            Text(latest.challengeMode ?? "挑战")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(.secondarySystemBackground))
+                )
+            }
         }
     }
     
@@ -333,7 +390,7 @@ struct GameRecordRow: View {
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text(record.difficulty)
+                Text(record.challengeMode ?? record.difficulty)
                     .font(.subheadline)
                     .fontWeight(.medium)
                 
