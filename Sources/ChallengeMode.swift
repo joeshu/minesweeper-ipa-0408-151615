@@ -17,7 +17,7 @@ enum ChallengeMode: String, CaseIterable, Identifiable, Codable {
         case .timed:
             return "在时间限制内完成挑战"
         case .noGuess:
-            return "降低猜雷概率，偏向逻辑解"
+            return "尝试生成无需猜测、可用逻辑推进的盘面"
         }
     }
     

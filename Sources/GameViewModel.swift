@@ -43,6 +43,7 @@ class GameViewModel: ObservableObject {
     private let timedChallengeLimit = 180
     private var boardSeed: UInt64?
     private var boardSafeRadius: Int = 1
+    private var requireLogicalSolvableBoard: Bool = false
     
     init() {
         self.gameBoard = GameBoard(rows: Difficulty.easy.rows, 
@@ -104,7 +105,7 @@ class GameViewModel: ObservableObject {
         let cols = difficulty == .custom ? customCols : difficulty.cols
         let mines = difficulty == .custom ? customMines : difficulty.mineCount
         
-        gameBoard = GameBoard(rows: rows, cols: cols, mineCount: mines, seed: boardSeed, safeRadius: boardSafeRadius)
+        gameBoard = GameBoard(rows: rows, cols: cols, mineCount: mines, seed: boardSeed, safeRadius: boardSafeRadius, requireLogicalSolvable: requireLogicalSolvableBoard)
         resetTimer()
         if challengeMode == .timed {
             challengeSecondsRemaining = timedChallengeLimit
@@ -173,6 +174,7 @@ class GameViewModel: ObservableObject {
     private func configureChallengeDefaultsIfNeeded() {
         boardSeed = nil
         boardSafeRadius = 1
+        requireLogicalSolvableBoard = false
         
         switch challengeMode {
         case .none:
@@ -186,6 +188,7 @@ class GameViewModel: ObservableObject {
         case .noGuess:
             difficulty = .easy
             boardSafeRadius = 2
+            requireLogicalSolvableBoard = true
         }
     }
     

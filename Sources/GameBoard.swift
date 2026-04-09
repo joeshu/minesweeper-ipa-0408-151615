@@ -19,6 +19,8 @@ class GameBoard: ObservableObject {
     private var neighborCache: [[Int]] = [] // 缓存邻居位置
     private var forcedSeed: UInt64?
     private var expandedSafeRadius: Int = 1
+    private var requireLogicalSolvable: Bool = false
+    private var maxGenerationAttempts: Int = 60
     
     // 用于批量更新，减少 UI 刷新
     private var pendingUpdates: Set<String> = []
@@ -30,12 +32,13 @@ class GameBoard: ObservableObject {
         case lost
     }
     
-    init(rows: Int, cols: Int, mineCount: Int, seed: UInt64? = nil, safeRadius: Int = 1) {
+    init(rows: Int, cols: Int, mineCount: Int, seed: UInt64? = nil, safeRadius: Int = 1, requireLogicalSolvable: Bool = false) {
         self.rows = rows
         self.cols = cols
         self.totalMines = mineCount
         self.forcedSeed = seed
         self.expandedSafeRadius = max(1, safeRadius)
+        self.requireLogicalSolvable = requireLogicalSolvable
         self.cells = Array(repeating: Array(repeating: Cell(row: 0, col: 0), count: cols), count: rows)
         initializeBoard()
         precomputeNeighbors()
@@ -80,47 +83,48 @@ class GameBoard: ObservableObject {
     // MARK: - 地雷放置
     
     private func placeMines(excludingRow: Int, excludingCol: Int) {
-        minePositions.removeAll()
+        let baseSeed = forcedSeed ?? UInt64.random(in: 1...UInt64.max)
         
-        // 使用 Fisher-Yates 洗牌算法的变体来高效放置地雷
-        var availablePositions: [Int] = []
-        
-        for row in 0..<rows {
-            for col in 0..<cols {
-                // 排除第一点击位置及其周围
-                let isExcludedArea = abs(row - excludingRow) <= expandedSafeRadius && abs(col - excludingCol) <= expandedSafeRadius
-                if !isExcludedArea {
-                    availablePositions.append(row * cols + col)
+        for attempt in 0..<maxGenerationAttempts {
+            minePositions.removeAll()
+            initializeBoard()
+            
+            // 使用 Fisher-Yates 洗牌算法的变体来高效放置地雷
+            var availablePositions: [Int] = []
+            
+            for row in 0..<rows {
+                for col in 0..<cols {
+                    // 排除第一点击位置及其周围
+                    let isExcludedArea = abs(row - excludingRow) <= expandedSafeRadius && abs(col - excludingCol) <= expandedSafeRadius
+                    if !isExcludedArea {
+                        availablePositions.append(row * cols + col)
+                    }
                 }
             }
-        }
-        
-        var seededGenerator = forcedSeed.map { SeededGenerator(seed: $0) }
-        
-        // 随机选择地雷位置
-        for i in 0..<min(totalMines, availablePositions.count) {
-            let randomIndex: Int
-            if var generator = seededGenerator {
-                randomIndex = Int.random(in: i..<availablePositions.count, using: &generator)
-                seededGenerator = generator
-            } else {
-                randomIndex = Int.random(in: i..<availablePositions.count)
-            }
-            let position = availablePositions[randomIndex]
-            minePositions.insert(position)
             
-            // 交换位置
-            availablePositions.swapAt(i, randomIndex)
+            var seededGenerator = SeededGenerator(seed: baseSeed &+ UInt64(attempt))
+            
+            // 随机选择地雷位置
+            for i in 0..<min(totalMines, availablePositions.count) {
+                let randomIndex = Int.random(in: i..<availablePositions.count, using: &seededGenerator)
+                let position = availablePositions[randomIndex]
+                minePositions.insert(position)
+                availablePositions.swapAt(i, randomIndex)
+            }
+            
+            // 设置地雷
+            for position in minePositions {
+                let row = position / cols
+                let col = position % cols
+                cells[row][col] = Cell(row: row, col: col, isMine: true)
+            }
+            
+            calculateNeighborMines()
+            
+            if !requireLogicalSolvable || isLogicallySolvable(startRow: excludingRow, startCol: excludingCol) {
+                return
+            }
         }
-        
-        // 设置地雷
-        for position in minePositions {
-            let row = position / cols
-            let col = position % cols
-            cells[row][col] = Cell(row: row, col: col, isMine: true)
-        }
-        
-        calculateNeighborMines()
     }
     
     private func calculateNeighborMines() {
@@ -368,6 +372,69 @@ class GameBoard: ObservableObject {
         }
         
         return count > 0 ? totalProbability / Double(count) : 0.5
+    }
+    
+    private func isLogicallySolvable(startRow: Int, startCol: Int) -> Bool {
+        var revealed = Set<Int>()
+        var flagged = Set<Int>()
+        var queue: [Int] = [startRow * cols + startCol]
+        
+        while !queue.isEmpty {
+            let current = queue.removeLast()
+            if revealed.contains(current) { continue }
+            revealed.insert(current)
+            let row = current / cols
+            let col = current % cols
+            
+            if cells[row][col].neighborMines == 0 {
+                for neighbor in neighborCache[current] {
+                    if !revealed.contains(neighbor) && !minePositions.contains(neighbor) {
+                        queue.append(neighbor)
+                    }
+                }
+            }
+        }
+        
+        var changed = true
+        while changed {
+            changed = false
+            
+            for index in Array(revealed) {
+                let row = index / cols
+                let col = index % cols
+                let cell = cells[row][col]
+                guard cell.neighborMines > 0 else { continue }
+                
+                let neighbors = neighborCache[index]
+                let hidden = neighbors.filter { !revealed.contains($0) && !flagged.contains($0) }
+                let flaggedCount = neighbors.filter { flagged.contains($0) }.count
+                let remainingMines = cell.neighborMines - flaggedCount
+                
+                if remainingMines == hidden.count && !hidden.isEmpty {
+                    for item in hidden where !flagged.contains(item) {
+                        flagged.insert(item)
+                        changed = true
+                    }
+                } else if remainingMines == 0 && !hidden.isEmpty {
+                    for item in hidden where !revealed.contains(item) && !minePositions.contains(item) {
+                        revealed.insert(item)
+                        let r = item / cols
+                        let c = item % cols
+                        if cells[r][c].neighborMines == 0 {
+                            for neighbor in neighborCache[item] where !revealed.contains(neighbor) && !minePositions.contains(neighbor) {
+                                revealed.insert(neighbor)
+                                changed = true
+                            }
+                        } else {
+                            changed = true
+                        }
+                    }
+                }
+            }
+        }
+        
+        let nonMineCells = rows * cols - totalMines
+        return revealed.count >= nonMineCells
     }
     
     // MARK: - 游戏状态
