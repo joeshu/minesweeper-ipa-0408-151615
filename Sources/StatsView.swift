@@ -108,6 +108,21 @@ struct StatsView: View {
                         .font(.system(.body, design: .monospaced))
                         .fontWeight(.semibold)
                 }
+                
+                HStack {
+                    Label("连续打卡", systemImage: "flame.fill")
+                    Spacer()
+                    Text("\(viewModel.gameStats.getDailyChallengeStreak()) 天")
+                        .fontWeight(.semibold)
+                        .foregroundColor(.orange)
+                }
+                
+                HStack {
+                    Label("累计完成", systemImage: "calendar.circle")
+                    Spacer()
+                    Text("\(viewModel.gameStats.getDailyChallengeCompletedDays()) 天")
+                        .fontWeight(.semibold)
+                }
             }
             .padding()
             .background(

@@ -19,6 +19,7 @@ class GameViewModel: ObservableObject {
     @Published var showPauseOverlay: Bool = false
     @Published var hintPosition: (row: Int, col: Int)? = nil
     @Published var hintMessage: String = ""
+    @Published var hintKind: HintDescriptor.Kind = .none
     @Published var isShowingHint: Bool = false
     @Published var hasSavedGame: Bool = false
     @Published var customPresets: [CustomPreset] = []
@@ -238,6 +239,7 @@ class GameViewModel: ObservableObject {
         // 清除提示
         hintPosition = nil
         hintMessage = ""
+        hintKind = .none
         isShowingHint = false
         
         let exploded = gameBoard.revealCell(row: row, col: col)
@@ -370,9 +372,11 @@ class GameViewModel: ObservableObject {
     func showHint() {
         guard gameBoard.gameState == .playing && !isPaused else { return }
         
-        hintPosition = gameBoard.getHint()
-        isShowingHint = hintPosition != nil
-        hintMessage = hintPosition == nil ? "当前没有可用提示" : (challengeMode == .noGuess ? "已高亮低风险逻辑位" : "已高亮建议点击位置")
+        let descriptor = computeHintDescriptor()
+        hintPosition = descriptor.position
+        hintMessage = descriptor.message
+        hintKind = descriptor.kind
+        isShowingHint = descriptor.position != nil
         
         if isShowingHint {
             hapticManager.impact(.light)
@@ -380,8 +384,56 @@ class GameViewModel: ObservableObject {
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
                 self?.isShowingHint = false
                 self?.hintMessage = ""
+                self?.hintKind = .none
             }
         }
+    }
+    
+    private func computeHintDescriptor() -> HintDescriptor {
+        guard let position = gameBoard.getHint() else {
+            return HintDescriptor(position: nil, message: "当前没有可用提示", kind: .none)
+        }
+        
+        let hasSafeNeighbor = safeHintConfidence(row: position.row, col: position.col)
+        if hasSafeNeighbor {
+            return HintDescriptor(position: position, message: "已高亮确定安全的位置", kind: .safe)
+        }
+        
+        return HintDescriptor(
+            position: position,
+            message: challengeMode == .noGuess ? "已高亮低风险逻辑位" : "已高亮建议点击位置（有一定风险）",
+            kind: .risky
+        )
+    }
+    
+    private func safeHintConfidence(row: Int, col: Int) -> Bool {
+        for dr in -1...1 {
+            for dc in -1...1 {
+                if dr == 0 && dc == 0 { continue }
+                let nr = row + dr
+                let nc = col + dc
+                guard nr >= 0 && nr < gameBoard.rows && nc >= 0 && nc < gameBoard.cols else { continue }
+                let neighbor = gameBoard.cells[nr][nc]
+                if neighbor.isRevealed && neighbor.neighborMines > 0 {
+                    var flagged = 0
+                    for rr in -1...1 {
+                        for cc in -1...1 {
+                            if rr == 0 && cc == 0 { continue }
+                            let ar = nr + rr
+                            let ac = nc + cc
+                            guard ar >= 0 && ar < gameBoard.rows && ac >= 0 && ac < gameBoard.cols else { continue }
+                            if gameBoard.cells[ar][ac].isFlagged {
+                                flagged += 1
+                            }
+                        }
+                    }
+                    if flagged >= neighbor.neighborMines {
+                        return true
+                    }
+                }
+            }
+        }
+        return false
     }
     
     // MARK: - 自动保存

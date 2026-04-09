@@ -223,8 +223,8 @@ struct GameView: View {
     
     private var hintBanner: some View {
         HStack(spacing: 8) {
-            Image(systemName: "lightbulb.max.fill")
-                .foregroundColor(.yellow)
+            Image(systemName: hintIcon)
+                .foregroundColor(hintColor)
             Text(viewModel.hintMessage)
                 .font(.subheadline)
                 .foregroundColor(.primary)
@@ -234,7 +234,27 @@ struct GameView: View {
         .background(
             RoundedRectangle(cornerRadius: 10)
                 .fill(Color(.secondarySystemBackground))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(hintColor.opacity(0.45), lineWidth: 1)
+                )
         )
+    }
+    
+    private var hintColor: Color {
+        switch viewModel.hintKind {
+        case .safe: return .green
+        case .risky: return .orange
+        case .none: return .secondary
+        }
+    }
+    
+    private var hintIcon: String {
+        switch viewModel.hintKind {
+        case .safe: return "checkmark.seal.fill"
+        case .risky: return "exclamationmark.triangle.fill"
+        case .none: return "lightbulb.max.fill"
+        }
     }
     
     // MARK: - 游戏板视图

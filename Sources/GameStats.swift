@@ -6,6 +6,18 @@ struct DailyChallengeStatus: Codable {
     let completed: Bool
 }
 
+struct HintDescriptor {
+    enum Kind {
+        case safe
+        case risky
+        case none
+    }
+    
+    let position: (row: Int, col: Int)?
+    let message: String
+    let kind: Kind
+}
+
 struct GameRecord: Codable, Identifiable {
     let id: UUID
     let date: Date
@@ -129,12 +141,35 @@ class GameStats: ObservableObject {
         dailyChallengeStatuses[currentDateKey()]
     }
     
+    func getDailyChallengeStreak() -> Int {
+        var streak = 0
+        let calendar = Calendar(identifier: .gregorian)
+        var day = Date()
+        
+        while true {
+            let key = dateKey(for: day)
+            guard dailyChallengeStatuses[key]?.completed == true else { break }
+            streak += 1
+            guard let previousDay = calendar.date(byAdding: .day, value: -1, to: day) else { break }
+            day = previousDay
+        }
+        return streak
+    }
+    
+    func getDailyChallengeCompletedDays() -> Int {
+        dailyChallengeStatuses.values.filter { $0.completed }.count
+    }
+    
     private func currentDateKey() -> String {
+        dateKey(for: Date())
+    }
+    
+    private func dateKey(for date: Date) -> String {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .gregorian)
         formatter.timeZone = TimeZone(secondsFromGMT: 8 * 3600)
         formatter.dateFormat = "yyyyMMdd"
-        return formatter.string(from: Date())
+        return formatter.string(from: date)
     }
     
     func clearAllRecords() {
