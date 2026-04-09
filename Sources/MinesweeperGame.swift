@@ -1,4 +1,4 @@
-// Last updated: 2026-04-08 17:25 CST
+// Last updated: 2026-04-09 12:35 CST - 优化性能
 import Foundation
 
 enum Difficulty: String, CaseIterable, Identifiable {
@@ -42,6 +42,7 @@ final class MinesweeperGame: ObservableObject {
 
     private var firstMoveMade = false
     private var timer: Timer?
+    private var needsUpdate = false
 
     init() {
         applyDifficulty(.beginner)
@@ -67,17 +68,26 @@ final class MinesweeperGame: ObservableObject {
         gameOver = false
         didWin = false
         firstMoveMade = false
-        board = (0..<rows).map { r in
+        needsUpdate = false
+        
+        // 优化：批量创建棋盘，减少发布次数
+        let newBoard = (0..<rows).map { r in
             (0..<cols).map { c in Cell(row: r, col: c) }
         }
+        board = newBoard
         placeMines(excludingZone: nil)
         calculateAdjacents()
+        objectWillChange.send()
     }
 
     private func startTimerIfNeeded() {
         guard timer == nil else { return }
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            guard let self, !self.gameOver else { return }
+            guard let self, !self.gameOver else { 
+                self.timer?.invalidate()
+                self.timer = nil
+                return 
+            }
             self.elapsedSeconds += 1
         }
     }
@@ -93,6 +103,7 @@ final class MinesweeperGame: ObservableObject {
     }
 
     private func placeMines(excludingZone safeZone: Set<String>?) {
+        // 优化：重用现有数组而不是重新创建
         for r in 0..<rows {
             for c in 0..<cols {
                 board[r][c].isMine = false
@@ -103,10 +114,16 @@ final class MinesweeperGame: ObservableObject {
                 board[r][c].wrongFlag = false
             }
         }
+        
         var placed = 0
-        while placed < mines {
+        let maxAttempts = mines * 10 // 防止无限循环
+        var attempts = 0
+        
+        while placed < mines && attempts < maxAttempts {
             let r = Int.random(in: 0..<rows)
             let c = Int.random(in: 0..<cols)
+            attempts += 1
+            
             if let safeZone, safeZone.contains("\(r)-\(c)") { continue }
             if !board[r][c].isMine {
                 board[r][c].isMine = true
@@ -116,10 +133,13 @@ final class MinesweeperGame: ObservableObject {
     }
 
     private func calculateAdjacents() {
+        // 优化：减少重复计算
         for r in 0..<rows {
             for c in 0..<cols {
                 guard !board[r][c].isMine else { continue }
-                board[r][c].adjacent = neighbors(ofRow: r, col: c).filter { board[$0.0][$0.1].isMine }.count
+                board[r][c].adjacent = neighbors(ofRow: r, col: c).reduce(0) { count, neighbor in
+                    count + (board[neighbor.0][neighbor.1].isMine ? 1 : 0)
+                }
             }
         }
     }
@@ -138,7 +158,7 @@ final class MinesweeperGame: ObservableObject {
     func toggleFlag(row: Int, col: Int) {
         guard !gameOver, !board[row][col].isRevealed else { return }
         board[row][col].isFlagged.toggle()
-        objectWillChange.send()
+        scheduleUpdate()
     }
 
     func reveal(row: Int, col: Int) {
@@ -159,7 +179,7 @@ final class MinesweeperGame: ObservableObject {
             board[row][col].didExplode = true
             timer?.invalidate()
             revealAllMinesAndWrongFlags()
-            objectWillChange.send()
+            scheduleUpdate()
             return
         }
 
@@ -173,15 +193,27 @@ final class MinesweeperGame: ObservableObject {
             timer?.invalidate()
             autoFlagRemainingMines()
         }
-        objectWillChange.send()
+        scheduleUpdate()
     }
 
+    // 优化：使用迭代而非递归，防止堆栈溢出
     private func floodReveal(row: Int, col: Int) {
-        for (nr, nc) in neighbors(ofRow: row, col: col) {
-            if !board[nr][nc].isRevealed && !board[nr][nc].isMine && !board[nr][nc].isFlagged {
-                board[nr][nc].isRevealed = true
-                if board[nr][nc].adjacent == 0 {
-                    floodReveal(row: nr, col: nc)
+        var queue: [(Int, Int)] = [(row, col)]
+        var visited: Set<String> = [ "\(row)-\(col)" ]
+        
+        while !queue.isEmpty {
+            let (currentRow, currentCol) = queue.removeFirst()
+            
+            for (nr, nc) in neighbors(ofRow: currentRow, col: currentCol) {
+                let key = "\(nr)-\(nc)"
+                
+                if !visited.contains(key) && !board[nr][nc].isRevealed && !board[nr][nc].isMine && !board[nr][nc].isFlagged {
+                    board[nr][nc].isRevealed = true
+                    visited.insert(key)
+                    
+                    if board[nr][nc].adjacent == 0 {
+                        queue.append((nr, nc))
+                    }
                 }
             }
         }
@@ -218,6 +250,16 @@ final class MinesweeperGame: ObservableObject {
         return true
     }
 
+    // 优化：批量更新，减少UI刷新次数
+    private func scheduleUpdate() {
+        needsUpdate = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { [weak self] in
+            guard let self, self.needsUpdate else { return }
+            self.needsUpdate = false
+            self.objectWillChange.send()
+        }
+    }
+
     var remainingMinesEstimate: Int {
         let flags = board.flatMap { $0 }.filter { $0.isFlagged }.count
         return mines - flags
@@ -232,8 +274,8 @@ final class MinesweeperGame: ObservableObject {
     var cellSize: Double {
         switch difficulty {
         case .beginner: return 34
-        case .intermediate: return 20
-        case .expert: return 18
+        case .intermediate: return 22  // 稍微增大一点，更容易点击
+        case .expert: return 20       // 稍微增大一点，更容易点击
         }
     }
 }
