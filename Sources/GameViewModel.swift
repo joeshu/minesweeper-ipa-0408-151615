@@ -22,6 +22,8 @@ class GameViewModel: ObservableObject {
     @Published var hasSavedGame: Bool = false
     @Published var customPresets: [CustomPreset] = []
     @Published var presetNameDraft: String = ""
+    @Published var challengeMode: ChallengeMode = .none
+    @Published var challengeSecondsRemaining: Int = 0
     
     let gameStats = GameStats()
     let soundManager = SoundManager.shared
@@ -35,6 +37,8 @@ class GameViewModel: ObservableObject {
     private var pauseStartTime: Date?
     private var totalPausedTime: TimeInterval = 0
     private let customPresetsKey = "customPresets"
+    private let challengeModeKey = "challengeMode"
+    private let timedChallengeLimit = 180
     
     init() {
         self.gameBoard = GameBoard(rows: Difficulty.easy.rows, 
@@ -53,6 +57,10 @@ class GameViewModel: ObservableObject {
             difficulty = diff
             updateBoardSize()
         }
+        if let savedChallengeMode = UserDefaults.standard.string(forKey: challengeModeKey),
+           let mode = ChallengeMode(rawValue: savedChallengeMode) {
+            challengeMode = mode
+        }
         customRows = UserDefaults.standard.integer(forKey: "customRows")
         if customRows == 0 { customRows = 16 }
         customCols = UserDefaults.standard.integer(forKey: "customCols")
@@ -66,6 +74,7 @@ class GameViewModel: ObservableObject {
         UserDefaults.standard.set(customRows, forKey: "customRows")
         UserDefaults.standard.set(customCols, forKey: "customCols")
         UserDefaults.standard.set(customMines, forKey: "customMines")
+        UserDefaults.standard.set(challengeMode.rawValue, forKey: challengeModeKey)
     }
     
     private func loadCustomPresets() {
@@ -92,6 +101,9 @@ class GameViewModel: ObservableObject {
         
         gameBoard = GameBoard(rows: rows, cols: cols, mineCount: mines)
         resetTimer()
+        if challengeMode == .timed {
+            challengeSecondsRemaining = timedChallengeLimit
+        }
         isGameActive = false
         showGameOverAlert = false
         showWinAlert = false
@@ -110,6 +122,13 @@ class GameViewModel: ObservableObject {
         updateBoardSize()
     }
     
+    func setChallengeMode(_ mode: ChallengeMode) {
+        challengeMode = mode
+        saveSettings()
+        configureChallengeDefaultsIfNeeded()
+        updateBoardSize()
+    }
+    
     func updateCustomSettings(rows: Int, cols: Int, mines: Int) {
         customRows = max(5, min(30, rows))
         customCols = max(5, min(30, cols))
@@ -123,6 +142,20 @@ class GameViewModel: ObservableObject {
         
         if difficulty == .custom {
             updateBoardSize()
+        }
+    }
+    
+    private func configureChallengeDefaultsIfNeeded() {
+        switch challengeMode {
+        case .none:
+            challengeSecondsRemaining = 0
+        case .daily:
+            difficulty = .medium
+        case .timed:
+            difficulty = .medium
+            challengeSecondsRemaining = timedChallengeLimit
+        case .noGuess:
+            difficulty = .easy
         }
     }
     
@@ -462,6 +495,15 @@ class GameViewModel: ObservableObject {
     private func updateElapsedTime() {
         guard let startTime = startTime else { return }
         elapsedTime = Date().timeIntervalSince(startTime) - totalPausedTime
+        
+        if challengeMode == .timed {
+            challengeSecondsRemaining = max(0, timedChallengeLimit - Int(elapsedTime))
+            if challengeSecondsRemaining == 0 && gameBoard.gameState == .playing && isGameActive {
+                stopTimer()
+                showGameOverAlert = true
+                isGameActive = false
+            }
+        }
     }
     
     // MARK: - 辅助方法

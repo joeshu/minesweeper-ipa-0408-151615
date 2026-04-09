@@ -119,6 +119,23 @@ struct SettingsView: View {
                     }
                 }
                 
+                // 挑战模式
+                Section(header: Text("挑战模式")) {
+                    Picker("模式", selection: Binding(
+                        get: { viewModel.challengeMode },
+                        set: { viewModel.setChallengeMode($0) }
+                    )) {
+                        ForEach(ChallengeMode.allCases) { mode in
+                            Text(mode.rawValue)
+                                .tag(mode)
+                        }
+                    }
+                    
+                    Text(viewModel.challengeMode.description)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
                 // 外观设置
                 Section(header: Text("外观")) {
                     Picker("应用主题", selection: Binding(

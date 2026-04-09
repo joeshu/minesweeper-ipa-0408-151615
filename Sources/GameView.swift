@@ -135,7 +135,7 @@ struct GameView: View {
             
             // 难度显示
             VStack(spacing: 2) {
-                Text(viewModel.difficulty.rawValue)
+                Text(viewModel.challengeMode == .none ? viewModel.difficulty.rawValue : viewModel.challengeMode.badgeTitle)
                     .font(.caption)
                     .fontWeight(.medium)
                     .foregroundColor(.primary)
@@ -152,10 +152,10 @@ struct GameView: View {
             
             // 计时器
             infoCard(
-                icon: "clock",
-                iconColor: .blue,
-                value: viewModel.formattedTime,
-                label: "时间"
+                icon: viewModel.challengeMode == .timed ? "timer" : "clock",
+                iconColor: viewModel.challengeMode == .timed ? .orange : .blue,
+                value: viewModel.challengeMode == .timed ? "\(viewModel.challengeSecondsRemaining)s" : viewModel.formattedTime,
+                label: viewModel.challengeMode == .timed ? "倒计时" : "时间"
             )
         }
     }
