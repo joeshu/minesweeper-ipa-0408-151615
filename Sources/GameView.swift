@@ -279,23 +279,45 @@ struct GameView: View {
     }
     
     private var hintBanner: some View {
-        HStack(spacing: 8) {
-            Image(systemName: hintIcon)
-                .foregroundColor(hintColor)
-            Text(viewModel.hintMessage)
-                .font(.subheadline)
-                .foregroundColor(.primary)
+        HStack(spacing: 10) {
+            ZStack {
+                Circle()
+                    .fill(hintColor.opacity(0.18))
+                    .frame(width: 30, height: 30)
+                Image(systemName: hintIcon)
+                    .foregroundColor(hintColor)
+                    .font(.footnote.weight(.bold))
+            }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(hintTitle)
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(hintColor)
+                Text(viewModel.hintMessage)
+                    .font(.subheadline)
+                    .foregroundColor(.primary)
+            }
             Spacer()
         }
-        .padding(10)
+        .padding(12)
         .background(
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: 14)
                 .fill(Color(.secondarySystemBackground))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(hintColor.opacity(0.45), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(hintColor.opacity(0.35), lineWidth: 1)
                 )
+                .shadow(color: hintColor.opacity(0.08), radius: 6, x: 0, y: 2)
         )
+    }
+    
+    private var hintTitle: String {
+        switch viewModel.hintKind {
+        case .safe: return "安全提示"
+        case .flag: return "标雷提示"
+        case .risky: return "风险提示"
+        case .none: return "提示"
+        }
     }
     
     private var hintColor: Color {

@@ -138,29 +138,56 @@ struct SettingsView: View {
                 
                 // 挑战模式
                 Section(header: Text("挑战模式")) {
-                    HStack {
-                        Text("每日挑战")
-                        Spacer()
-                        if viewModel.gameStats.getTodayDailyChallengeStatus() != nil {
-                            Label("今日已完成", systemImage: "checkmark.seal.fill")
-                                .font(.caption)
-                                .foregroundColor(.green)
-                        }
+                    if viewModel.gameStats.getTodayDailyChallengeStatus() != nil {
+                        Label("每日挑战今日已完成", systemImage: "checkmark.seal.fill")
+                            .font(.caption)
+                            .foregroundColor(.green)
                     }
                     
-                    Picker("模式", selection: Binding(
-                        get: { viewModel.challengeMode },
-                        set: { viewModel.setChallengeMode($0) }
-                    )) {
+                    VStack(spacing: 10) {
                         ForEach(ChallengeMode.allCases) { mode in
-                            Text(mode.rawValue)
-                                .tag(mode)
+                            Button {
+                                viewModel.setChallengeMode(mode)
+                            } label: {
+                                HStack(alignment: .center, spacing: 12) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(challengeModeColor(mode).opacity(0.15))
+                                            .frame(width: 34, height: 34)
+                                        Image(systemName: challengeModeIcon(mode))
+                                            .foregroundColor(challengeModeColor(mode))
+                                    }
+                                    
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        HStack {
+                                            Text(mode.rawValue)
+                                                .foregroundColor(.primary)
+                                                .fontWeight(.semibold)
+                                            if viewModel.challengeMode == mode {
+                                                Text("当前")
+                                                    .font(.caption2)
+                                                    .foregroundColor(challengeModeColor(mode))
+                                                    .padding(.horizontal, 6)
+                                                    .padding(.vertical, 2)
+                                                    .background(Capsule().fill(challengeModeColor(mode).opacity(0.12)))
+                                            }
+                                        }
+                                        Text(mode.description)
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                            .multilineTextAlignment(.leading)
+                                    }
+                                    Spacer()
+                                }
+                                .padding(10)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(viewModel.challengeMode == mode ? challengeModeColor(mode).opacity(0.08) : Color(.secondarySystemBackground))
+                                )
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
-                    
-                    Text(viewModel.challengeMode.description)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
                 }
                 
                 // 外观设置
@@ -287,9 +314,25 @@ struct SettingsView: View {
             }
         }
     }
+    
+    private func challengeModeColor(_ mode: ChallengeMode) -> Color {
+        switch mode {
+        case .none: return .blue
+        case .daily: return .purple
+        case .timed: return .orange
+        case .noGuess: return .green
+        }
+    }
+    
+    private func challengeModeIcon(_ mode: ChallengeMode) -> String {
+        switch mode {
+        case .none: return "gamecontroller.fill"
+        case .daily: return "calendar"
+        case .timed: return "timer"
+        case .noGuess: return "brain.head.profile"
+        }
+    }
 }
-
-// MARK: - StepperView
 struct StepperView: View {
     let title: String
     @Binding var value: Int

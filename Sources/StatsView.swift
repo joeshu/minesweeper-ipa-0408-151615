@@ -9,6 +9,8 @@ struct StatsView: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 20) {
+                    statsHeroHeader
+                    
                     // 概览卡片
                     overviewCards
                     
@@ -49,6 +51,46 @@ struct StatsView: View {
                 .ignoresSafeArea() : nil
             )
         }
+    }
+    
+    // MARK: - 仪表盘头部
+    private var statsHeroHeader: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("战绩总览")
+                .font(.title3.weight(.bold))
+            Text("快速查看总体胜率、每日挑战进度与无猜模式表现。")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            
+            HStack(spacing: 10) {
+                dashboardMiniCard(title: "总胜率", value: String(format: "%.1f%%", viewModel.gameStats.getWinRate()), color: .green)
+                dashboardMiniCard(title: "打卡", value: "\(viewModel.gameStats.getDailyChallengeStreak())天", color: .orange)
+                dashboardMiniCard(title: "无猜", value: "\(viewModel.gameStats.noGuessGames)局", color: .blue)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 18)
+                .fill(Color(.secondarySystemBackground))
+        )
+    }
+    
+    private func dashboardMiniCard(title: String, value: String, color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(.caption)
+                .foregroundColor(.secondary)
+            Text(value)
+                .font(.headline.weight(.bold))
+                .foregroundColor(color)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.systemBackground).opacity(0.85))
+        )
     }
     
     // MARK: - 概览卡片
