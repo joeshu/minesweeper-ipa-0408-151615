@@ -434,6 +434,10 @@ class GameBoard: ObservableObject {
             if applySubsetRule(revealed: &revealed, flagged: &flagged) {
                 changed = true
             }
+            
+            if applyLocalEnumerationRule(revealed: &revealed, flagged: &flagged) {
+                changed = true
+            }
         }
         
         let nonMineCells = rows * cols - totalMines
@@ -504,6 +508,76 @@ class GameBoard: ObservableObject {
         }
         
         return false
+    }
+    
+    private func applyLocalEnumerationRule(revealed: inout Set<Int>, flagged: inout Set<Int>) -> Bool {
+        let numbered = Array(revealed).filter { idx in
+            let row = idx / cols
+            let col = idx % cols
+            return cells[row][col].neighborMines > 0
+        }
+        
+        for a in numbered {
+            for b in numbered where a < b {
+                let unknownA = Set(neighborCache[a].filter { !revealed.contains($0) && !flagged.contains($0) })
+                let unknownB = Set(neighborCache[b].filter { !revealed.contains($0) && !flagged.contains($0) })
+                let union = Array(unknownA.union(unknownB))
+                
+                guard !union.isEmpty, union.count <= 8 else { continue }
+                guard !unknownA.isEmpty || !unknownB.isEmpty else { continue }
+                
+                let remainingA = remainingMineRequirement(for: a, flagged: flagged)
+                let remainingB = remainingMineRequirement(for: b, flagged: flagged)
+                guard remainingA >= 0, remainingB >= 0 else { continue }
+                
+                var validAssignments: [[Bool]] = []
+                let totalMasks = 1 << union.count
+                
+                for mask in 0..<totalMasks {
+                    let assignment = (0..<union.count).map { ((mask >> $0) & 1) == 1 }
+                    if assignmentSatisfies(assignment, unknownSet: unknownA, union: union, requiredMines: remainingA) &&
+                        assignmentSatisfies(assignment, unknownSet: unknownB, union: union, requiredMines: remainingB) {
+                        validAssignments.append(assignment)
+                    }
+                }
+                
+                guard !validAssignments.isEmpty else { continue }
+                
+                for (idx, cellIndex) in union.enumerated() {
+                    let allMine = validAssignments.allSatisfy { $0[idx] }
+                    let allSafe = validAssignments.allSatisfy { !$0[idx] }
+                    
+                    if allMine && !flagged.contains(cellIndex) {
+                        flagged.insert(cellIndex)
+                        return true
+                    }
+                    if allSafe && !minePositions.contains(cellIndex) {
+                        if revealVirtualCell(cellIndex, revealed: &revealed) {
+                            return true
+                        }
+                    }
+                }
+            }
+        }
+        
+        return false
+    }
+    
+    private func remainingMineRequirement(for index: Int, flagged: Set<Int>) -> Int {
+        let row = index / cols
+        let col = index % cols
+        let flaggedCount = neighborCache[index].filter { flagged.contains($0) }.count
+        return cells[row][col].neighborMines - flaggedCount
+    }
+    
+    private func assignmentSatisfies(_ assignment: [Bool], unknownSet: Set<Int>, union: [Int], requiredMines: Int) -> Bool {
+        var count = 0
+        for (idx, cellIndex) in union.enumerated() {
+            if unknownSet.contains(cellIndex) && assignment[idx] {
+                count += 1
+            }
+        }
+        return count == requiredMines
     }
     
     // MARK: - 游戏状态
