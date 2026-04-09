@@ -538,6 +538,7 @@ class GameViewModel: ObservableObject {
             gameStats.addRecord(
                 difficulty: difficulty,
                 challengeMode: challengeMode,
+                generationQuality: challengeMode == .noGuess ? gameBoard.generationQualityNote : nil,
                 result: .won,
                 duration: elapsedTime,
                 rows: gameBoard.rows,
@@ -559,6 +560,7 @@ class GameViewModel: ObservableObject {
             gameStats.addRecord(
                 difficulty: difficulty,
                 challengeMode: challengeMode,
+                generationQuality: challengeMode == .noGuess ? gameBoard.generationQualityNote : nil,
                 result: .lost,
                 duration: elapsedTime,
                 rows: gameBoard.rows,

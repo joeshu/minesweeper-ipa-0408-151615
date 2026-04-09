@@ -116,6 +116,22 @@ struct StatsView: View {
                         .font(.system(.body, design: .monospaced))
                         .fontWeight(.semibold)
                 }
+                
+                HStack {
+                    Label("严格命中", systemImage: "shield.checkered")
+                    Spacer()
+                    Text("\(viewModel.gameStats.noGuessStrictBoards)")
+                        .fontWeight(.semibold)
+                        .foregroundColor(.green)
+                }
+                
+                HStack {
+                    Label("回退生成", systemImage: "wand.and.stars")
+                    Spacer()
+                    Text("\(viewModel.gameStats.noGuessFallbackBoards)")
+                        .fontWeight(.semibold)
+                        .foregroundColor(.orange)
+                }
             }
             .padding()
             .background(

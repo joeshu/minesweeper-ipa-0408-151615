@@ -24,6 +24,7 @@ struct GameRecord: Codable, Identifiable {
     let date: Date
     let difficulty: String
     let challengeMode: String?
+    let generationQuality: String?
     let result: GameResult
     let duration: TimeInterval
     let rows: Int
@@ -46,6 +47,8 @@ class GameStats: ObservableObject {
     @Published var noGuessWins: Int = 0
     @Published var noGuessGames: Int = 0
     @Published var noGuessBestTime: TimeInterval? = nil
+    @Published var noGuessStrictBoards: Int = 0
+    @Published var noGuessFallbackBoards: Int = 0
     
     private let recordsKey = "gameRecords"
     private let dailyChallengeStatusKey = "dailyChallengeStatuses"
@@ -55,12 +58,13 @@ class GameStats: ObservableObject {
         loadRecords()
     }
     
-    func addRecord(difficulty: Difficulty, challengeMode: ChallengeMode = .none, result: GameRecord.GameResult, duration: TimeInterval, rows: Int, cols: Int, mineCount: Int) {
+    func addRecord(difficulty: Difficulty, challengeMode: ChallengeMode = .none, generationQuality: String? = nil, result: GameRecord.GameResult, duration: TimeInterval, rows: Int, cols: Int, mineCount: Int) {
         let record = GameRecord(
             id: UUID(),
             date: Date(),
             difficulty: difficulty.rawValue,
             challengeMode: challengeMode == .none ? nil : challengeMode.rawValue,
+            generationQuality: generationQuality,
             result: result,
             duration: duration,
             rows: rows,
@@ -117,6 +121,8 @@ class GameStats: ObservableObject {
         let noGuessRecords = records.filter { $0.challengeMode == ChallengeMode.noGuess.rawValue }
         noGuessGames = noGuessRecords.count
         noGuessWins = noGuessRecords.filter { $0.result == .won }.count
+        noGuessStrictBoards = noGuessRecords.filter { ($0.generationQuality ?? "").contains("严格") }.count
+        noGuessFallbackBoards = noGuessRecords.filter { ($0.generationQuality ?? "").contains("回退") || ($0.generationQuality ?? "").contains("未命中") }.count
     }
     
     func getWinRate(for difficulty: Difficulty? = nil) -> Double {
