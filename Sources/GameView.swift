@@ -9,109 +9,93 @@ struct GameView: View {
     @State private var boardOffset: CGSize = .zero
     
     var body: some View {
-        NavigationView {
-            ZStack {
-                // 背景渐变
-                backgroundGradient
+        ZStack {
+            // 背景渐变
+            backgroundGradient
+            
+            VStack(spacing: 0) {
+                // 游戏信息栏
+                gameInfoBar
+                    .padding(.horizontal)
+                    .padding(.top, 10)
                 
-                VStack(spacing: 0) {
-                    // 游戏信息栏
-                    gameInfoBar
+                // 快捷操作栏
+                quickActionBar
+                    .padding(.horizontal)
+                    .padding(.top, 10)
+                
+                if !viewModel.gameBoard.generationQualityNote.isEmpty && viewModel.challengeMode == .noGuess {
+                    generationBanner
                         .padding(.horizontal)
                         .padding(.top, 8)
-                    
-                    // 快捷操作栏
-                    quickActionBar
+                }
+                
+                if !viewModel.hintMessage.isEmpty {
+                    hintBanner
                         .padding(.horizontal)
                         .padding(.top, 8)
-                    
-                    if !viewModel.gameBoard.generationQualityNote.isEmpty && viewModel.challengeMode == .noGuess {
-                        generationBanner
-                            .padding(.horizontal)
-                            .padding(.top, 8)
-                    }
-                    
-                    if !viewModel.hintMessage.isEmpty {
-                        hintBanner
-                            .padding(.horizontal)
-                            .padding(.top, 8)
-                    }
-                    
-                    // 游戏板
-                    gameBoardView
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 8)
-                    
-                    // 控制按钮
-                    controlButtons
-                        .padding(.horizontal)
-                        .padding(.bottom, 8)
                 }
                 
-                // 暂停覆盖层
-                if viewModel.showPauseOverlay {
-                    pauseOverlay
-                }
+                // 游戏板
+                gameBoardView
+                    .padding(.horizontal, 8)
+                    .padding(.top, 12)
+                    .padding(.bottom, 8)
                 
-                // 动画效果层
-                ExplosionEffectView()
-                ConfettiEffectView()
+                // 控制按钮
+                controlButtons
+                    .padding(.horizontal)
+                    .padding(.bottom, 14)
             }
-            .navigationTitle("扫雷")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        if viewModel.isGameActive {
-                            showingNewGameConfirmation = true
-                        } else {
-                            viewModel.newGame()
-                        }
-                    }) {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.title3)
-                    }
-                }
+            
+            // 暂停覆盖层
+            if viewModel.showPauseOverlay {
+                pauseOverlay
             }
-            .alert("确认新游戏", isPresented: $showingNewGameConfirmation) {
-                Button("取消", role: .cancel) { }
-                Button("开始新游戏", role: .destructive) {
-                    viewModel.newGame()
-                }
-            } message: {
-                Text("当前游戏进度将丢失，确定要开始新游戏吗？")
-            }
-            .alert("游戏结束！", isPresented: $viewModel.showGameOverAlert) {
-                Button("再玩一次") {
-                    viewModel.newGame()
-                }
-            } message: {
-                Text("你踩到地雷了！游戏结束。\n用时: \(viewModel.formattedTime)")
-            }
-            .alert("恭喜你赢了！", isPresented: $viewModel.showWinAlert) {
-                Button("再玩一次") {
-                    viewModel.newGame()
-                }
-            } message: {
-                Text("你成功排除了所有地雷！\n用时: \(viewModel.formattedTime)")
-            }
-            .onAppear {
-                if viewModel.hasSavedGame && !viewModel.isGameActive {
-                    showingLoadGameConfirmation = true
-                }
-            }
-            .alert("恢复游戏", isPresented: $showingLoadGameConfirmation) {
-                Button("新游戏") {
-                    viewModel.clearSavedGame()
-                }
-                Button("恢复进度") {
-                    _ = viewModel.loadSavedGame()
-                }
-            } message: {
-                Text("检测到有未完成的游戏，是否恢复进度？")
+            
+            // 动画效果层
+            ExplosionEffectView()
+            ConfettiEffectView()
+        }
+        .toolbar(.hidden, for: .navigationBar)
+        .preferredColorScheme(themeManager.appTheme.colorScheme)
+        .onAppear {
+            if viewModel.hasSavedGame && !viewModel.isGameActive {
+                showingLoadGameConfirmation = true
             }
         }
-        .preferredColorScheme(themeManager.appTheme.colorScheme)
+        .alert("确认新游戏", isPresented: $showingNewGameConfirmation) {
+            Button("取消", role: .cancel) { }
+            Button("开始新游戏", role: .destructive) {
+                viewModel.newGame()
+            }
+        } message: {
+            Text("当前游戏进度将丢失，确定要开始新游戏吗？")
+        }
+        .alert("游戏结束！", isPresented: $viewModel.showGameOverAlert) {
+            Button("再玩一次") {
+                viewModel.newGame()
+            }
+        } message: {
+            Text("你踩到地雷了！游戏结束。\n用时: \(viewModel.formattedTime)")
+        }
+        .alert("恭喜你赢了！", isPresented: $viewModel.showWinAlert) {
+            Button("再玩一次") {
+                viewModel.newGame()
+            }
+        } message: {
+            Text("你成功排除了所有地雷！\n用时: \(viewModel.formattedTime)")
+        }
+        .alert("恢复游戏", isPresented: $showingLoadGameConfirmation) {
+            Button("新游戏") {
+                viewModel.clearSavedGame()
+            }
+            Button("恢复进度") {
+                _ = viewModel.loadSavedGame()
+            }
+        } message: {
+            Text("检测到有未完成的游戏，是否恢复进度？")
+        }
     }
     
     // MARK: - 背景渐变
@@ -450,28 +434,34 @@ struct GameView: View {
     
     // MARK: - 控制按钮
     private var controlButtons: some View {
-        HStack(spacing: 12) {
+        HStack {
+            Spacer()
             Button(action: {
-                viewModel.newGame()
+                if viewModel.isGameActive {
+                    showingNewGameConfirmation = true
+                } else {
+                    viewModel.newGame()
+                }
             }) {
-                HStack {
+                HStack(spacing: 8) {
                     Image(systemName: "play.fill")
                     Text("新游戏")
                 }
                 .font(.headline)
                 .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 28)
                 .padding(.vertical, 14)
                 .background(
                     LinearGradient(
-                        colors: [.blue, .blue.opacity(0.8)],
+                        colors: [.blue, .blue.opacity(0.82)],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 )
-                .cornerRadius(12)
-                .shadow(color: .blue.opacity(0.3), radius: 4, x: 0, y: 2)
+                .cornerRadius(16)
+                .shadow(color: .blue.opacity(0.28), radius: 8, x: 0, y: 4)
             }
+            Spacer()
         }
     }
 }
