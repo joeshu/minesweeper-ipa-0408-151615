@@ -1,10 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>UIColorName</key>
-  <string>SystemBackgroundColor</string>
-  <key>UIImageName</key>
-  <string>LaunchLogo</string>
-</dict>
-</plist>
+<document type="com.apple.InterfaceBuilder3.Cocoa.Touch.Storyboard" version="3.0" toolsVersion="1580" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES">
+<scenes>
+<scene sceneID="LaunchScreenScene" viewController="" key="scene">
+    <objects>
+        <viewController key="viewController" sceneMemberID="viewController" id="VCP01">
+            <view key="view" contentMode="scaleToFill" id="V01">
+                <rect key="frame" x="0.0" y="0.0" width="320" height="480" />
+                <color key="backgroundColor" colorSpace="adobeRGB1998" baseColor="{0.0, 0.0, 0.0, 1.0}" />
+                <subviews>
+                    <imageView frame="0 0 320 480" image="LaunchLogo" contentMode="scaleAspectFit" opaque="NO" clipsSubviews="YES" id="I01" />
+                </subviews>
+            </view>
+        </viewController>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="File" uid="" />
+        <placeholder placeholderIdentifier="IBFirstResponder" id="FirstResponder" uid="" />
+    </objects>
+    <point key="canvasLocation" x="175" y="185" />
+</scene>
+</scenes>
+</document>
