@@ -38,14 +38,10 @@ struct GameView: View {
                 
                 // 游戏板
                 gameBoardView
-                    .padding(.horizontal, 8)
-                    .padding(.top, 12)
+                    .frame(maxHeight: .infinity)
+                    .padding(.horizontal, 6)
+                    .padding(.top, 8)
                     .padding(.bottom, 8)
-                
-                // 控制按钮
-                controlButtons
-                    .padding(.horizontal)
-                    .padding(.bottom, 14)
             }
             
             // 暂停覆盖层
@@ -216,6 +212,19 @@ struct GameView: View {
     // MARK: - 快捷操作栏
     private var quickActionBar: some View {
         HStack(spacing: 12) {
+            QuickActionButton(
+                icon: "arrow.clockwise",
+                label: "新局",
+                isEnabled: true,
+                color: .blue
+            ) {
+                if viewModel.isGameActive {
+                    showingNewGameConfirmation = true
+                } else {
+                    viewModel.newGame()
+                }
+            }
+            
             // 撤销按钮
             QuickActionButton(
                 icon: "arrow.uturn.backward",
@@ -339,7 +348,7 @@ struct GameView: View {
             
             let cellWidth = (availableWidth - totalSpacingX) / cols
             let cellHeight = (availableHeight - totalSpacingY) / rows
-            let cellSize = min(cellWidth, cellHeight, 55) // 最大55pt
+            let cellSize = min(cellWidth, cellHeight, 64)
             
             // 计算实际板尺寸
             let boardWidth = cols * cellSize + totalSpacingX
