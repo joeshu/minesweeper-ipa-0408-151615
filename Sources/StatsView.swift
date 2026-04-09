@@ -12,6 +12,9 @@ struct StatsView: View {
                     // 概览卡片
                     overviewCards
                     
+                    // 每日挑战状态
+                    dailyChallengeSection
+                    
                     // 挑战模式统计
                     challengeOverviewSection
                     
@@ -77,6 +80,39 @@ struct StatsView: View {
                 value: "\(viewModel.gameStats.losses)",
                 icon: "xmark.circle.fill",
                 color: .red
+            )
+        }
+    }
+    
+    // MARK: - 每日挑战状态
+    private var dailyChallengeSection: some View {
+        let todayStatus = viewModel.gameStats.getTodayDailyChallengeStatus()
+        
+        return VStack(alignment: .leading, spacing: 12) {
+            Text("每日挑战")
+                .font(.headline)
+            
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Label("今日状态", systemImage: todayStatus == nil ? "calendar.badge.clock" : "calendar.badge.checkmark")
+                    Spacer()
+                    Text(todayStatus == nil ? "未完成" : "已完成")
+                        .foregroundColor(todayStatus == nil ? .secondary : .green)
+                        .fontWeight(.semibold)
+                }
+                
+                HStack {
+                    Label("今日最佳", systemImage: "trophy")
+                    Spacer()
+                    Text(todayStatus == nil ? "--:--" : formatTime(todayStatus!.bestTime))
+                        .font(.system(.body, design: .monospaced))
+                        .fontWeight(.semibold)
+                }
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(.secondarySystemBackground))
             )
         }
     }

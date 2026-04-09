@@ -1,5 +1,11 @@
 import Foundation
 
+struct DailyChallengeStatus: Codable {
+    let dateKey: String
+    let bestTime: TimeInterval
+    let completed: Bool
+}
+
 struct GameRecord: Codable, Identifiable {
     let id: UUID
     let date: Date
@@ -23,8 +29,10 @@ class GameStats: ObservableObject {
     @Published var wins: Int = 0
     @Published var losses: Int = 0
     @Published var bestTimes: [String: TimeInterval] = [:]
+    @Published var dailyChallengeStatuses: [String: DailyChallengeStatus] = [:]
     
     private let recordsKey = "gameRecords"
+    private let dailyChallengeStatusKey = "dailyChallengeStatuses"
     private let maxRecords = 100
     
     init() {
@@ -60,6 +68,14 @@ class GameStats: ObservableObject {
                 }
             } else {
                 bestTimes[key] = duration
+            }
+            
+            if challengeMode == .daily {
+                let dateKey = currentDateKey()
+                let current = dailyChallengeStatuses[dateKey]
+                if current == nil || duration < current!.bestTime {
+                    dailyChallengeStatuses[dateKey] = DailyChallengeStatus(dateKey: dateKey, bestTime: duration, completed: true)
+                }
             }
         }
         
@@ -109,6 +125,18 @@ class GameStats: ObservableObject {
         return Double(wins) / Double(challengeRecords.count) * 100
     }
     
+    func getTodayDailyChallengeStatus() -> DailyChallengeStatus? {
+        dailyChallengeStatuses[currentDateKey()]
+    }
+    
+    private func currentDateKey() -> String {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.timeZone = TimeZone(secondsFromGMT: 8 * 3600)
+        formatter.dateFormat = "yyyyMMdd"
+        return formatter.string(from: Date())
+    }
+    
     func clearAllRecords() {
         records.removeAll()
         bestTimes.removeAll()
@@ -123,6 +151,9 @@ class GameStats: ObservableObject {
         if let encoded = try? JSONEncoder().encode(bestTimes) {
             UserDefaults.standard.set(encoded, forKey: "bestTimes")
         }
+        if let encoded = try? JSONEncoder().encode(dailyChallengeStatuses) {
+            UserDefaults.standard.set(encoded, forKey: dailyChallengeStatusKey)
+        }
     }
     
     private func loadRecords() {
@@ -134,6 +165,11 @@ class GameStats: ObservableObject {
         if let data = UserDefaults.standard.data(forKey: "bestTimes"),
            let decoded = try? JSONDecoder().decode([String: TimeInterval].self, from: data) {
             bestTimes = decoded
+        }
+        
+        if let data = UserDefaults.standard.data(forKey: dailyChallengeStatusKey),
+           let decoded = try? JSONDecoder().decode([String: DailyChallengeStatus].self, from: data) {
+            dailyChallengeStatuses = decoded
         }
         
         updateStats()

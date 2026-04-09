@@ -18,6 +18,7 @@ class GameViewModel: ObservableObject {
     @Published var canUndo: Bool = false
     @Published var showPauseOverlay: Bool = false
     @Published var hintPosition: (row: Int, col: Int)? = nil
+    @Published var hintMessage: String = ""
     @Published var isShowingHint: Bool = false
     @Published var hasSavedGame: Bool = false
     @Published var customPresets: [CustomPreset] = []
@@ -236,6 +237,7 @@ class GameViewModel: ObservableObject {
         
         // 清除提示
         hintPosition = nil
+        hintMessage = ""
         isShowingHint = false
         
         let exploded = gameBoard.revealCell(row: row, col: col)
@@ -370,12 +372,14 @@ class GameViewModel: ObservableObject {
         
         hintPosition = gameBoard.getHint()
         isShowingHint = hintPosition != nil
+        hintMessage = hintPosition == nil ? "当前没有可用提示" : (challengeMode == .noGuess ? "已高亮低风险逻辑位" : "已高亮建议点击位置")
         
         if isShowingHint {
             hapticManager.impact(.light)
             // 3秒后自动隐藏提示
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
                 self?.isShowingHint = false
+                self?.hintMessage = ""
             }
         }
     }

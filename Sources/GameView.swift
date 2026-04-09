@@ -25,6 +25,12 @@ struct GameView: View {
                         .padding(.horizontal)
                         .padding(.top, 8)
                     
+                    if !viewModel.hintMessage.isEmpty {
+                        hintBanner
+                            .padding(.horizontal)
+                            .padding(.top, 8)
+                    }
+                    
                     // 游戏板
                     gameBoardView
                         .padding(.horizontal, 8)
@@ -213,6 +219,22 @@ struct GameView: View {
                 viewModel.showHint()
             }
         }
+    }
+    
+    private var hintBanner: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "lightbulb.max.fill")
+                .foregroundColor(.yellow)
+            Text(viewModel.hintMessage)
+                .font(.subheadline)
+                .foregroundColor(.primary)
+            Spacer()
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color(.secondarySystemBackground))
+        )
     }
     
     // MARK: - 游戏板视图
