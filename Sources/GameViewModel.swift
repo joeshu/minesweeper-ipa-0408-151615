@@ -20,6 +20,8 @@ class GameViewModel: ObservableObject {
     @Published var hintPosition: (row: Int, col: Int)? = nil
     @Published var isShowingHint: Bool = false
     @Published var hasSavedGame: Bool = false
+    @Published var customPresets: [CustomPreset] = []
+    @Published var presetNameDraft: String = ""
     
     let gameStats = GameStats()
     let soundManager = SoundManager.shared
@@ -32,12 +34,14 @@ class GameViewModel: ObservableObject {
     private var startTime: Date?
     private var pauseStartTime: Date?
     private var totalPausedTime: TimeInterval = 0
+    private let customPresetsKey = "customPresets"
     
     init() {
         self.gameBoard = GameBoard(rows: Difficulty.easy.rows, 
                                    cols: Difficulty.easy.cols, 
                                    mineCount: Difficulty.easy.mineCount)
         loadSettings()
+        loadCustomPresets()
         checkSavedGame()
     }
     
@@ -62,6 +66,21 @@ class GameViewModel: ObservableObject {
         UserDefaults.standard.set(customRows, forKey: "customRows")
         UserDefaults.standard.set(customCols, forKey: "customCols")
         UserDefaults.standard.set(customMines, forKey: "customMines")
+    }
+    
+    private func loadCustomPresets() {
+        guard let data = UserDefaults.standard.data(forKey: customPresetsKey),
+              let decoded = try? JSONDecoder().decode([CustomPreset].self, from: data) else {
+            customPresets = []
+            return
+        }
+        customPresets = decoded
+    }
+    
+    private func saveCustomPresets() {
+        if let data = try? JSONEncoder().encode(customPresets) {
+            UserDefaults.standard.set(data, forKey: customPresetsKey)
+        }
     }
     
     // MARK: - 游戏板管理
@@ -98,9 +117,44 @@ class GameViewModel: ObservableObject {
         customMines = max(1, min(maxMines, mines))
         saveSettings()
         
+        if presetNameDraft.isEmpty {
+            presetNameDraft = defaultPresetName
+        }
+        
         if difficulty == .custom {
             updateBoardSize()
         }
+    }
+    
+    var defaultPresetName: String {
+        "自定义 \(customRows)×\(customCols)"
+    }
+    
+    func saveCurrentAsPreset() {
+        let trimmed = presetNameDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        let name = trimmed.isEmpty ? defaultPresetName : trimmed
+        let preset = CustomPreset(name: name, rows: customRows, cols: customCols, mines: customMines)
+        customPresets.insert(preset, at: 0)
+        if customPresets.count > 12 {
+            customPresets = Array(customPresets.prefix(12))
+        }
+        presetNameDraft = name
+        saveCustomPresets()
+    }
+    
+    func applyCustomPreset(_ preset: CustomPreset) {
+        presetNameDraft = preset.name
+        customRows = preset.rows
+        customCols = preset.cols
+        customMines = preset.mines
+        difficulty = .custom
+        saveSettings()
+        updateBoardSize()
+    }
+    
+    func deleteCustomPreset(_ preset: CustomPreset) {
+        customPresets.removeAll { $0.id == preset.id }
+        saveCustomPresets()
     }
     
     // MARK: - 游戏操作

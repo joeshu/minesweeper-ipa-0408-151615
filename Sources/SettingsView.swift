@@ -74,6 +74,48 @@ struct SettingsView: View {
                             ),
                             range: 1...(viewModel.customRows * viewModel.customCols - 9)
                         )
+                        
+                        VStack(alignment: .leading, spacing: 12) {
+                            TextField("预设名称", text: $viewModel.presetNameDraft)
+                                .textInputAutocapitalization(.never)
+                            
+                            Button {
+                                viewModel.saveCurrentAsPreset()
+                            } label: {
+                                Label("保存为预设", systemImage: "square.and.arrow.down")
+                            }
+                            
+                            if !viewModel.customPresets.isEmpty {
+                                Text("已保存预设")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                
+                                ForEach(viewModel.customPresets) { preset in
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(preset.name)
+                                            Text(preset.summary)
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        Spacer()
+                                        Button("应用") {
+                                            viewModel.applyCustomPreset(preset)
+                                        }
+                                        .buttonStyle(.borderedProminent)
+                                        .controlSize(.small)
+                                        
+                                        Button(role: .destructive) {
+                                            viewModel.deleteCustomPreset(preset)
+                                        } label: {
+                                            Image(systemName: "trash")
+                                        }
+                                        .buttonStyle(.borderless)
+                                    }
+                                    .padding(.vertical, 4)
+                                }
+                            }
+                        }
                     }
                 }
                 
