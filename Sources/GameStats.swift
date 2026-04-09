@@ -43,6 +43,9 @@ class GameStats: ObservableObject {
     @Published var losses: Int = 0
     @Published var bestTimes: [String: TimeInterval] = [:]
     @Published var dailyChallengeStatuses: [String: DailyChallengeStatus] = [:]
+    @Published var noGuessWins: Int = 0
+    @Published var noGuessGames: Int = 0
+    @Published var noGuessBestTime: TimeInterval? = nil
     
     private let recordsKey = "gameRecords"
     private let dailyChallengeStatusKey = "dailyChallengeStatuses"
@@ -90,6 +93,16 @@ class GameStats: ObservableObject {
                     dailyChallengeStatuses[dateKey] = DailyChallengeStatus(dateKey: dateKey, bestTime: duration, completed: true)
                 }
             }
+            
+            if challengeMode == .noGuess {
+                if let currentBest = noGuessBestTime {
+                    if duration < currentBest {
+                        noGuessBestTime = duration
+                    }
+                } else {
+                    noGuessBestTime = duration
+                }
+            }
         }
         
         updateStats()
@@ -100,6 +113,10 @@ class GameStats: ObservableObject {
         totalGames = records.count
         wins = records.filter { $0.result == .won }.count
         losses = records.filter { $0.result == .lost }.count
+        
+        let noGuessRecords = records.filter { $0.challengeMode == ChallengeMode.noGuess.rawValue }
+        noGuessGames = noGuessRecords.count
+        noGuessWins = noGuessRecords.filter { $0.result == .won }.count
     }
     
     func getWinRate(for difficulty: Difficulty? = nil) -> Double {
@@ -159,6 +176,11 @@ class GameStats: ObservableObject {
     
     func getDailyChallengeCompletedDays() -> Int {
         dailyChallengeStatuses.values.filter { $0.completed }.count
+    }
+    
+    func getNoGuessWinRate() -> Double {
+        guard noGuessGames > 0 else { return 0 }
+        return Double(noGuessWins) / Double(noGuessGames) * 100
     }
     
     private func currentDateKey() -> String {

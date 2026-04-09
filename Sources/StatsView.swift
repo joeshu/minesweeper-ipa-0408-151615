@@ -12,6 +12,9 @@ struct StatsView: View {
                     // 概览卡片
                     overviewCards
                     
+                    // 无猜模式统计
+                    noGuessSection
+                    
                     // 每日挑战状态
                     dailyChallengeSection
                     
@@ -80,6 +83,44 @@ struct StatsView: View {
                 value: "\(viewModel.gameStats.losses)",
                 icon: "xmark.circle.fill",
                 color: .red
+            )
+        }
+    }
+    
+    // MARK: - 无猜模式统计
+    private var noGuessSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("无猜挑战")
+                .font(.headline)
+            
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Label("对局数", systemImage: "brain.head.profile")
+                    Spacer()
+                    Text("\(viewModel.gameStats.noGuessGames)")
+                        .fontWeight(.semibold)
+                }
+                
+                HStack {
+                    Label("胜率", systemImage: "checkmark.seal")
+                    Spacer()
+                    Text(String(format: "%.1f%%", viewModel.gameStats.getNoGuessWinRate()))
+                        .fontWeight(.semibold)
+                        .foregroundColor(.green)
+                }
+                
+                HStack {
+                    Label("最佳时间", systemImage: "stopwatch")
+                    Spacer()
+                    Text(viewModel.gameStats.noGuessBestTime == nil ? "--:--" : formatTime(viewModel.gameStats.noGuessBestTime!))
+                        .font(.system(.body, design: .monospaced))
+                        .fontWeight(.semibold)
+                }
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(.secondarySystemBackground))
             )
         }
     }

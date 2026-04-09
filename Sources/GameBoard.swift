@@ -417,24 +417,86 @@ class GameBoard: ObservableObject {
                     }
                 } else if remainingMines == 0 && !hidden.isEmpty {
                     for item in hidden where !revealed.contains(item) && !minePositions.contains(item) {
-                        revealed.insert(item)
-                        let r = item / cols
-                        let c = item % cols
-                        if cells[r][c].neighborMines == 0 {
-                            for neighbor in neighborCache[item] where !revealed.contains(neighbor) && !minePositions.contains(neighbor) {
-                                revealed.insert(neighbor)
-                                changed = true
-                            }
-                        } else {
+                        if revealVirtualCell(item, revealed: &revealed) {
                             changed = true
                         }
                     }
                 }
             }
+            
+            if applySubsetRule(revealed: &revealed, flagged: &flagged) {
+                changed = true
+            }
         }
         
         let nonMineCells = rows * cols - totalMines
         return revealed.count >= nonMineCells
+    }
+    
+    private func revealVirtualCell(_ index: Int, revealed: inout Set<Int>) -> Bool {
+        if revealed.contains(index) || minePositions.contains(index) { return false }
+        var changed = false
+        var stack: [Int] = [index]
+        
+        while !stack.isEmpty {
+            let current = stack.removeLast()
+            if revealed.contains(current) || minePositions.contains(current) { continue }
+            revealed.insert(current)
+            changed = true
+            let row = current / cols
+            let col = current % cols
+            if cells[row][col].neighborMines == 0 {
+                for neighbor in neighborCache[current] where !revealed.contains(neighbor) && !minePositions.contains(neighbor) {
+                    stack.append(neighbor)
+                }
+            }
+        }
+        
+        return changed
+    }
+    
+    private func applySubsetRule(revealed: inout Set<Int>, flagged: inout Set<Int>) -> Bool {
+        let numbered = Array(revealed).filter { idx in
+            let row = idx / cols
+            let col = idx % cols
+            return cells[row][col].neighborMines > 0
+        }
+        
+        for a in numbered {
+            for b in numbered where a != b {
+                let rowA = a / cols
+                let colA = a % cols
+                let rowB = b / cols
+                let colB = b % cols
+                
+                let neighborsA = Set(neighborCache[a].filter { !revealed.contains($0) && !flagged.contains($0) })
+                let neighborsB = Set(neighborCache[b].filter { !revealed.contains($0) && !flagged.contains($0) })
+                
+                guard !neighborsA.isEmpty, !neighborsB.isEmpty, neighborsA.isSubset(of: neighborsB), neighborsA != neighborsB else { continue }
+                
+                let flaggedA = neighborCache[a].filter { flagged.contains($0) }.count
+                let flaggedB = neighborCache[b].filter { flagged.contains($0) }.count
+                let remainingA = cells[rowA][colA].neighborMines - flaggedA
+                let remainingB = cells[rowB][colB].neighborMines - flaggedB
+                let diffSet = neighborsB.subtracting(neighborsA)
+                let diffMines = remainingB - remainingA
+                
+                if diffMines == 0 {
+                    for index in diffSet where !minePositions.contains(index) {
+                        if revealVirtualCell(index, revealed: &revealed) {
+                            return true
+                        }
+                    }
+                } else if diffMines == diffSet.count {
+                    for index in diffSet where !flagged.contains(index) {
+                        flagged.insert(index)
+                        return true
+                    }
+                }
+            }
+        }
+        
+        return false
     }
     
     // MARK: - 游戏状态
