@@ -1,4 +1,4 @@
-// Last updated: 2026-04-08 18:36 CST
+// Last updated: 2026-04-09 13:00 CST - 优化界面显示
 import SwiftUI
 
 struct ContentView: View {
@@ -16,67 +16,76 @@ struct ContentView: View {
                 )
                 .ignoresSafeArea()
 
-                VStack(spacing: 18) {
-                    VStack(spacing: 14) {
-                        Picker("难度", selection: difficultyBinding) {
-                            ForEach(Difficulty.allCases) { level in
-                                Text(level.rawValue).tag(level)
+                ScrollView {
+                    VStack(spacing: 16) {
+                        VStack(spacing: 14) {
+                            HStack {
+                                Picker("难度", selection: difficultyBinding) {
+                                    ForEach(Difficulty.allCases) { level in
+                                        Text(level.rawValue).tag(level)
+                                    }
+                                }
+                                .pickerStyle(.segmented)
+                                .frame(maxWidth: 200)
+                                
+                                Spacer()
+                                
+                                Button {
+                                    Haptics.tap()
+                                    game.reset()
+                                } label: {
+                                    Label("重开", systemImage: "arrow.clockwise")
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .tint(.blue)
+                            }
+
+                            HStack {
+                                StatusBadge(systemImage: "flag.fill", text: "\(game.remainingMinesEstimate)", color: .orange)
+                                Spacer()
+                                StatusBadge(systemImage: "timer", text: "\(game.elapsedSeconds)s", color: .blue)
+                                Spacer()
+                                StatusBadge(systemImage: "trophy.fill", text: bestScoreText, color: .green)
                             }
                         }
-                        .pickerStyle(.segmented)
+                        .padding(16)
+                        .background(cardBackground, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                        .shadow(color: .black.opacity(colorScheme == .dark ? 0.22 : 0.06), radius: 18, y: 10)
 
-                        HStack {
-                            StatusBadge(systemImage: "flag.fill", text: "\(game.remainingMinesEstimate)", color: .orange)
-                            Spacer()
-                            StatusBadge(systemImage: "timer", text: "\(game.elapsedSeconds)s", color: .blue)
-                            Spacer()
-                            Button {
-                                Haptics.tap()
-                                game.reset()
-                            } label: {
-                                Label("重开", systemImage: "arrow.clockwise")
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .tint(.blue)
-                        }
-
-                        HStack(spacing: 10) {
-                            Text(statusText)
-                                .font(.headline)
-                                .foregroundStyle(statusColor)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            if let best = BestScoreStore.bestTime(for: game.difficulty) {
-                                StatusBadge(systemImage: "trophy.fill", text: "最佳 \(best)s", color: .green)
+                        // 优化：使用固定高度和自适应宽度
+                        GeometryReader { geometry in
+                            let availableWidth = geometry.size.width - 40
+                            let boardWidth = min(game.boardWidth, availableWidth)
+                            let cellSize = boardWidth / Double(game.cols)
+                            
+                            HStack {
+                                Spacer()
+                                BoardView(game: game)
+                                    .frame(width: boardWidth)
+                                    .padding(10)
+                                    .background(boardBackground, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                                    .shadow(color: .blue.opacity(colorScheme == .dark ? 0.16 : 0.10), radius: 16, y: 8)
+                                Spacer()
                             }
                         }
-                    }
-                    .padding(16)
-                    .background(cardBackground, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-                    .shadow(color: .black.opacity(colorScheme == .dark ? 0.22 : 0.06), radius: 18, y: 10)
+                        .frame(height: 350)
 
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        BoardView(game: game)
-                            .frame(width: game.boardWidth)
-                            .padding(10)
-                            .background(boardBackground, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-                            .shadow(color: .blue.opacity(colorScheme == .dark ? 0.16 : 0.10), radius: 16, y: 8)
-                            .padding(.horizontal, 2)
-                    }
+                        VStack(alignment: .leading, spacing: 8) {
+                            Label("iPhone 风格扫雷", systemImage: "sparkles")
+                                .font(.subheadline.bold())
+                            Text("已加入深色模式适配、App 图标和最佳成绩记录。点按翻开格子，长按插旗。")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(16)
+                        .background(cardBackground, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
 
-                    VStack(alignment: .leading, spacing: 8) {
-                        Label("iPhone 风格扫雷", systemImage: "sparkles")
-                            .font(.subheadline.bold())
-                        Text("已加入深色模式适配、App 图标和最佳成绩记录。点按翻开格子，长按插旗。")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
+                        Spacer(minLength: 20)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(16)
-                    .background(cardBackground, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-
-                    Spacer(minLength: 0)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
                 }
-                .padding()
             }
             .navigationTitle("扫雷")
             .onChange(of: game.gameOver) { newValue in
@@ -124,6 +133,13 @@ struct ContentView: View {
     private var statusColor: Color {
         if game.gameOver { return game.didWin ? .green : .red }
         return .blue
+    }
+
+    private var bestScoreText: String {
+        if let best = BestScoreStore.bestTime(for: game.difficulty) {
+            return "最佳 \(best)s"
+        }
+        return ""
     }
 
     private var backgroundGradient: [Color] {
