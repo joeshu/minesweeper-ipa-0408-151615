@@ -5,6 +5,7 @@ struct ContentView: View {
     @Environment(\.colorScheme) private var colorScheme
     @StateObject private var game = MinesweeperGame()
     @State private var showingResultAlert = false
+    @State private var containerWidth: CGFloat = 0
 
     var body: some View {
         NavigationStack {
@@ -16,6 +17,7 @@ struct ContentView: View {
                 )
                 .ignoresSafeArea()
 
+<<<<<<< HEAD
                 ScrollView {
                     VStack(spacing: 16) {
                         // 顶部控制区域
@@ -63,9 +65,34 @@ struct ContentView: View {
                                 .background(boardBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                                 .shadow(color: .blue.opacity(colorScheme == .dark ? 0.12 : 0.08), radius: 8, y: 4)
                                 .padding(.horizontal, 20)
+=======
+                VStack(spacing: 16) {
+                    // 顶部控制区域
+                    VStack(spacing: 12) {
+                        HStack {
+                            Picker("难度", selection: difficultyBinding) {
+                                ForEach(Difficulty.allCases) { level in
+                                    Text(level.rawValue).tag(level)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+                            .frame(maxWidth: 200)
+                            
+                            Spacer()
+                            
+                            Button {
+                                Haptics.tap()
+                                game.reset()
+                            } label: {
+                                Label("重开", systemImage: "arrow.clockwise")
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.blue)
+>>>>>>> 9aab6a7a0ffc5d4585f68c809c1ffccaa92c9026
                         }
                         .frame(height: 400) // 固定高度，避免无限滚动
 
+<<<<<<< HEAD
                         // 底部信息区域
                         VStack(alignment: .leading, spacing: 6) {
                             Label("iPhone 风格扫雷", systemImage: "sparkles")
@@ -83,6 +110,51 @@ struct ContentView: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
                 }
+=======
+                        HStack(spacing: 12) {
+                            StatusBadge(systemImage: "flag.fill", text: "\(game.remainingMinesEstimate)", color: .orange)
+                            StatusBadge(systemImage: "timer", text: "\(game.elapsedSeconds)s", color: .blue)
+                            if let best = BestScoreStore.bestTime(for: game.difficulty) {
+                                StatusBadge(systemImage: "trophy.fill", text: "最佳 \(best)s", color: .green)
+                            }
+                        }
+                    }
+                    .padding(16)
+                    .background(cardBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .shadow(color: .black.opacity(colorScheme == .dark ? 0.2 : 0.05), radius: 12, y: 6)
+
+                    // 游戏棋盘区域 - 优化布局
+                    GeometryReader { geometry in
+                        let boardWidth = min(game.boardWidth, geometry.size.width - 40)
+                        let cellSize = boardWidth / Double(game.cols)
+                        
+                        BoardView(game: game, cellSize: cellSize)
+                            .frame(width: boardWidth, height: cellSize * Double(game.rows) + 4.0 * Double(max(0, game.rows - 1)))
+                            .background(boardBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .shadow(color: .blue.opacity(colorScheme == .dark ? 0.12 : 0.08), radius: 8, y: 4)
+                            .padding(.horizontal, 20)
+                            .onAppear {
+                                containerWidth = geometry.size.width
+                            }
+                    }
+
+                    // 底部信息区域
+                    VStack(alignment: .leading, spacing: 6) {
+                        Label("iPhone 风格扫雷", systemImage: "sparkles")
+                            .font(.subheadline.bold())
+                        Text("已加入深色模式适配、App 图标和最佳成绩记录。点按翻开格子，长按插旗。")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(16)
+                    .background(cardBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+                    Spacer(minLength: 0)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+>>>>>>> 9aab6a7a0ffc5d4585f68c809c1ffccaa92c9026
             }
             .navigationTitle("扫雷")
             .onChange(of: game.gameOver) { newValue in
