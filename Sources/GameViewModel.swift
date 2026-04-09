@@ -130,18 +130,38 @@ class GameViewModel: ObservableObject {
     }
     
     func updateCustomSettings(rows: Int, cols: Int, mines: Int) {
-        customRows = max(5, min(30, rows))
-        customCols = max(5, min(30, cols))
-        let maxMines = (customRows * customCols) - 9
-        customMines = max(1, min(maxMines, mines))
+        let newRows = max(5, min(30, rows))
+        let newCols = max(5, min(30, cols))
+        let maxMines = max(1, (newRows * newCols) - 9)
+        let newMines = max(1, min(maxMines, mines))
+        
+        let didChange = newRows != customRows || newCols != customCols || newMines != customMines
+        customRows = newRows
+        customCols = newCols
+        customMines = newMines
         saveSettings()
         
         if presetNameDraft.isEmpty {
             presetNameDraft = defaultPresetName
         }
         
-        if difficulty == .custom {
-            updateBoardSize()
+        if difficulty == .custom && didChange {
+            gameBoard = GameBoard(rows: customRows, cols: customCols, mineCount: customMines)
+            resetTimer()
+            if challengeMode == .timed {
+                challengeSecondsRemaining = timedChallengeLimit
+            }
+            isGameActive = false
+            showGameOverAlert = false
+            showWinAlert = false
+            isPaused = false
+            showPauseOverlay = false
+            canUndo = false
+            hintPosition = nil
+            isShowingHint = false
+            gameStateManager.clearUndoStack()
+            gameStateManager.clearSavedGame()
+            hasSavedGame = false
         }
     }
     
