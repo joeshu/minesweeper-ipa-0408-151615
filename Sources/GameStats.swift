@@ -1,0 +1,128 @@
+import Foundation
+
+struct GameRecord: Codable, Identifiable {
+    let id: UUID
+    let date: Date
+    let difficulty: String
+    let result: GameResult
+    let duration: TimeInterval
+    let rows: Int
+    let cols: Int
+    let mineCount: Int
+    
+    enum GameResult: String, Codable {
+        case won = "胜利"
+        case lost = "失败"
+    }
+}
+
+class GameStats: ObservableObject {
+    @Published var records: [GameRecord] = []
+    @Published var totalGames: Int = 0
+    @Published var wins: Int = 0
+    @Published var losses: Int = 0
+    @Published var bestTimes: [String: TimeInterval] = [:]
+    
+    private let recordsKey = "gameRecords"
+    private let maxRecords = 100
+    
+    init() {
+        loadRecords()
+    }
+    
+    func addRecord(difficulty: Difficulty, result: GameRecord.GameResult, duration: TimeInterval, rows: Int, cols: Int, mineCount: Int) {
+        let record = GameRecord(
+            id: UUID(),
+            date: Date(),
+            difficulty: difficulty.rawValue,
+            result: result,
+            duration: duration,
+            rows: rows,
+            cols: cols,
+            mineCount: mineCount
+        )
+        
+        records.insert(record, at: 0)
+        
+        // 限制记录数量
+        if records.count > maxRecords {
+            records = Array(records.prefix(maxRecords))
+        }
+        
+        // 更新最佳时间
+        if result == .won {
+            let key = difficulty.rawValue
+            if let currentBest = bestTimes[key] {
+                if duration < currentBest {
+                    bestTimes[key] = duration
+                }
+            } else {
+                bestTimes[key] = duration
+            }
+        }
+        
+        updateStats()
+        saveRecords()
+    }
+    
+    private func updateStats() {
+        totalGames = records.count
+        wins = records.filter { $0.result == .won }.count
+        losses = records.filter { $0.result == .lost }.count
+    }
+    
+    func getWinRate(for difficulty: Difficulty? = nil) -> Double {
+        let filteredRecords = difficulty != nil ? records.filter { $0.difficulty == difficulty!.rawValue } : records
+        let total = filteredRecords.count
+        let winCount = filteredRecords.filter { $0.result == .won }.count
+        return total > 0 ? Double(winCount) / Double(total) * 100 : 0
+    }
+    
+    func getBestTime(for difficulty: Difficulty) -> TimeInterval? {
+        return bestTimes[difficulty.rawValue]
+    }
+    
+    func getRecords(for difficulty: Difficulty? = nil) -> [GameRecord] {
+        if let difficulty = difficulty {
+            return records.filter { $0.difficulty == difficulty.rawValue }
+        }
+        return records
+    }
+    
+    func getAverageTime(for difficulty: Difficulty) -> TimeInterval? {
+        let wonGames = records.filter { $0.difficulty == difficulty.rawValue && $0.result == .won }
+        guard !wonGames.isEmpty else { return nil }
+        let totalTime = wonGames.reduce(0) { $0 + $1.duration }
+        return totalTime / Double(wonGames.count)
+    }
+    
+    func clearAllRecords() {
+        records.removeAll()
+        bestTimes.removeAll()
+        updateStats()
+        saveRecords()
+    }
+    
+    private func saveRecords() {
+        if let encoded = try? JSONEncoder().encode(records) {
+            UserDefaults.standard.set(encoded, forKey: recordsKey)
+        }
+        if let encoded = try? JSONEncoder().encode(bestTimes) {
+            UserDefaults.standard.set(encoded, forKey: "bestTimes")
+        }
+    }
+    
+    private func loadRecords() {
+        if let data = UserDefaults.standard.data(forKey: recordsKey),
+           let decoded = try? JSONDecoder().decode([GameRecord].self, from: data) {
+            records = decoded
+        }
+        
+        if let data = UserDefaults.standard.data(forKey: "bestTimes"),
+           let decoded = try? JSONDecoder().decode([String: TimeInterval].self, from: data) {
+            bestTimes = decoded
+        }
+        
+        updateStats()
+    }
+}

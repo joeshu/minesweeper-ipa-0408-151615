@@ -1,0 +1,388 @@
+import SwiftUI
+
+struct StatsView: View {
+    @EnvironmentObject var viewModel: GameViewModel
+    @EnvironmentObject var themeManager: ThemeManager
+    @State private var selectedDifficulty: Difficulty? = nil
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // 概览卡片
+                    overviewCards
+                    
+                    // 难度选择器
+                    difficultySelector
+                    
+                    // 最佳时间
+                    bestTimesSection
+                    
+                    // 胜率统计
+                    winRateSection
+                    
+                    // 最近游戏记录
+                    recentGamesSection
+                }
+                .padding()
+            }
+            .navigationTitle("统计")
+            .background(
+                themeManager.useGradientBackground ?
+                LinearGradient(
+                    colors: [
+                        themeManager.gameTheme.boardBackgroundColor.opacity(0.3),
+                        Color(.systemBackground)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea() : nil
+            )
+        }
+    }
+    
+    // MARK: - 概览卡片
+    private var overviewCards: some View {
+        LazyVGrid(columns: [
+            GridItem(.flexible()),
+            GridItem(.flexible())
+        ], spacing: 12) {
+            StatCard(
+                title: "总游戏数",
+                value: "\(viewModel.gameStats.totalGames)",
+                icon: "number.circle.fill",
+                color: .blue
+            )
+            
+            StatCard(
+                title: "胜率",
+                value: String(format: "%.1f%%", viewModel.gameStats.getWinRate()),
+                icon: "percent",
+                color: .green
+            )
+            
+            StatCard(
+                title: "胜利次数",
+                value: "\(viewModel.gameStats.wins)",
+                icon: "checkmark.circle.fill",
+                color: .green
+            )
+            
+            StatCard(
+                title: "失败次数",
+                value: "\(viewModel.gameStats.losses)",
+                icon: "xmark.circle.fill",
+                color: .red
+            )
+        }
+    }
+    
+    // MARK: - 难度选择器
+    private var difficultySelector: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("选择难度")
+                .font(.headline)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    FilterButton(
+                        title: "全部",
+                        isSelected: selectedDifficulty == nil
+                    ) {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            selectedDifficulty = nil
+                        }
+                    }
+                    
+                    ForEach(Difficulty.allCases) { difficulty in
+                        FilterButton(
+                            title: difficulty.rawValue,
+                            isSelected: selectedDifficulty == difficulty
+                        ) {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                selectedDifficulty = difficulty
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - 最佳时间
+    private var bestTimesSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("最佳时间")
+                .font(.headline)
+            
+            VStack(spacing: 8) {
+                ForEach(Difficulty.allCases) { difficulty in
+                    if let bestTime = viewModel.gameStats.getBestTime(for: difficulty) {
+                        HStack {
+                            HStack(spacing: 6) {
+                                Circle()
+                                    .fill(difficultyColor(difficulty))
+                                    .frame(width: 8, height: 8)
+                                Text(difficulty.rawValue)
+                                    .font(.subheadline)
+                            }
+                            Spacer()
+                            Text(formatTime(bestTime))
+                                .font(.system(.body, design: .monospaced))
+                                .foregroundColor(.green)
+                                .fontWeight(.semibold)
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(.secondarySystemBackground))
+            )
+        }
+    }
+    
+    // MARK: - 胜率统计
+    private var winRateSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("各难度胜率")
+                .font(.headline)
+            
+            VStack(spacing: 12) {
+                ForEach(Difficulty.allCases) { difficulty in
+                    let winRate = viewModel.gameStats.getWinRate(for: difficulty)
+                    let games = viewModel.gameStats.getRecords(for: difficulty).count
+                    
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            HStack(spacing: 6) {
+                                Circle()
+                                    .fill(difficultyColor(difficulty))
+                                    .frame(width: 8, height: 8)
+                                Text(difficulty.rawValue)
+                                    .font(.subheadline)
+                            }
+                            Spacer()
+                            Text("\(games) 场")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        GeometryReader { geometry in
+                            ZStack(alignment: .leading) {
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(Color(.systemGray5))
+                                    .frame(height: 8)
+                                
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(winRateColor(winRate))
+                                    .frame(width: geometry.size.width * CGFloat(winRate / 100), height: 8)
+                                    .animation(themeManager.enableAnimations ? .easeInOut(duration: 0.5) : nil, value: winRate)
+                            }
+                        }
+                        .frame(height: 8)
+                        
+                        Text(String(format: "%.1f%%", winRate))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(.secondarySystemBackground))
+            )
+        }
+    }
+    
+    // MARK: - 最近游戏记录
+    private var recentGamesSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("最近游戏")
+                .font(.headline)
+            
+            let records = selectedDifficulty != nil 
+                ? viewModel.gameStats.getRecords(for: selectedDifficulty)
+                : viewModel.gameStats.records
+            
+            if records.isEmpty {
+                VStack(spacing: 12) {
+                    Image(systemName: "doc.text")
+                        .font(.system(size: 40))
+                        .foregroundColor(.secondary)
+                    Text("暂无游戏记录")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 40)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(.secondarySystemBackground))
+                )
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(records.prefix(10)) { record in
+                        GameRecordRow(record: record)
+                        
+                        if record.id != records.prefix(10).last?.id {
+                            Divider()
+                                .padding(.leading)
+                        }
+                    }
+                }
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(.secondarySystemBackground))
+                )
+            }
+        }
+    }
+    
+    // MARK: - 辅助方法
+    
+    private func difficultyColor(_ difficulty: Difficulty) -> Color {
+        switch difficulty {
+        case .easy: return .green
+        case .medium: return .orange
+        case .hard: return .red
+        case .custom: return .purple
+        }
+    }
+    
+    private func winRateColor(_ winRate: Double) -> Color {
+        if winRate >= 70 {
+            return .green
+        } else if winRate >= 40 {
+            return .yellow
+        } else {
+            return .orange
+        }
+    }
+    
+    private func formatTime(_ timeInterval: TimeInterval) -> String {
+        let minutes = Int(timeInterval) / 60
+        let seconds = Int(timeInterval) % 60
+        return String(format: "%02d:%02d", minutes, seconds)
+    }
+}
+
+// MARK: - 统计卡片
+struct StatCard: View {
+    let title: String
+    let value: String
+    let icon: String
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            HStack {
+                Image(systemName: icon)
+                    .font(.title2)
+                    .foregroundColor(color)
+                Spacer()
+            }
+            
+            Text(value)
+                .font(.system(.title2, design: .rounded))
+                .fontWeight(.bold)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            Text(title)
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.secondarySystemBackground))
+        )
+    }
+}
+
+// MARK: - 筛选按钮
+struct FilterButton: View {
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.subheadline)
+                .fontWeight(isSelected ? .semibold : .regular)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(isSelected ? Color.blue : Color(.systemGray5))
+                .foregroundColor(isSelected ? .white : .primary)
+                .cornerRadius(20)
+        }
+    }
+}
+
+// MARK: - 游戏记录行
+struct GameRecordRow: View {
+    let record: GameRecord
+    
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(record.difficulty)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                
+                Text(formattedDate(record.date))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+            
+            VStack(alignment: .trailing, spacing: 2) {
+                HStack(spacing: 4) {
+                    Image(systemName: record.result == .won ? "checkmark.circle.fill" : "xmark.circle.fill")
+                        .foregroundColor(record.result == .won ? .green : .red)
+                        .font(.caption)
+                    Text(record.result == .won ? "胜利" : "失败")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(record.result == .won ? .green : .red)
+                }
+                
+                Text(formatTime(record.duration))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .font(.system(.caption, design: .monospaced))
+            }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 10)
+    }
+    
+    private func formattedDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
+    }
+    
+    private func formatTime(_ timeInterval: TimeInterval) -> String {
+        let minutes = Int(timeInterval) / 60
+        let seconds = Int(timeInterval) % 60
+        return String(format: "%02d:%02d", minutes, seconds)
+    }
+}
+
+struct StatsView_Previews: PreviewProvider {
+    static var previews: some View {
+        StatsView()
+            .environmentObject(GameViewModel())
+            .environmentObject(ThemeManager.shared)
+    }
+}
