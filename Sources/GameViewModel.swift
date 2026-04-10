@@ -542,30 +542,17 @@ class GameViewModel: ObservableObject {
             animationManager.triggerWinAnimation(in: UIScreen.main.bounds.size)
             
             // 记录游戏结果
-            gameStats.addRecord(
+            newlyUnlockedAchievements = gameStats.addRecord(
                 difficulty: difficulty,
                 challengeMode: challengeMode,
                 generationQuality: challengeMode == .noGuess ? gameBoard.generationQualityNote : nil,
+                hasUsedHint: hasUsedHintInCurrentGame,
                 result: .won,
                 duration: elapsedTime,
                 rows: gameBoard.rows,
                 cols: gameBoard.cols,
                 mineCount: gameBoard.totalMines
             )
-            
-            let resultRecord = GameRecord(
-                id: UUID(),
-                date: Date(),
-                difficulty: difficulty.rawValue,
-                challengeMode: challengeMode == .none ? nil : challengeMode.rawValue,
-                generationQuality: challengeMode == .noGuess ? gameBoard.generationQualityNote : nil,
-                result: .won,
-                duration: elapsedTime,
-                rows: gameBoard.rows,
-                cols: gameBoard.cols,
-                mineCount: gameBoard.totalMines
-            )
-            newlyUnlockedAchievements = gameStats.newlyUnlockedAchievements(for: resultRecord, hasUsedHint: hasUsedHintInCurrentGame)
             
             // 清除自动保存
             clearSavedGame()
@@ -578,10 +565,11 @@ class GameViewModel: ObservableObject {
             isGameActive = false
             
             // 记录游戏结果
-            gameStats.addRecord(
+            _ = gameStats.addRecord(
                 difficulty: difficulty,
                 challengeMode: challengeMode,
                 generationQuality: challengeMode == .noGuess ? gameBoard.generationQualityNote : nil,
+                hasUsedHint: hasUsedHintInCurrentGame,
                 result: .lost,
                 duration: elapsedTime,
                 rows: gameBoard.rows,

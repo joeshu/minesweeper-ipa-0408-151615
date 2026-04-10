@@ -60,7 +60,7 @@ class GameStats: ObservableObject {
         loadRecords()
     }
     
-    func addRecord(difficulty: Difficulty, challengeMode: ChallengeMode = .none, generationQuality: String? = nil, result: GameRecord.GameResult, duration: TimeInterval, rows: Int, cols: Int, mineCount: Int) {
+    func addRecord(difficulty: Difficulty, challengeMode: ChallengeMode = .none, generationQuality: String? = nil, hasUsedHint: Bool = false, result: GameRecord.GameResult, duration: TimeInterval, rows: Int, cols: Int, mineCount: Int) -> [Achievement] {
         let record = GameRecord(
             id: UUID(),
             date: Date(),
@@ -112,33 +112,22 @@ class GameStats: ObservableObject {
         }
         
         updateStats()
-        evaluateAchievements(for: record)
+        let unlocked = evaluateAchievements(for: record, hasUsedHint: hasUsedHint)
         saveRecords()
+        return unlocked
     }
     
 
-    private func evaluateAchievements(for record: GameRecord) {
-        if record.result == .won {
-            unlockAchievement(id: "first_win")
-        }
-        
-        if consecutiveWinsCount() >= 3 {
-            unlockAchievement(id: "streak_3")
-        }
-        if consecutiveWinsCount() >= 5 {
-            unlockAchievement(id: "streak_5")
-        }
-        if consecutiveWinsCount() >= 10 {
-            unlockAchievement(id: "streak_10")
-        }
-        
-        if record.result == .won && record.challengeMode == ChallengeMode.noGuess.rawValue && (record.generationQuality ?? "").contains("严格") {
-            unlockAchievement(id: "strict_no_guess")
-        }
-        
-        if record.result == .won && getDailyChallengeStreak() >= 7 {
-            unlockAchievement(id: "daily_7")
-        }
+    private func evaluateAchievements(for record: GameRecord, hasUsedHint: Bool) -> [Achievement] {
+        var unlocked: [Achievement] = []
+        if record.result == .won, let a = unlockAchievement(id: "first_win") { unlocked.append(a) }
+        if consecutiveWinsCount() >= 3, let a = unlockAchievement(id: "streak_3") { unlocked.append(a) }
+        if consecutiveWinsCount() >= 5, let a = unlockAchievement(id: "streak_5") { unlocked.append(a) }
+        if consecutiveWinsCount() >= 10, let a = unlockAchievement(id: "streak_10") { unlocked.append(a) }
+        if record.result == .won && !hasUsedHint, let a = unlockAchievement(id: "no_hint_win") { unlocked.append(a) }
+        if record.result == .won && record.challengeMode == ChallengeMode.noGuess.rawValue && (record.generationQuality ?? "").contains("严格"), let a = unlockAchievement(id: "strict_no_guess") { unlocked.append(a) }
+        if record.result == .won && getDailyChallengeStreak() >= 7, let a = unlockAchievement(id: "daily_7") { unlocked.append(a) }
+        return unlocked
     }
     
     func newlyUnlockedAchievements(for record: GameRecord, hasUsedHint: Bool) -> [Achievement] {
