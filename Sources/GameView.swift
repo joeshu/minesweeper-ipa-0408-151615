@@ -47,6 +47,17 @@ struct GameView: View {
                 resultOverlay
             }
             
+            if let latestAchievement = viewModel.newlyUnlockedAchievements.last {
+                VStack {
+                    achievementToast(achievement: latestAchievement)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 12)
+                    Spacer()
+                }
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .animation(themeManager.enableAnimations ? .easeInOut(duration: 0.22) : nil, value: latestAchievement.id)
+            }
+            
             if !viewModel.hintMessage.isEmpty {
                 VStack {
                     Spacer(minLength: 0)
@@ -467,6 +478,41 @@ struct GameView: View {
             }
             Spacer()
         }
+    }
+
+    private func achievementToast(achievement: Achievement) -> some View {
+        HStack(spacing: 10) {
+            ZStack {
+                Circle()
+                    .fill(Color.yellow.opacity(0.18))
+                    .frame(width: 34, height: 34)
+                Image(systemName: achievement.icon)
+                    .foregroundColor(.yellow)
+                    .font(.headline)
+            }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text("成就解锁")
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(.yellow)
+                Text(achievement.title)
+                    .font(.subheadline.weight(.bold))
+                Text(achievement.detail)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            Spacer()
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color(.secondarySystemBackground))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color.yellow.opacity(0.3), lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
+        )
     }
 
     private var resultOverlay: some View {

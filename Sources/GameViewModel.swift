@@ -553,10 +553,19 @@ class GameViewModel: ObservableObject {
                 mineCount: gameBoard.totalMines
             )
             
-            if !hasUsedHintInCurrentGame {
-                gameStats.unlockAchievement(id: "no_hint_win")
-            }
-            newlyUnlockedAchievements = gameStats.achievements.filter { $0.isUnlocked }
+            let resultRecord = GameRecord(
+                id: UUID(),
+                date: Date(),
+                difficulty: difficulty.rawValue,
+                challengeMode: challengeMode == .none ? nil : challengeMode.rawValue,
+                generationQuality: challengeMode == .noGuess ? gameBoard.generationQualityNote : nil,
+                result: .won,
+                duration: elapsedTime,
+                rows: gameBoard.rows,
+                cols: gameBoard.cols,
+                mineCount: gameBoard.totalMines
+            )
+            newlyUnlockedAchievements = gameStats.newlyUnlockedAchievements(for: resultRecord, hasUsedHint: hasUsedHintInCurrentGame)
             
             // 清除自动保存
             clearSavedGame()

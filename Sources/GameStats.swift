@@ -141,6 +141,20 @@ class GameStats: ObservableObject {
         }
     }
     
+    func newlyUnlockedAchievements(for record: GameRecord, hasUsedHint: Bool) -> [Achievement] {
+        var unlocked: [Achievement] = []
+        
+        if record.result == .won, let a = unlockAchievement(id: "first_win") { unlocked.append(a) }
+        if consecutiveWinsCount() >= 3, let a = unlockAchievement(id: "streak_3") { unlocked.append(a) }
+        if consecutiveWinsCount() >= 5, let a = unlockAchievement(id: "streak_5") { unlocked.append(a) }
+        if consecutiveWinsCount() >= 10, let a = unlockAchievement(id: "streak_10") { unlocked.append(a) }
+        if record.result == .won && !hasUsedHint, let a = unlockAchievement(id: "no_hint_win") { unlocked.append(a) }
+        if record.result == .won && record.challengeMode == ChallengeMode.noGuess.rawValue && (record.generationQuality ?? "").contains("严格"), let a = unlockAchievement(id: "strict_no_guess") { unlocked.append(a) }
+        if record.result == .won && getDailyChallengeStreak() >= 7, let a = unlockAchievement(id: "daily_7") { unlocked.append(a) }
+        
+        return unlocked
+    }
+    
     private func consecutiveWinsCount() -> Int {
         var count = 0
         for record in records {
@@ -153,9 +167,10 @@ class GameStats: ObservableObject {
         return count
     }
     
-    func unlockAchievement(id: String) {
-        guard let idx = achievements.firstIndex(where: { $0.id == id }), achievements[idx].unlockedAt == nil else { return }
+    func unlockAchievement(id: String) -> Achievement? {
+        guard let idx = achievements.firstIndex(where: { $0.id == id }), achievements[idx].unlockedAt == nil else { return nil }
         achievements[idx].unlockedAt = Date()
+        return achievements[idx]
     }
 
     private func updateStats() {
