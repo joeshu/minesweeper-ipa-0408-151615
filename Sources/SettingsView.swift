@@ -184,7 +184,7 @@ struct SettingsView: View {
                                                     .foregroundColor(challengeModeColor(mode))
                                                     .padding(.horizontal, 6)
                                                     .padding(.vertical, 2)
-                                        .background(Capsule().fill(challengeModeColor(mode).opacity(0.12)))
+                                                    .background(Capsule().fill(challengeModeColor(mode).opacity(0.12)))
                                             }
                                         }
                                         Text(mode.description)
@@ -195,7 +195,7 @@ struct SettingsView: View {
                                     Spacer()
                                 }
                                 .padding(10)
-                    .background(
+                                .background(
                                     RoundedRectangle(cornerRadius: 12)
                                         .fill(viewModel.challengeMode == mode ? challengeModeColor(mode).opacity(0.08) : Color(.secondarySystemBackground))
                                 )

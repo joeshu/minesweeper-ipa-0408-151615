@@ -159,11 +159,15 @@ struct StatsView: View {
                                 .font(.caption2)
                                 .foregroundColor(achievement.isUnlocked ? .green : .secondary)
                         }
-                        .frame(width: 150, alignment: .leading)
+                        .frame(width: 156, height: 132, alignment: .leading)
                         .padding(12)
-            .background(
+                        .background(
                             RoundedRectangle(cornerRadius: 14)
                                 .fill(Color(.secondarySystemBackground))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .stroke(achievement.isUnlocked ? Color.yellow.opacity(0.25) : Color.primary.opacity(0.05), lineWidth: 1)
+                                )
                         )
                     }
                 }
@@ -610,8 +614,13 @@ struct GameRecordRow: View {
                     .font(.system(.caption, design: .monospaced))
             }
         }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color(.secondarySystemBackground))
+        )
         .padding(.horizontal)
-        .padding(.vertical, 10)
+        .padding(.vertical, 6)
     }
     
     private func formattedDate(_ date: Date) -> String {
