@@ -103,7 +103,7 @@ struct SettingsView: View {
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(10)
-                            .background(
+                .background(
                                 RoundedRectangle(cornerRadius: 12)
                                     .fill(Color(.secondarySystemBackground))
                             )
@@ -184,7 +184,7 @@ struct SettingsView: View {
                                                     .foregroundColor(challengeModeColor(mode))
                                                     .padding(.horizontal, 6)
                                                     .padding(.vertical, 2)
-                                                    .background(Capsule().fill(challengeModeColor(mode).opacity(0.12)))
+                                        .background(Capsule().fill(challengeModeColor(mode).opacity(0.12)))
                                             }
                                         }
                                         Text(mode.description)
@@ -195,7 +195,7 @@ struct SettingsView: View {
                                     Spacer()
                                 }
                                 .padding(10)
-                                .background(
+                    .background(
                                     RoundedRectangle(cornerRadius: 12)
                                         .fill(viewModel.challengeMode == mode ? challengeModeColor(mode).opacity(0.08) : Color(.secondarySystemBackground))
                                 )
@@ -318,7 +318,6 @@ struct SettingsView: View {
                     }
                 }
             }
-            .navigationTitle("设置")
             .alert("确认清除", isPresented: $showClearStatsConfirmation) {
                 Button("取消", role: .cancel) { }
                 Button("清除", role: .destructive) {

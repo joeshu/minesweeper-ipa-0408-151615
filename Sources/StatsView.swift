@@ -40,7 +40,6 @@ struct StatsView: View {
                 }
                 .padding()
             }
-            .navigationTitle("统计")
             .background(
                 themeManager.useGradientBackground ?
                 LinearGradient(
@@ -162,7 +161,7 @@ struct StatsView: View {
                         }
                         .frame(width: 150, alignment: .leading)
                         .padding(12)
-                        .background(
+            .background(
                             RoundedRectangle(cornerRadius: 14)
                                 .fill(Color(.secondarySystemBackground))
                         )
