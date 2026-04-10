@@ -17,31 +17,31 @@ struct GameView: View {
                 // 游戏信息栏
                 gameInfoBar
                     .padding(.horizontal)
-                    .padding(.top, 10)
+                    .padding(.top, 6)
                 
                 // 快捷操作栏
                 quickActionBar
                     .padding(.horizontal)
-                    .padding(.top, 10)
+                    .padding(.top, 6)
                 
                 if !viewModel.gameBoard.generationQualityNote.isEmpty && viewModel.challengeMode == .noGuess {
                     generationBanner
                         .padding(.horizontal)
-                        .padding(.top, 8)
+                        .padding(.top, 6)
                 }
                 
                 if !viewModel.hintMessage.isEmpty {
                     hintBanner
                         .padding(.horizontal)
-                        .padding(.top, 8)
+                        .padding(.top, 6)
                 }
                 
                 // 游戏板
                 gameBoardView
                     .frame(maxHeight: .infinity)
-                    .padding(.horizontal, 6)
-                    .padding(.top, 8)
-                    .padding(.bottom, 8)
+                    .padding(.horizontal, 4)
+                    .padding(.top, 6)
+                    .padding(.bottom, 6)
             }
             
             // 暂停覆盖层
@@ -116,7 +116,7 @@ struct GameView: View {
     
     // MARK: - 游戏信息栏
     private var gameInfoBar: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 8) {
             HStack(spacing: 12) {
                 statChip(
                     icon: "flag.fill",
@@ -154,7 +154,7 @@ struct GameView: View {
                 Spacer()
             }
         }
-        .padding(14)
+        .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color(.secondarySystemBackground).opacity(0.92))
@@ -181,7 +181,7 @@ struct GameView: View {
                 .monospacedDigit()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
+        .padding(10)
         .background(
             RoundedRectangle(cornerRadius: 14)
                 .fill(Color(.systemBackground).opacity(0.8))
@@ -211,7 +211,7 @@ struct GameView: View {
     
     // MARK: - 快捷操作栏
     private var quickActionBar: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 8) {
             QuickActionButton(
                 icon: "arrow.clockwise",
                 label: "新局",
@@ -348,7 +348,7 @@ struct GameView: View {
             
             let cellWidth = (availableWidth - totalSpacingX) / cols
             let cellHeight = (availableHeight - totalSpacingY) / rows
-            let cellSize = min(cellWidth, cellHeight, 64)
+            let cellSize = min(cellWidth, cellHeight, 72)
             
             // 计算实际板尺寸
             let boardWidth = cols * cellSize + totalSpacingX
