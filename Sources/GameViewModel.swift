@@ -180,13 +180,10 @@ class GameViewModel: ObservableObject {
         case .none:
             challengeSecondsRemaining = 0
         case .daily:
-            difficulty = .medium
             boardSeed = stableDailySeed()
         case .timed:
-            difficulty = .medium
             challengeSecondsRemaining = timedChallengeLimit
         case .noGuess:
-            difficulty = .easy
             boardSafeRadius = 2
             requireLogicalSolvableBoard = true
         }
