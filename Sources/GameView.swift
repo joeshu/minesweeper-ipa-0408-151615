@@ -30,12 +30,6 @@ struct GameView: View {
                         .padding(.top, 6)
                 }
                 
-                if !viewModel.hintMessage.isEmpty {
-                    hintBanner
-                        .padding(.horizontal)
-                        .padding(.top, 6)
-                }
-                
                 // 游戏板
                 gameBoardView
                     .frame(maxHeight: .infinity)
@@ -47,6 +41,17 @@ struct GameView: View {
             // 暂停覆盖层
             if viewModel.showPauseOverlay {
                 pauseOverlay
+            }
+            
+            if !viewModel.hintMessage.isEmpty {
+                VStack {
+                    Spacer(minLength: 0)
+                    hintBanner
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 18)
+                }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .animation(themeManager.enableAnimations ? .easeInOut(duration: 0.18) : nil, value: viewModel.hintMessage)
             }
             
             // 动画效果层
