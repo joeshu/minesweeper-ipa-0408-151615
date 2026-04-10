@@ -43,6 +43,10 @@ struct GameView: View {
                 pauseOverlay
             }
             
+            if viewModel.showGameOverAlert || viewModel.showWinAlert {
+                resultOverlay
+            }
+            
             if !viewModel.hintMessage.isEmpty {
                 VStack {
                     Spacer(minLength: 0)
@@ -478,6 +482,79 @@ struct GameView: View {
             Spacer()
         }
     }
+
+    private var resultOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.42)
+                .ignoresSafeArea()
+
+            VStack(spacing: 16) {
+                Image(systemName: viewModel.showWinAlert ? "trophy.fill" : "xmark.octagon.fill")
+                    .font(.system(size: 44))
+                    .foregroundColor(viewModel.showWinAlert ? .yellow : .red)
+
+                Text(viewModel.showWinAlert ? "本局胜利" : "本局失败")
+                    .font(.title2.weight(.bold))
+
+                VStack(spacing: 8) {
+                    resultRow(title: "模式", value: viewModel.challengeMode.rawValue)
+                    resultRow(title: "难度", value: viewModel.difficulty.rawValue)
+                    resultRow(title: "用时", value: viewModel.formattedTime)
+                    if viewModel.challengeMode == .noGuess && !viewModel.gameBoard.generationQualityNote.isEmpty {
+                        resultRow(title: "盘面质量", value: viewModel.gameBoard.generationQualityNote)
+                    }
+                }
+                .padding(12)
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(Color(.secondarySystemBackground))
+                )
+
+                HStack(spacing: 12) {
+                    Button {
+                        viewModel.showGameOverAlert = false
+                        viewModel.showWinAlert = false
+                    } label: {
+                        Text("关闭")
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                    }
+                    .background(RoundedRectangle(cornerRadius: 12).fill(Color(.secondarySystemBackground)))
+
+                    Button {
+                        viewModel.showGameOverAlert = false
+                        viewModel.showWinAlert = false
+                        viewModel.newGame()
+                    } label: {
+                        Text("再来一局")
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(RoundedRectangle(cornerRadius: 12).fill(Color.blue))
+                    }
+                }
+            }
+            .padding(20)
+            .frame(maxWidth: 320)
+            .background(
+                RoundedRectangle(cornerRadius: 22)
+                    .fill(Color(.systemBackground))
+            )
+            .shadow(color: .black.opacity(0.18), radius: 18, x: 0, y: 8)
+        }
+    }
+
+    private func resultRow(title: String, value: String) -> some View {
+        HStack {
+            Text(title)
+                .foregroundColor(.secondary)
+            Spacer()
+            Text(value)
+                .fontWeight(.semibold)
+                .multilineTextAlignment(.trailing)
+        }
+    }
+
 }
 
 // MARK: - 快捷操作按钮
