@@ -26,6 +26,7 @@ class GameViewModel: ObservableObject {
     @Published var presetNameDraft: String = ""
     @Published var challengeMode: ChallengeMode = .none
     @Published var challengeSecondsRemaining: Int = 0
+    @Published var newlyUnlockedAchievements: [Achievement] = []
     
     let gameStats = GameStats()
     let soundManager = SoundManager.shared
@@ -44,6 +45,7 @@ class GameViewModel: ObservableObject {
     private var boardSeed: UInt64?
     private var boardSafeRadius: Int = 1
     private var requireLogicalSolvableBoard: Bool = false
+    private var hasUsedHintInCurrentGame: Bool = false
     
     init() {
         self.gameBoard = GameBoard(rows: Difficulty.easy.rows, 
@@ -117,6 +119,8 @@ class GameViewModel: ObservableObject {
         showPauseOverlay = false
         canUndo = false
         hintPosition = nil
+        newlyUnlockedAchievements = []
+        hasUsedHintInCurrentGame = false
         gameStateManager.clearUndoStack()
         gameStateManager.clearSavedGame()
         hasSavedGame = false
@@ -376,6 +380,7 @@ class GameViewModel: ObservableObject {
     
     func showHint() {
         guard gameBoard.gameState == .playing && !isPaused else { return }
+        hasUsedHintInCurrentGame = true
         
         let descriptor = computeHintDescriptor()
         hintPosition = descriptor.position
@@ -547,6 +552,11 @@ class GameViewModel: ObservableObject {
                 cols: gameBoard.cols,
                 mineCount: gameBoard.totalMines
             )
+            
+            if !hasUsedHintInCurrentGame {
+                gameStats.unlockAchievement(id: "no_hint_win")
+            }
+            newlyUnlockedAchievements = gameStats.achievements.filter { $0.isUnlocked }
             
             // 清除自动保存
             clearSavedGame()

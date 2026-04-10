@@ -125,6 +125,12 @@ class GameStats: ObservableObject {
         if consecutiveWinsCount() >= 3 {
             unlockAchievement(id: "streak_3")
         }
+        if consecutiveWinsCount() >= 5 {
+            unlockAchievement(id: "streak_5")
+        }
+        if consecutiveWinsCount() >= 10 {
+            unlockAchievement(id: "streak_10")
+        }
         
         if record.result == .won && record.challengeMode == ChallengeMode.noGuess.rawValue && (record.generationQuality ?? "").contains("严格") {
             unlockAchievement(id: "strict_no_guess")
