@@ -238,6 +238,24 @@ class GameStats: ObservableObject {
         return Double(noGuessWins) / Double(noGuessGames) * 100
     }
     
+    func unlockedAchievementsCount() -> Int {
+        achievements.filter { $0.isUnlocked }.count
+    }
+    
+    func bestWinStreak() -> Int {
+        var best = 0
+        var current = 0
+        for record in records.reversed() {
+            if record.result == .won {
+                current += 1
+                best = max(best, current)
+            } else {
+                current = 0
+            }
+        }
+        return best
+    }
+    
     private func currentDateKey() -> String {
         dateKey(for: Date())
     }

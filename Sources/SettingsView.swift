@@ -9,6 +9,21 @@ struct SettingsView: View {
     var body: some View {
         NavigationView {
             Form {
+                Section {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("当前配置")
+                            .font(.headline)
+                        HStack {
+                            settingsPill(title: viewModel.challengeMode.rawValue, color: .blue)
+                            settingsPill(title: themeManager.gameTheme.rawValue, color: .green)
+                            settingsPill(title: viewModel.soundManager.isSoundEnabled ? "音效开" : "音效关", color: .orange)
+                        }
+                        Text("快速查看当前模式、主题与声音状态。")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.vertical, 4)
+                }
                 // 难度设置
                 Section(header: Text("游戏难度")) {
                     Picker("难度", selection: Binding(
@@ -332,7 +347,16 @@ struct SettingsView: View {
         case .noGuess: return "brain.head.profile"
         }
     }
+    private func settingsPill(title: String, color: Color) -> some View {
+        Text(title)
+            .font(.caption.weight(.semibold))
+            .foregroundColor(color)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(Capsule().fill(color.opacity(0.14)))
+    }
 }
+
 struct StepperView: View {
     let title: String
     @Binding var value: Int

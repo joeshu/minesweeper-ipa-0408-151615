@@ -65,10 +65,15 @@ struct StatsView: View {
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
-            HStack(spacing: 10) {
-                dashboardMiniCard(title: "总胜率", value: String(format: "%.1f%%", viewModel.gameStats.getWinRate()), color: .green)
-                dashboardMiniCard(title: "打卡", value: "\(viewModel.gameStats.getDailyChallengeStreak())天", color: .orange)
-                dashboardMiniCard(title: "无猜", value: "\(viewModel.gameStats.noGuessGames)局", color: .blue)
+            VStack(spacing: 10) {
+                HStack(spacing: 10) {
+                    dashboardMiniCard(title: "总胜率", value: String(format: "%.1f%%", viewModel.gameStats.getWinRate()), color: .green)
+                    dashboardMiniCard(title: "打卡", value: "\(viewModel.gameStats.getDailyChallengeStreak())天", color: .orange)
+                }
+                HStack(spacing: 10) {
+                    dashboardMiniCard(title: "成就", value: "\(viewModel.gameStats.unlockedAchievementsCount())个", color: .yellow)
+                    dashboardMiniCard(title: "连胜", value: "\(viewModel.gameStats.bestWinStreak())局", color: .purple)
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
