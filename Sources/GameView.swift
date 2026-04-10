@@ -77,20 +77,6 @@ struct GameView: View {
         } message: {
             Text("当前游戏进度将丢失，确定要开始新游戏吗？")
         }
-        .alert("游戏结束！", isPresented: $viewModel.showGameOverAlert) {
-            Button("再玩一次") {
-                viewModel.newGame()
-            }
-        } message: {
-            Text("你踩到地雷了！游戏结束。\n用时: \(viewModel.formattedTime)")
-        }
-        .alert("恭喜你赢了！", isPresented: $viewModel.showWinAlert) {
-            Button("再玩一次") {
-                viewModel.newGame()
-            }
-        } message: {
-            Text("你成功排除了所有地雷！\n用时: \(viewModel.formattedTime)")
-        }
         .alert("恢复游戏", isPresented: $showingLoadGameConfirmation) {
             Button("新游戏") {
                 viewModel.clearSavedGame()
