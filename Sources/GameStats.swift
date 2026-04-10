@@ -49,9 +49,11 @@ class GameStats: ObservableObject {
     @Published var noGuessBestTime: TimeInterval? = nil
     @Published var noGuessStrictBoards: Int = 0
     @Published var noGuessFallbackBoards: Int = 0
+    @Published var achievements: [Achievement] = AchievementCatalog.all
     
     private let recordsKey = "gameRecords"
     private let dailyChallengeStatusKey = "dailyChallengeStatuses"
+    private let achievementsKey = "achievements"
     private let maxRecords = 100
     
     init() {
@@ -110,9 +112,46 @@ class GameStats: ObservableObject {
         }
         
         updateStats()
+        evaluateAchievements(for: record)
         saveRecords()
     }
     
+
+    private func evaluateAchievements(for record: GameRecord) {
+        if record.result == .won {
+            unlockAchievement(id: "first_win")
+        }
+        
+        if consecutiveWinsCount() >= 3 {
+            unlockAchievement(id: "streak_3")
+        }
+        
+        if record.result == .won && record.challengeMode == ChallengeMode.noGuess.rawValue && (record.generationQuality ?? "").contains("严格") {
+            unlockAchievement(id: "strict_no_guess")
+        }
+        
+        if record.result == .won && getDailyChallengeStreak() >= 7 {
+            unlockAchievement(id: "daily_7")
+        }
+    }
+    
+    private func consecutiveWinsCount() -> Int {
+        var count = 0
+        for record in records {
+            if record.result == .won {
+                count += 1
+            } else {
+                break
+            }
+        }
+        return count
+    }
+    
+    func unlockAchievement(id: String) {
+        guard let idx = achievements.firstIndex(where: { $0.id == id }), achievements[idx].unlockedAt == nil else { return }
+        achievements[idx].unlockedAt = Date()
+    }
+
     private func updateStats() {
         totalGames = records.count
         wins = records.filter { $0.result == .won }.count
@@ -218,6 +257,9 @@ class GameStats: ObservableObject {
         if let encoded = try? JSONEncoder().encode(dailyChallengeStatuses) {
             UserDefaults.standard.set(encoded, forKey: dailyChallengeStatusKey)
         }
+        if let encoded = try? JSONEncoder().encode(achievements) {
+            UserDefaults.standard.set(encoded, forKey: achievementsKey)
+        }
     }
     
     private func loadRecords() {
@@ -234,6 +276,10 @@ class GameStats: ObservableObject {
         if let data = UserDefaults.standard.data(forKey: dailyChallengeStatusKey),
            let decoded = try? JSONDecoder().decode([String: DailyChallengeStatus].self, from: data) {
             dailyChallengeStatuses = decoded
+        }
+        if let data = UserDefaults.standard.data(forKey: achievementsKey),
+           let decoded = try? JSONDecoder().decode([Achievement].self, from: data) {
+            achievements = decoded
         }
         
         updateStats()

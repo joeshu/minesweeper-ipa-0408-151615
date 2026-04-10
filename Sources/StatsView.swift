@@ -14,6 +14,9 @@ struct StatsView: View {
                     // 概览卡片
                     overviewCards
                     
+                    // 成就系统
+                    achievementsSection
+                    
                     // 无猜模式统计
                     noGuessSection
                     
@@ -126,6 +129,41 @@ struct StatsView: View {
                 icon: "xmark.circle.fill",
                 color: .red
             )
+        }
+    }
+    
+
+    // MARK: - 成就系统
+    private var achievementsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("成就")
+                .font(.headline)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(viewModel.gameStats.achievements) { achievement in
+                        VStack(alignment: .leading, spacing: 8) {
+                            Image(systemName: achievement.icon)
+                                .font(.title2)
+                                .foregroundColor(achievement.isUnlocked ? .yellow : .gray)
+                            Text(achievement.title)
+                                .font(.subheadline.weight(.semibold))
+                            Text(achievement.detail)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text(achievement.isUnlocked ? "已解锁" : "未解锁")
+                                .font(.caption2)
+                                .foregroundColor(achievement.isUnlocked ? .green : .secondary)
+                        }
+                        .frame(width: 150, alignment: .leading)
+                        .padding(12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(Color(.secondarySystemBackground))
+                        )
+                    }
+                }
+            }
         }
     }
     
