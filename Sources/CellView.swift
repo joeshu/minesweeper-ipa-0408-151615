@@ -10,6 +10,7 @@ struct CellView: View {
     
     @State private var isPressed = false
     @State private var scale: CGFloat = 1.0
+    @State private var suppressTap = false
     @EnvironmentObject var themeManager: ThemeManager
     
     var body: some View {
@@ -45,10 +46,18 @@ struct CellView: View {
         .scaleEffect(scale)
         .animation(themeManager.enableAnimations ? .easeInOut(duration: 0.08) : nil, value: scale)
         .onTapGesture {
+            guard !suppressTap else {
+                suppressTap = false
+                return
+            }
             onTap()
         }
         .onLongPressGesture(minimumDuration: 0.25) {
+            suppressTap = true
             onLongPress()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                suppressTap = false
+            }
         }
         .simultaneousGesture(
             TapGesture(count: 2)
