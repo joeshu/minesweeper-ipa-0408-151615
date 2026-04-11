@@ -146,27 +146,42 @@ struct StatsView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     ForEach(viewModel.gameStats.achievements) { achievement in
-                        VStack(alignment: .leading, spacing: 8) {
-                            Image(systemName: achievement.icon)
-                                .font(.title2)
-                                .foregroundColor(achievement.isUnlocked ? .yellow : .gray)
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack(spacing: 8) {
+                                Image(systemName: achievement.icon)
+                                    .font(.title3)
+                                    .foregroundColor(achievement.isUnlocked ? .yellow : .gray)
+                                Spacer()
+                                Text(achievement.isUnlocked ? "已解锁" : "未解锁")
+                                    .font(.caption2.weight(.semibold))
+                                    .foregroundColor(achievement.isUnlocked ? .green : .secondary)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 3)
+                                    .background(
+                                        Capsule()
+                                            .fill(achievement.isUnlocked ? Color.green.opacity(0.12) : Color(.systemGray5))
+                                    )
+                            }
+
                             Text(achievement.title)
                                 .font(.subheadline.weight(.semibold))
+                                .lineLimit(1)
+
                             Text(achievement.detail)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
-                            Text(achievement.isUnlocked ? "已解锁" : "未解锁")
-                                .font(.caption2)
-                                .foregroundColor(achievement.isUnlocked ? .green : .secondary)
+                                .lineLimit(2)
+
+                            Spacer(minLength: 0)
                         }
-                        .frame(width: 156, height: 132, alignment: .leading)
+                        .frame(width: 170, height: 140, alignment: .leading)
                         .padding(12)
                         .background(
                             RoundedRectangle(cornerRadius: 14)
                                 .fill(Color(.secondarySystemBackground))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 14)
-                                        .stroke(achievement.isUnlocked ? Color.yellow.opacity(0.25) : Color.primary.opacity(0.05), lineWidth: 1)
+                                        .stroke(achievement.isUnlocked ? Color.yellow.opacity(0.35) : Color.primary.opacity(0.06), lineWidth: 1)
                                 )
                         )
                     }
@@ -478,21 +493,11 @@ struct StatsView: View {
                         .fill(Color(.secondarySystemBackground))
                 )
             } else {
-                VStack(spacing: 0) {
+                VStack(spacing: 10) {
                     ForEach(records.prefix(10)) { record in
                         GameRecordRow(record: record)
-                        
-                        if record.id != records.prefix(10).last?.id {
-                            Divider()
-                                .padding(.leading)
-                        }
                     }
                 }
-                .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(.secondarySystemBackground))
-                )
             }
         }
     }
@@ -582,54 +587,65 @@ struct FilterButton: View {
 // MARK: - 游戏记录行
 struct GameRecordRow: View {
     let record: GameRecord
-    
+
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(record.challengeMode ?? record.difficulty)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                
+        HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 5) {
+                HStack(spacing: 6) {
+                    Text(record.challengeMode ?? record.difficulty)
+                        .font(.subheadline.weight(.semibold))
+                    Text(record.difficulty)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Capsule().fill(Color(.systemGray5)))
+                }
+
                 Text(formattedDate(record.date))
                     .font(.caption)
                     .foregroundColor(.secondary)
+
+                Text("\(record.rows)×\(record.cols) · \(record.mineCount)雷")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
             }
-            
+
             Spacer()
-            
-            VStack(alignment: .trailing, spacing: 2) {
+
+            VStack(alignment: .trailing, spacing: 4) {
                 HStack(spacing: 4) {
                     Image(systemName: record.result == .won ? "checkmark.circle.fill" : "xmark.circle.fill")
                         .foregroundColor(record.result == .won ? .green : .red)
                         .font(.caption)
                     Text(record.result == .won ? "胜利" : "失败")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
+                        .font(.subheadline.weight(.semibold))
                         .foregroundColor(record.result == .won ? .green : .red)
                 }
-                
+
                 Text(formatTime(record.duration))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
                     .font(.system(.caption, design: .monospaced))
+                    .foregroundColor(.secondary)
             }
         }
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 14)
                 .fill(Color(.secondarySystemBackground))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+                )
         )
-        .padding(.horizontal)
-        .padding(.vertical, 6)
     }
-    
+
     private func formattedDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .short
         formatter.timeStyle = .short
         return formatter.string(from: date)
     }
-    
+
     private func formatTime(_ timeInterval: TimeInterval) -> String {
         let minutes = Int(timeInterval) / 60
         let seconds = Int(timeInterval) % 60

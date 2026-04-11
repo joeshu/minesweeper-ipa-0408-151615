@@ -103,7 +103,7 @@ struct SettingsView: View {
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(10)
-                .background(
+                            .background(
                                 RoundedRectangle(cornerRadius: 12)
                                     .fill(Color(.secondarySystemBackground))
                             )
