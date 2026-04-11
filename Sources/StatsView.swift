@@ -493,11 +493,16 @@ struct StatsView: View {
                         .fill(Color(.secondarySystemBackground))
                 )
             } else {
-                VStack(spacing: 10) {
+                VStack(spacing: 12) {
                     ForEach(records.prefix(10)) { record in
                         GameRecordRow(record: record)
                     }
                 }
+                .padding(12)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(.secondarySystemBackground))
+                )
             }
         }
     }
