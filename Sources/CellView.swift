@@ -83,7 +83,7 @@ struct CellView: View {
         case .flagged:
             return themeManager.gameTheme.cellFlaggedColor
         case .questioned:
-            return Color.purple.opacity(0.2)
+            return themeManager.gameTheme == .graphite ? Color(red: 0.42, green: 0.35, blue: 0.72).opacity(0.28) : Color.purple.opacity(0.2)
         case .exploded:
             return themeManager.gameTheme.cellExplodedColor
         case .revealed:
@@ -100,18 +100,18 @@ struct CellView: View {
         case .revealed where !cell.isMine && cell.neighborMines > 0:
             return themeManager.colorForNumber(cell.neighborMines)
         case .flagged:
-            return .red
+            return themeManager.gameTheme == .graphite ? Color(red: 0.89, green: 0.28, blue: 0.24) : .red
         case .questioned:
-            return .purple
+            return themeManager.gameTheme == .graphite ? Color(red: 0.70, green: 0.62, blue: 0.98) : .purple
         default:
-            return .primary
+            return themeManager.gameTheme == .graphite ? Color.white.opacity(0.92) : .primary
         }
     }
     
     private var shadowColor: Color {
         switch cell.state {
         case .revealed where !cell.isMine && cell.neighborMines > 0:
-            return themeManager.colorForNumber(cell.neighborMines).opacity(0.3)
+            return themeManager.colorForNumber(cell.neighborMines).opacity(themeManager.gameTheme == .graphite ? 0.18 : 0.3)
         default:
             return .clear
         }

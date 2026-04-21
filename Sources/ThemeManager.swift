@@ -22,6 +22,7 @@ enum GameTheme: String, CaseIterable, Identifiable {
     case modern = "现代"
     case neon = "霓虹"
     case nature = "自然"
+    case graphite = "石墨"
     
     var id: String { rawValue }
     
@@ -35,6 +36,8 @@ enum GameTheme: String, CaseIterable, Identifiable {
             return Color.purple.opacity(0.3)
         case .nature:
             return Color.green.opacity(0.15)
+        case .graphite:
+            return Color(red: 0.18, green: 0.2, blue: 0.24)
         }
     }
     
@@ -48,6 +51,8 @@ enum GameTheme: String, CaseIterable, Identifiable {
             return Color.black.opacity(0.8)
         case .nature:
             return Color.green.opacity(0.05)
+        case .graphite:
+            return Color(red: 0.93, green: 0.95, blue: 0.98)
         }
     }
     
@@ -61,6 +66,8 @@ enum GameTheme: String, CaseIterable, Identifiable {
             return Color.pink.opacity(0.4)
         case .nature:
             return Color.orange.opacity(0.25)
+        case .graphite:
+            return Color(red: 0.85, green: 0.26, blue: 0.22).opacity(0.28)
         }
     }
     
@@ -74,6 +81,8 @@ enum GameTheme: String, CaseIterable, Identifiable {
             return Color.red.opacity(1.0)
         case .nature:
             return Color.red.opacity(0.75)
+        case .graphite:
+            return Color(red: 0.78, green: 0.18, blue: 0.18)
         }
     }
     
@@ -87,6 +96,8 @@ enum GameTheme: String, CaseIterable, Identifiable {
             return Color.purple.opacity(0.15)
         case .nature:
             return Color.green.opacity(0.08)
+        case .graphite:
+            return Color(red: 0.12, green: 0.13, blue: 0.16).opacity(0.96)
         }
     }
     
@@ -100,6 +111,8 @@ enum GameTheme: String, CaseIterable, Identifiable {
             return Color.purple.opacity(0.4)
         case .nature:
             return Color.green.opacity(0.2)
+        case .graphite:
+            return Color.white.opacity(0.08)
         }
     }
     
@@ -119,6 +132,17 @@ enum GameTheme: String, CaseIterable, Identifiable {
         case .nature:
             return [.green, .teal, .blue, .indigo,
                     .purple, .orange, .red, .brown]
+        case .graphite:
+            return [
+                Color(red: 0.31, green: 0.62, blue: 0.98),
+                Color(red: 0.21, green: 0.74, blue: 0.48),
+                Color(red: 0.95, green: 0.56, blue: 0.23),
+                Color(red: 0.71, green: 0.47, blue: 0.98),
+                Color(red: 0.93, green: 0.36, blue: 0.33),
+                Color(red: 0.25, green: 0.79, blue: 0.81),
+                Color(red: 0.96, green: 0.78, blue: 0.28),
+                Color(red: 0.55, green: 0.62, blue: 0.74)
+            ]
         }
     }
 }
