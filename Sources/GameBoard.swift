@@ -8,6 +8,7 @@ class GameBoard: ObservableObject {
     @Published private(set) var cells: [[Cell]]
     @Published private(set) var gameState: GameState = .playing
     @Published private(set) var flagCount: Int = 0
+    var flaggedCount: Int { flagCount }
     @Published private(set) var revealedCount: Int = 0
     @Published private(set) var generationQualityNote: String = ""
     
