@@ -6,26 +6,40 @@ struct SettingsView: View {
     @State private var showResetConfirmation = false
     @State private var showClearStatsConfirmation = false
     
+    private var settingsGradient: some View {
+        LinearGradient(
+            colors: [
+                themeManager.gameTheme.boardBackgroundColor.opacity(0.22),
+                Color(.systemBackground)
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    }
+    
+    private var customConfigSummary: String {
+        "\(viewModel.customRows) × \(viewModel.customCols) · \(viewModel.customMines) 雷"
+    }
+    
     var body: some View {
         NavigationView {
             Form {
                 Section {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("当前配置")
-                            .font(.headline)
+                    VStack(alignment: .leading, spacing: 14) {
+                        SectionHeaderView("当前配置", subtitle: "快速查看模式、主题、声音与操作反馈是否符合当前手感。")
                         HStack {
                             settingsPill(title: viewModel.challengeMode.rawValue, color: .blue)
                             settingsPill(title: themeManager.gameTheme.rawValue, color: .green)
                             settingsPill(title: viewModel.soundManager.isSoundEnabled ? "音效开" : "音效关", color: .orange)
                         }
-                        Text("快速查看当前模式、主题与声音状态。")
+                        Text("现在使用 \(viewModel.difficulty.rawValue) 难度，界面与反馈已按产品化方向统一整理。")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
-                    .padding(.vertical, 4)
+                    .padding(.vertical, 8)
                 }
-                // 难度设置
-                Section(header: Text("游戏难度")) {
+                
+                Section {
                     Picker("难度", selection: Binding(
                         get: { viewModel.difficulty },
                         set: { viewModel.setDifficulty($0) }
@@ -35,16 +49,26 @@ struct SettingsView: View {
                                 .tag(difficulty)
                         }
                     }
-                    .pickerStyle(SegmentedPickerStyle())
+                    .pickerStyle(.segmented)
                     
-                    Text(viewModel.difficulty.description)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(viewModel.difficulty.description)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        if viewModel.difficulty == .custom {
+                            Label(customConfigSummary, systemImage: "slider.horizontal.3")
+                                .font(.caption.weight(.semibold))
+                                .foregroundColor(.blue)
+                        }
+                    }
+                    .padding(12)
+                    .surfaceCard(radius: 14, fillColor: Color(.secondarySystemBackground).opacity(0.78), shadowOpacity: 0)
+                } header: {
+                    SectionHeaderView("游戏难度", subtitle: "优先保证上手清晰，再去调高策略密度。")
                 }
                 
-                // 自定义设置
                 if viewModel.difficulty == .custom {
-                    Section(header: Text("自定义设置")) {
+                    Section {
                         StepperView(
                             title: "行数",
                             value: Binding(
@@ -95,18 +119,15 @@ struct SettingsView: View {
                                 Text("当前配置")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
-                                Text("\(viewModel.customRows) × \(viewModel.customCols) · \(viewModel.customMines) 雷")
+                                Text(customConfigSummary)
                                     .font(.headline)
                                 Text("雷密度：\(String(format: "%.1f", viewModel.customMineDensity * 100))%")
                                     .font(.caption)
                                     .foregroundColor(viewModel.customMineDensity > 0.22 ? .orange : .secondary)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(10)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color(.secondarySystemBackground))
-                            )
+                            .padding(12)
+                            .surfaceCard(radius: 14, fillColor: Color(.secondarySystemBackground).opacity(0.82), shadowOpacity: 0)
                             
                             TextField("预设名称", text: $viewModel.presetNameDraft)
                                 .textInputAutocapitalization(.never)
@@ -148,11 +169,12 @@ struct SettingsView: View {
                                 }
                             }
                         }
+                    } header: {
+                        SectionHeaderView("自定义棋盘", subtitle: "把常玩的尺寸保存成预设，减少重复调参。")
                     }
                 }
                 
-                // 挑战模式
-                Section(header: Text("挑战模式")) {
+                Section {
                     if viewModel.gameStats.getTodayDailyChallengeStatus() != nil {
                         Label("每日挑战今日已完成", systemImage: "checkmark.seal.fill")
                             .font(.caption)
@@ -194,19 +216,21 @@ struct SettingsView: View {
                                     }
                                     Spacer()
                                 }
-                                .padding(10)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(viewModel.challengeMode == mode ? challengeModeColor(mode).opacity(0.08) : Color(.secondarySystemBackground))
+                                .padding(12)
+                                .surfaceCard(
+                                    radius: 14,
+                                    fillColor: viewModel.challengeMode == mode ? challengeModeColor(mode).opacity(0.08) : Color(.secondarySystemBackground).opacity(0.82),
+                                    shadowOpacity: 0
                                 )
                             }
                             .buttonStyle(.plain)
                         }
                     }
+                } header: {
+                    SectionHeaderView("挑战模式", subtitle: "根据目标切换玩法，产品体验会优先突出当前模式。")
                 }
                 
-                // 外观设置
-                Section(header: Text("外观")) {
+                Section {
                     Picker("应用主题", selection: Binding(
                         get: { themeManager.appTheme },
                         set: { themeManager.setAppTheme($0) }
@@ -241,10 +265,11 @@ struct SettingsView: View {
                         get: { themeManager.enableAnimations },
                         set: { themeManager.setEnableAnimations($0) }
                     ))
+                } header: {
+                    SectionHeaderView("外观", subtitle: "优先保证层级清晰和阅读舒适，再决定是否加动画。")
                 }
                 
-                // 声音设置
-                Section(header: Text("声音")) {
+                Section {
                     Toggle("启用音效", isOn: Binding(
                         get: { viewModel.soundManager.isSoundEnabled },
                         set: { _ in viewModel.soundManager.toggleSound() }
@@ -268,18 +293,20 @@ struct SettingsView: View {
                                 .foregroundColor(.secondary)
                         }
                     }
+                } header: {
+                    SectionHeaderView("声音", subtitle: "保留轻量反馈，不要让声音抢走判断注意力。")
                 }
                 
-                // 触觉反馈设置
-                Section(header: Text("触觉反馈")) {
+                Section {
                     Toggle("启用触觉反馈", isOn: Binding(
                         get: { viewModel.hapticManager.isHapticEnabled },
                         set: { _ in viewModel.hapticManager.toggleHaptic() }
                     ))
+                } header: {
+                    SectionHeaderView("触觉反馈", subtitle: "插旗、胜负和关键操作通过触觉建立即时确认。")
                 }
                 
-                // 游戏统计
-                Section(header: Text("游戏统计"), footer: Text("清除后将删除本机所有历史战绩与成就解锁进度，且无法恢复。")) {
+                Section(footer: Text("清除后将删除本机所有历史战绩与成就解锁进度，且无法恢复。")) {
                     StatRow(title: "总游戏数", value: "\(viewModel.gameStats.totalGames)")
                     StatRow(title: "胜利次数", value: "\(viewModel.gameStats.wins)", valueColor: .green)
                     StatRow(title: "失败次数", value: "\(viewModel.gameStats.losses)", valueColor: .red)
@@ -291,10 +318,11 @@ struct SettingsView: View {
                         Label("清除所有记录", systemImage: "trash")
                     }
                     .disabled(viewModel.gameStats.totalGames == 0)
+                } header: {
+                    SectionHeaderView("游戏统计", subtitle: "这里适合定期清理，保持试验体验和正式记录分开。")
                 }
                 
-                // 关于
-                Section(header: Text("关于")) {
+                Section {
                     HStack {
                         Text("版本")
                         Spacer()
@@ -317,8 +345,14 @@ struct SettingsView: View {
                                 .foregroundColor(.secondary)
                         }
                     }
+                } header: {
+                    SectionHeaderView("关于", subtitle: "项目入口和版本信息统一收口到这里。")
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(settingsGradient.ignoresSafeArea())
+            .navigationTitle("设置")
+            .navigationBarTitleDisplayMode(.inline)
             .alert("确认清除", isPresented: $showClearStatsConfirmation) {
                 Button("取消", role: .cancel) { }
                 Button("清除", role: .destructive) {

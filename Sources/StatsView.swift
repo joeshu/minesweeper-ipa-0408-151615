@@ -8,79 +8,61 @@ struct StatsView: View {
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(spacing: 20) {
+                VStack(spacing: 18) {
                     statsHeroHeader
-                    
-                    // 概览卡片
                     overviewCards
-                    
-                    // 成就系统
                     achievementsSection
-                    
-                    // 无猜模式统计
                     noGuessSection
-                    
-                    // 每日挑战状态
                     dailyChallengeSection
-                    
-                    // 挑战模式统计
                     challengeOverviewSection
-                    
-                    // 难度选择器
                     difficultySelector
-                    
-                    // 最佳时间
                     bestTimesSection
-                    
-                    // 胜率统计
                     winRateSection
-                    
-                    // 最近游戏记录
                     recentGamesSection
                 }
-                .padding()
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
+                .padding(.bottom, 24)
             }
             .background(
-                themeManager.useGradientBackground ?
-                LinearGradient(
-                    colors: [
-                        themeManager.gameTheme.boardBackgroundColor.opacity(0.3),
+                Group {
+                    if themeManager.useGradientBackground {
+                        LinearGradient(
+                            colors: [
+                                themeManager.gameTheme.boardBackgroundColor.opacity(0.24),
+                                Color(.systemBackground)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    } else {
                         Color(.systemBackground)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea() : nil
+                    }
+                }
+                .ignoresSafeArea()
             )
+            .navigationTitle("统计")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
     
     // MARK: - 仪表盘头部
     private var statsHeroHeader: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("战绩总览")
-                .font(.title3.weight(.bold))
-            Text("快速查看总体胜率、每日挑战进度与无猜模式表现。")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+        VStack(alignment: .leading, spacing: 14) {
+            SectionHeaderView("战绩总览", subtitle: "把关键指标收在一屏内，优先看到趋势，再看细节。")
             
-            VStack(spacing: 10) {
-                HStack(spacing: 10) {
-                    dashboardMiniCard(title: "总胜率", value: String(format: "%.1f%%", viewModel.gameStats.getWinRate()), color: .green)
-                    dashboardMiniCard(title: "打卡", value: "\(viewModel.gameStats.getDailyChallengeStreak())天", color: .orange)
-                }
-                HStack(spacing: 10) {
-                    dashboardMiniCard(title: "成就", value: "\(viewModel.gameStats.unlockedAchievementsCount())个", color: .yellow)
-                    dashboardMiniCard(title: "连胜", value: "\(viewModel.gameStats.bestWinStreak())局", color: .purple)
-                }
+            HStack(spacing: 10) {
+                dashboardMiniCard(title: "总胜率", value: String(format: "%.1f%%", viewModel.gameStats.getWinRate()), color: .green)
+                dashboardMiniCard(title: "打卡", value: "\(viewModel.gameStats.getDailyChallengeStreak())天", color: .orange)
+            }
+            HStack(spacing: 10) {
+                dashboardMiniCard(title: "成就", value: "\(viewModel.gameStats.unlockedAchievementsCount())个", color: .yellow)
+                dashboardMiniCard(title: "连胜", value: "\(viewModel.gameStats.bestWinStreak())局", color: .purple)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(Color(.secondarySystemBackground))
-        )
+        .surfaceCard(radius: 22, fillColor: Color(.secondarySystemBackground).opacity(0.94), shadowOpacity: 0.08)
     }
     
     private func dashboardMiniCard(title: String, value: String, color: Color) -> some View {
@@ -140,8 +122,7 @@ struct StatsView: View {
     // MARK: - 成就系统
     private var achievementsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("成就")
-                .font(.headline)
+            SectionHeaderView("成就", subtitle: "把高光时刻做成卡片，强化完成感。")
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
@@ -174,15 +155,15 @@ struct StatsView: View {
 
                             Spacer(minLength: 0)
                         }
-                        .frame(width: 170, height: 140, alignment: .leading)
+                        .frame(width: 176, height: 144, alignment: .leading)
                         .padding(12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(Color(.secondarySystemBackground))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 14)
-                                        .stroke(achievement.isUnlocked ? Color.yellow.opacity(0.35) : Color.primary.opacity(0.06), lineWidth: 1)
-                                )
+                        .surfaceCard(
+                            radius: 16,
+                            fillColor: Color(.secondarySystemBackground).opacity(0.94),
+                            strokeOpacity: achievement.isUnlocked ? 0.22 : 0.06,
+                            shadowOpacity: 0.05,
+                            shadowRadius: 10,
+                            shadowY: 4
                         )
                     }
                 }
@@ -193,8 +174,7 @@ struct StatsView: View {
     // MARK: - 无猜模式统计
     private var noGuessSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("无猜挑战")
-                .font(.headline)
+            SectionHeaderView("无猜挑战", subtitle: "关注严格命中与回退比例，判断盘面质量是否稳定。")
             
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
@@ -236,11 +216,8 @@ struct StatsView: View {
                         .foregroundColor(.orange)
                 }
             }
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.secondarySystemBackground))
-            )
+            .padding(14)
+            .surfaceCard(radius: 18, fillColor: Color(.secondarySystemBackground).opacity(0.92), shadowOpacity: 0.04)
         }
     }
     
@@ -249,8 +226,7 @@ struct StatsView: View {
         let todayStatus = viewModel.gameStats.getTodayDailyChallengeStatus()
         
         return VStack(alignment: .leading, spacing: 12) {
-            Text("每日挑战")
-                .font(.headline)
+            SectionHeaderView("每日挑战", subtitle: "今天有没有打卡、成绩如何，一眼可见。")
             
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
@@ -284,11 +260,8 @@ struct StatsView: View {
                         .fontWeight(.semibold)
                 }
             }
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.secondarySystemBackground))
-            )
+            .padding(14)
+            .surfaceCard(radius: 18, fillColor: Color(.secondarySystemBackground).opacity(0.92), shadowOpacity: 0.04)
         }
     }
     
@@ -297,19 +270,15 @@ struct StatsView: View {
         let challengeRecords = viewModel.gameStats.getChallengeRecords()
         
         return VStack(alignment: .leading, spacing: 12) {
-            Text("挑战模式")
-                .font(.headline)
+            SectionHeaderView("挑战模式", subtitle: "单独看挑战表现，避免与普通对局混在一起。")
             
             if challengeRecords.isEmpty {
                 Text("还没有挑战模式记录，去试试每日挑战或限时挑战吧。")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(.secondarySystemBackground))
-                    )
+                    .padding(14)
+                    .surfaceCard(radius: 18, fillColor: Color(.secondarySystemBackground).opacity(0.92), shadowOpacity: 0.04)
             } else {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack {
@@ -337,20 +306,16 @@ struct StatsView: View {
                         }
                     }
                 }
-                .padding()
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(.secondarySystemBackground))
-                )
+                .padding(14)
+                .surfaceCard(radius: 18, fillColor: Color(.secondarySystemBackground).opacity(0.92), shadowOpacity: 0.04)
             }
         }
     }
     
     // MARK: - 难度选择器
     private var difficultySelector: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("选择难度")
-                .font(.headline)
+        VStack(alignment: .leading, spacing: 10) {
+            SectionHeaderView("难度筛选", subtitle: "先按难度缩小范围，再看时间和战绩更高效。")
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
@@ -376,13 +341,14 @@ struct StatsView: View {
                 }
             }
         }
+        .padding(14)
+        .surfaceCard(radius: 18, fillColor: Color(.secondarySystemBackground).opacity(0.9), shadowOpacity: 0.04)
     }
     
     // MARK: - 最佳时间
     private var bestTimesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("最佳时间")
-                .font(.headline)
+            SectionHeaderView("最佳时间", subtitle: "记录每个难度的峰值表现，便于长期追分。")
             
             VStack(spacing: 8) {
                 ForEach(Difficulty.allCases) { difficulty in
@@ -405,19 +371,15 @@ struct StatsView: View {
                     }
                 }
             }
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.secondarySystemBackground))
-            )
+            .padding(14)
+            .surfaceCard(radius: 18, fillColor: Color(.secondarySystemBackground).opacity(0.92), shadowOpacity: 0.04)
         }
     }
     
     // MARK: - 胜率统计
     private var winRateSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("各难度胜率")
-                .font(.headline)
+            SectionHeaderView("各难度胜率", subtitle: "用更清晰的进度条看长期趋势，而不是只看一次结果。")
             
             VStack(spacing: 12) {
                 ForEach(Difficulty.allCases) { difficulty in
@@ -459,21 +421,17 @@ struct StatsView: View {
                     }
                 }
             }
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.secondarySystemBackground))
-            )
+            .padding(14)
+            .surfaceCard(radius: 18, fillColor: Color(.secondarySystemBackground).opacity(0.92), shadowOpacity: 0.04)
         }
     }
     
     // MARK: - 最近游戏记录
     private var recentGamesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("最近游戏")
-                .font(.headline)
+            SectionHeaderView("最近游戏", subtitle: "保留最近 10 局，方便复盘近期状态变化。")
             
-            let records = selectedDifficulty != nil 
+            let records = selectedDifficulty != nil
                 ? viewModel.gameStats.getRecords(for: selectedDifficulty)
                 : viewModel.gameStats.records
             
@@ -493,10 +451,7 @@ struct StatsView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 28)
                 .padding(.horizontal, 16)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(.secondarySystemBackground))
-                )
+                .surfaceCard(radius: 18, fillColor: Color(.secondarySystemBackground).opacity(0.92), shadowOpacity: 0.04)
             } else {
                 VStack(spacing: 12) {
                     ForEach(records.prefix(10)) { record in
@@ -504,10 +459,7 @@ struct StatsView: View {
                     }
                 }
                 .padding(12)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(.secondarySystemBackground))
-                )
+                .surfaceCard(radius: 18, fillColor: Color(.secondarySystemBackground).opacity(0.92), shadowOpacity: 0.04)
             }
         }
     }

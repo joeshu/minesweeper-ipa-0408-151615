@@ -1,5 +1,72 @@
 import SwiftUI
 
+struct SurfaceCardModifier: ViewModifier {
+    var radius: CGFloat = 18
+    var fillColor: Color = Color(.secondarySystemBackground).opacity(0.96)
+    var strokeOpacity: Double = 0.06
+    var shadowOpacity: Double = 0.06
+    var shadowRadius: CGFloat = 14
+    var shadowY: CGFloat = 6
+    
+    func body(content: Content) -> some View {
+        content
+            .background(
+                RoundedRectangle(cornerRadius: radius, style: .continuous)
+                    .fill(fillColor)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: radius, style: .continuous)
+                            .stroke(Color.primary.opacity(strokeOpacity), lineWidth: 1)
+                    )
+                    .shadow(color: .black.opacity(shadowOpacity), radius: shadowRadius, x: 0, y: shadowY)
+            )
+    }
+}
+
+extension View {
+    func surfaceCard(
+        radius: CGFloat = 18,
+        fillColor: Color = Color(.secondarySystemBackground).opacity(0.96),
+        strokeOpacity: Double = 0.06,
+        shadowOpacity: Double = 0.06,
+        shadowRadius: CGFloat = 14,
+        shadowY: CGFloat = 6
+    ) -> some View {
+        modifier(
+            SurfaceCardModifier(
+                radius: radius,
+                fillColor: fillColor,
+                strokeOpacity: strokeOpacity,
+                shadowOpacity: shadowOpacity,
+                shadowRadius: shadowRadius,
+                shadowY: shadowY
+            )
+        )
+    }
+}
+
+struct SectionHeaderView: View {
+    let title: String
+    let subtitle: String?
+    
+    init(_ title: String, subtitle: String? = nil) {
+        self.title = title
+        self.subtitle = subtitle
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.headline.weight(.bold))
+            if let subtitle {
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
 struct GameView: View {
     @EnvironmentObject var viewModel: GameViewModel
     @EnvironmentObject var themeManager: ThemeManager
@@ -7,6 +74,46 @@ struct GameView: View {
     @State private var showingLoadGameConfirmation = false
     @State private var boardScale: CGFloat = 1.0
     @State private var boardOffset: CGSize = .zero
+    
+    private var statusTitle: String {
+        if viewModel.isPaused { return "已暂停" }
+        switch viewModel.gameBoard.gameState {
+        case .playing:
+            return viewModel.isGameActive ? "进行中" : "准备开始"
+        case .won:
+            return "挑战成功"
+        case .lost:
+            return "本局失败"
+        }
+    }
+    
+    private var statusSubtitle: String {
+        switch viewModel.challengeMode {
+        case .none:
+            return "专注当前棋盘，保持节奏。"
+        case .daily:
+            return "今日挑战只算一次成绩。"
+        case .timed:
+            return "注意剩余时间，优先做确定操作。"
+        case .noGuess:
+            return "当前为无猜挑战，优先利用信息链。"
+        }
+    }
+    
+    private var statusColor: Color {
+        if viewModel.isPaused { return .orange }
+        switch viewModel.gameBoard.gameState {
+        case .playing: return .green
+        case .won: return .yellow
+        case .lost: return .red
+        }
+    }
+    
+    private var progressText: String {
+        let totalSafeCells = max(1, viewModel.gameBoard.rows * viewModel.gameBoard.cols - viewModel.gameBoard.totalMines)
+        let progress = Double(viewModel.gameBoard.revealedCount) / Double(totalSafeCells)
+        return String(format: "已推进 %.0f%%", progress * 100)
+    }
     
     var body: some View {
         ZStack {
@@ -126,7 +233,41 @@ struct GameView: View {
     
     // MARK: - 游戏信息栏
     private var gameInfoBar: some View {
-        VStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 8) {
+                        Circle()
+                            .fill(statusColor.opacity(0.18))
+                            .frame(width: 10, height: 10)
+                            .overlay(
+                                Circle()
+                                    .fill(statusColor)
+                                    .frame(width: 6, height: 6)
+                            )
+                        Text(statusTitle)
+                            .font(.headline.weight(.bold))
+                    }
+                    Text(statusSubtitle)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    Text(progressText)
+                        .font(.caption.weight(.semibold))
+                        .foregroundColor(statusColor)
+                }
+                Spacer(minLength: 0)
+                VStack(alignment: .trailing, spacing: 8) {
+                    modeBadge(
+                        title: viewModel.challengeMode == .none ? viewModel.difficulty.rawValue : viewModel.challengeMode.badgeTitle,
+                        color: modeBadgeColor
+                    )
+                    modeBadge(
+                        title: "\(viewModel.gameBoard.rows)×\(viewModel.gameBoard.cols)",
+                        color: .secondary
+                    )
+                }
+            }
+            
             HStack(spacing: 12) {
                 statChip(
                     icon: "flag.fill",
@@ -138,41 +279,20 @@ struct GameView: View {
                 statChip(
                     icon: viewModel.challengeMode == .timed ? "timer" : "clock",
                     iconColor: viewModel.challengeMode == .timed ? .orange : .blue,
-                    title: viewModel.challengeMode == .timed ? "倒计时" : "当前时间",
+                    title: viewModel.challengeMode == .timed ? "剩余时间" : "当前用时",
                     value: viewModel.challengeMode == .timed ? "\(viewModel.challengeSecondsRemaining)s" : viewModel.formattedTime
                 )
             }
             
-            HStack(spacing: 8) {
+            if viewModel.challengeMode == .noGuess && !viewModel.gameBoard.generationQualityNote.isEmpty {
                 modeBadge(
-                    title: viewModel.challengeMode == .none ? viewModel.difficulty.rawValue : viewModel.challengeMode.badgeTitle,
-                    color: modeBadgeColor
+                    title: viewModel.gameBoard.generationQualityNote.contains("严格") ? "严格无猜盘面" : "回退增强盘面",
+                    color: viewModel.gameBoard.generationQualityNote.contains("严格") ? .green : .orange
                 )
-                
-                modeBadge(
-                    title: "\(viewModel.gameBoard.rows)×\(viewModel.gameBoard.cols)",
-                    color: .secondary
-                )
-                
-                if viewModel.challengeMode == .noGuess && !viewModel.gameBoard.generationQualityNote.isEmpty {
-                    modeBadge(
-                        title: viewModel.gameBoard.generationQualityNote.contains("严格") ? "严格无猜" : "回退增强",
-                        color: viewModel.gameBoard.generationQualityNote.contains("严格") ? .green : .orange
-                    )
-                }
-                
-                Spacer()
             }
         }
-        .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemBackground).opacity(0.92))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-                )
-        )
+        .padding(16)
+        .surfaceCard(radius: 22, fillColor: Color(.secondarySystemBackground).opacity(0.94), shadowOpacity: 0.08)
     }
     
     private func statChip(icon: String, iconColor: Color, title: String, value: String) -> some View {
@@ -221,84 +341,96 @@ struct GameView: View {
     
     // MARK: - 快捷操作栏
     private var quickActionBar: some View {
-        HStack(spacing: 8) {
-            QuickActionButton(
-                icon: "arrow.clockwise",
-                label: "新局",
-                isEnabled: true,
-                color: .blue
-            ) {
-                if viewModel.isGameActive {
-                    showingNewGameConfirmation = true
-                } else {
-                    viewModel.newGame()
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeaderView("快捷操作", subtitle: "常用动作集中在这里，减少误触和来回切换。")
+            
+            HStack(spacing: 10) {
+                QuickActionButton(
+                    icon: "arrow.clockwise",
+                    label: "新局",
+                    isEnabled: true,
+                    color: .blue
+                ) {
+                    if viewModel.isGameActive {
+                        showingNewGameConfirmation = true
+                    } else {
+                        viewModel.newGame()
+                    }
+                }
+                
+                QuickActionButton(
+                    icon: "arrow.uturn.backward",
+                    label: "撤销",
+                    isEnabled: viewModel.canUndo && viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
+                    color: .indigo
+                ) {
+                    viewModel.undo()
+                }
+                
+                QuickActionButton(
+                    icon: viewModel.isPaused ? "play.fill" : "pause.fill",
+                    label: viewModel.isPaused ? "继续" : "暂停",
+                    isEnabled: viewModel.isGameActive && viewModel.gameBoard.gameState == .playing,
+                    color: viewModel.isPaused ? .green : .orange
+                ) {
+                    viewModel.togglePause()
+                }
+                
+                QuickActionButton(
+                    icon: "lightbulb.fill",
+                    label: "提示",
+                    isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
+                    color: .yellow
+                ) {
+                    viewModel.showHint()
                 }
             }
-            
-            // 撤销按钮
-            QuickActionButton(
-                icon: "arrow.uturn.backward",
-                label: "撤销",
-                isEnabled: viewModel.canUndo && viewModel.gameBoard.gameState == .playing && !viewModel.isPaused
-            ) {
-                viewModel.undo()
-            }
-            
-            // 暂停/继续按钮
-            QuickActionButton(
-                icon: viewModel.isPaused ? "play.fill" : "pause.fill",
-                label: viewModel.isPaused ? "继续" : "暂停",
-                isEnabled: viewModel.isGameActive && viewModel.gameBoard.gameState == .playing,
-                color: viewModel.isPaused ? .green : .orange
-            ) {
-                viewModel.togglePause()
-            }
-            
-            // 提示按钮
-            QuickActionButton(
-                icon: "lightbulb.fill",
-                label: "提示",
-                isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused
-            ) {
-                viewModel.showHint()
-            }
         }
+        .padding(14)
+        .surfaceCard(radius: 20, fillColor: Color(.secondarySystemBackground).opacity(0.9), shadowOpacity: 0.05)
     }
     
     private var generationBanner: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 10) {
             Image(systemName: viewModel.gameBoard.generationQualityNote.contains("严格") ? "shield.checkered" : "wand.and.stars")
                 .foregroundColor(viewModel.gameBoard.generationQualityNote.contains("严格") ? .green : .orange)
-            Text(viewModel.gameBoard.generationQualityNote)
-                .font(.caption)
-                .foregroundColor(.primary)
+                .font(.headline)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("盘面质量")
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(.secondary)
+                Text(viewModel.gameBoard.generationQualityNote)
+                    .font(.subheadline)
+                    .foregroundColor(.primary)
+            }
             Spacer()
         }
-        .padding(10)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color(.secondarySystemBackground))
-        )
+        .padding(12)
+        .surfaceCard(radius: 16, fillColor: Color(.secondarySystemBackground).opacity(0.88), shadowOpacity: 0.04)
     }
 
     private var boardInstructionBar: some View {
         HStack(spacing: 10) {
             InstructionChip(icon: "hand.tap", text: "点按翻开")
             InstructionChip(icon: "flag.fill", text: "长按插旗")
+            InstructionChip(icon: "square.grid.3x3.fill", text: "双击快开")
 
             if viewModel.gameBoard.gameState == .playing {
                 Spacer(minLength: 0)
                 Text(viewModel.isPaused ? "已暂停" : "进行中")
                     .font(.caption.weight(.semibold))
                     .foregroundColor(viewModel.isPaused ? .orange : .green)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill((viewModel.isPaused ? Color.orange : Color.green).opacity(0.14))
+                    )
             }
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
-        )
+        .padding(.vertical, 12)
+        .surfaceCard(radius: 16, fillColor: Color(.secondarySystemBackground).opacity(0.86), shadowOpacity: 0.04)
     }
     
     private var hintBanner: some View {
@@ -366,69 +498,64 @@ struct GameView: View {
         GeometryReader { geometry in
             let availableWidth = geometry.size.width
             let availableHeight = geometry.size.height
-            
-            // 计算最佳单元格大小
             let cols = CGFloat(viewModel.gameBoard.cols)
             let rows = CGFloat(viewModel.gameBoard.rows)
-            
-            // 考虑间距后的可用空间
             let spacing: CGFloat = 2
             let totalSpacingX = (cols - 1) * spacing
             let totalSpacingY = (rows - 1) * spacing
-            
             let cellWidth = (availableWidth - totalSpacingX) / cols
             let cellHeight = (availableHeight - totalSpacingY) / rows
             let cellSize = min(cellWidth, cellHeight, 72)
-            
-            // 计算实际板尺寸
             let boardWidth = cols * cellSize + totalSpacingX
             let boardHeight = rows * cellSize + totalSpacingY
-            
-            // 居中偏移
             let offsetX = (availableWidth - boardWidth) / 2
             let offsetY = (availableHeight - boardHeight) / 2
             
-            ScrollView([.horizontal, .vertical], showsIndicators: false) {
-                LazyVStack(spacing: spacing) {
-                    ForEach(0..<viewModel.gameBoard.rows, id: \.self) { row in
-                        LazyHStack(spacing: spacing) {
-                            ForEach(0..<viewModel.gameBoard.cols, id: \.self) { col in
-                                let cell = viewModel.gameBoard.cells[row][col]
-                                let isHint = viewModel.isShowingHint && 
-                                            viewModel.hintPosition?.row == row && 
-                                            viewModel.hintPosition?.col == col
-                                
-                                CellView(
-                                    cell: cell,
-                                    cellSize: cellSize,
-                                    isHint: isHint,
-                                    onTap: {
-                                        viewModel.revealCell(row: row, col: col)
-                                    },
-                                    onLongPress: {
-                                        viewModel.toggleFlag(row: row, col: col)
-                                    },
-                                    onDoubleTap: {
-                                        viewModel.quickReveal(row: row, col: col)
-                                    }
-                                )
-                                .id("\(row)-\(col)")
+            VStack(alignment: .leading, spacing: 12) {
+                SectionHeaderView("当前棋盘", subtitle: "大盘自动居中，小盘保留留白，阅读节奏更稳定。")
+                
+                ScrollView([.horizontal, .vertical], showsIndicators: false) {
+                    LazyVStack(spacing: spacing) {
+                        ForEach(0..<viewModel.gameBoard.rows, id: \.self) { row in
+                            LazyHStack(spacing: spacing) {
+                                ForEach(0..<viewModel.gameBoard.cols, id: \.self) { col in
+                                    let cell = viewModel.gameBoard.cells[row][col]
+                                    let isHint = viewModel.isShowingHint &&
+                                                viewModel.hintPosition?.row == row &&
+                                                viewModel.hintPosition?.col == col
+                                    
+                                    CellView(
+                                        cell: cell,
+                                        cellSize: cellSize,
+                                        isHint: isHint,
+                                        onTap: {
+                                            viewModel.revealCell(row: row, col: col)
+                                        },
+                                        onLongPress: {
+                                            viewModel.toggleFlag(row: row, col: col)
+                                        },
+                                        onDoubleTap: {
+                                            viewModel.quickReveal(row: row, col: col)
+                                        }
+                                    )
+                                    .id("\(row)-\(col)")
+                                }
                             }
                         }
                     }
+                    .padding(10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 22, style: .continuous)
+                            .fill(themeManager.gameTheme.boardBackgroundColor.opacity(0.96))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                                    .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+                            )
+                            .shadow(color: .black.opacity(0.12), radius: 12, x: 0, y: 6)
+                    )
+                    .padding(.horizontal, max(0, offsetX))
+                    .padding(.vertical, max(0, offsetY))
                 }
-                .padding(6)
-                .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(themeManager.gameTheme.boardBackgroundColor.opacity(0.95))
-                        .shadow(color: .black.opacity(0.12), radius: 10, x: 0, y: 4)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color.primary.opacity(0.05), lineWidth: 1)
-                        )
-                )
-                .padding(.horizontal, max(0, offsetX))
-                .padding(.vertical, max(0, offsetY))
             }
         }
     }
@@ -436,38 +563,50 @@ struct GameView: View {
     // MARK: - 暂停覆盖层
     private var pauseOverlay: some View {
         ZStack {
-            Color.black.opacity(0.7)
+            Color.black.opacity(0.58)
                 .ignoresSafeArea()
             
-            VStack(spacing: 24) {
+            VStack(spacing: 18) {
                 Image(systemName: "pause.circle.fill")
-                    .font(.system(size: 80))
+                    .font(.system(size: 72))
                     .foregroundColor(.white)
                 
                 Text("游戏暂停")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
+                    .font(.system(.title, design: .rounded).weight(.bold))
                     .foregroundColor(.white)
                 
-                Text("用时: \(viewModel.formattedTime)")
-                    .font(.title2)
-                    .foregroundColor(.white.opacity(0.8))
+                Text("当前用时 \(viewModel.formattedTime)")
+                    .font(.headline)
+                    .foregroundColor(.white.opacity(0.82))
+                
+                Text("休息一下，准备好后继续推进这一局。")
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.72))
                 
                 Button(action: {
                     viewModel.resumeGame()
                 }) {
-                    HStack {
+                    HStack(spacing: 8) {
                         Image(systemName: "play.fill")
                         Text("继续游戏")
                     }
                     .font(.headline)
                     .foregroundColor(.white)
-                    .frame(width: 200)
-                    .padding(.vertical, 16)
-                    .background(Color.green)
-                    .cornerRadius(12)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 15)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(Color.green)
+                    )
                 }
             }
+            .padding(24)
+            .frame(maxWidth: 320)
+            .background(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(Color(.systemGray6).opacity(0.18))
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+            )
         }
     }
     
@@ -544,15 +683,25 @@ struct GameView: View {
             Color.black.opacity(0.42)
                 .ignoresSafeArea()
 
-            VStack(spacing: 16) {
-                Image(systemName: viewModel.showWinAlert ? "trophy.fill" : "xmark.octagon.fill")
-                    .font(.system(size: 44))
-                    .foregroundColor(viewModel.showWinAlert ? .yellow : .red)
+            VStack(spacing: 18) {
+                ZStack {
+                    Circle()
+                        .fill((viewModel.showWinAlert ? Color.yellow : Color.red).opacity(0.16))
+                        .frame(width: 72, height: 72)
+                    Image(systemName: viewModel.showWinAlert ? "trophy.fill" : "xmark.octagon.fill")
+                        .font(.system(size: 34))
+                        .foregroundColor(viewModel.showWinAlert ? .yellow : .red)
+                }
 
-                Text(viewModel.showWinAlert ? "本局胜利" : "本局失败")
-                    .font(.title2.weight(.bold))
+                VStack(spacing: 6) {
+                    Text(viewModel.showWinAlert ? "本局胜利" : "本局失败")
+                        .font(.title2.weight(.bold))
+                    Text(viewModel.showWinAlert ? "节奏很好，继续保持。" : "别急，下一局很快就能追回来。")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
 
-                VStack(spacing: 8) {
+                VStack(spacing: 10) {
                     resultRow(title: "模式", value: viewModel.challengeMode.rawValue)
                     resultRow(title: "难度", value: viewModel.difficulty.rawValue)
                     resultRow(title: "用时", value: viewModel.formattedTime)
@@ -562,11 +711,8 @@ struct GameView: View {
                         resultRow(title: "盘面质量", value: viewModel.gameBoard.generationQualityNote)
                     }
                 }
-                .padding(12)
-                .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(Color(.secondarySystemBackground))
-                )
+                .padding(14)
+                .surfaceCard(radius: 16, fillColor: Color(.secondarySystemBackground).opacity(0.72), shadowOpacity: 0)
 
                 HStack(spacing: 12) {
                     Button {
@@ -574,10 +720,14 @@ struct GameView: View {
                         viewModel.showWinAlert = false
                     } label: {
                         Text("关闭")
+                            .fontWeight(.semibold)
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
+                            .padding(.vertical, 13)
                     }
-                    .background(RoundedRectangle(cornerRadius: 12).fill(Color(.secondarySystemBackground)))
+                    .background(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(Color(.secondarySystemBackground))
+                    )
 
                     Button {
                         viewModel.showGameOverAlert = false
@@ -585,20 +735,28 @@ struct GameView: View {
                         viewModel.newGame()
                     } label: {
                         Text("再来一局")
+                            .fontWeight(.bold)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                            .background(RoundedRectangle(cornerRadius: 12).fill(Color.blue))
+                            .padding(.vertical, 13)
+                            .background(
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .fill(Color.blue)
+                            )
                     }
                 }
             }
-            .padding(20)
-            .frame(maxWidth: 320)
+            .padding(22)
+            .frame(maxWidth: 332)
             .background(
-                RoundedRectangle(cornerRadius: 22)
+                RoundedRectangle(cornerRadius: 26, style: .continuous)
                     .fill(Color(.systemBackground))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 26, style: .continuous)
+                            .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+                    )
             )
-            .shadow(color: .black.opacity(0.18), radius: 18, x: 0, y: 8)
+            .shadow(color: .black.opacity(0.18), radius: 20, x: 0, y: 10)
         }
     }
 
