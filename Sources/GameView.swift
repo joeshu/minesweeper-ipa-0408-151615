@@ -8,7 +8,7 @@ struct GameView: View {
     @State private var boardScale: CGFloat = 1.0
     @State private var boardOffset: CGSize = .zero
     
-    private let boardHeaderReservedHeight: CGFloat = 28
+    private let boardHeaderReservedHeight: CGFloat = 18
     
     private var statusTitle: String {
         if viewModel.isPaused { return "已暂停" }
@@ -528,17 +528,17 @@ struct QuickActionButton: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 4) {
+            VStack(spacing: 3) {
                 Image(systemName: icon)
-                    .font(.title3)
+                    .font(.body.weight(.semibold))
                 Text(label)
-                    .font(.caption)
+                    .font(.caption2)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 10)
+            .padding(.vertical, 8)
             .background(
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(isEnabled ? color.opacity(0.15) : Color.gray.opacity(0.1))
+                    .fill(isEnabled ? color.opacity(0.14) : Color.gray.opacity(0.08))
             )
             .foregroundColor(isEnabled ? color : .gray)
         }

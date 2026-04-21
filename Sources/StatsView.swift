@@ -5,6 +5,23 @@ struct StatsView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @State private var selectedDifficulty: Difficulty? = nil
     
+    private var statsBackground: some View {
+        Group {
+            if themeManager.useGradientBackground {
+                LinearGradient(
+                    colors: [
+                        themeManager.gameTheme.boardBackgroundColor.opacity(0.24),
+                        Color(.systemBackground)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            } else {
+                Color(.systemBackground)
+            }
+        }
+    }
+    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -33,23 +50,7 @@ struct StatsView: View {
                 .padding(.top, 12)
                 .padding(.bottom, 24)
             }
-            .background(
-                Group {
-                    if themeManager.useGradientBackground {
-                        LinearGradient(
-                            colors: [
-                                themeManager.gameTheme.boardBackgroundColor.opacity(0.24),
-                                Color(.systemBackground)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    } else {
-                        Color(.systemBackground)
-                    }
-                }
-                .ignoresSafeArea()
-            )
+            .background(statsBackground.ignoresSafeArea())
             .navigationTitle("统计")
             .navigationBarTitleDisplayMode(.inline)
         }

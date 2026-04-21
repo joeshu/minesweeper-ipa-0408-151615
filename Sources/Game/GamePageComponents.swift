@@ -78,52 +78,50 @@ struct GameBottomControlPanel: View {
     @Binding var showingNewGameConfirmation: Bool
     
     var body: some View {
-        VStack(spacing: 6) {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 10) {
-                    QuickActionButton(
-                        icon: "arrow.clockwise",
-                        label: "新局",
-                        isEnabled: true,
-                        color: .blue
-                    ) {
-                        if viewModel.isGameActive {
-                            showingNewGameConfirmation = true
-                        } else {
-                            viewModel.newGame()
-                        }
-                    }
-                    
-                    QuickActionButton(
-                        icon: "arrow.uturn.backward",
-                        label: "撤销",
-                        isEnabled: viewModel.canUndo && viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
-                        color: .indigo
-                    ) {
-                        viewModel.undo()
-                    }
-                    
-                    QuickActionButton(
-                        icon: viewModel.isPaused ? "play.fill" : "pause.fill",
-                        label: viewModel.isPaused ? "继续" : "暂停",
-                        isEnabled: viewModel.isGameActive && viewModel.gameBoard.gameState == .playing,
-                        color: viewModel.isPaused ? .green : .orange
-                    ) {
-                        viewModel.togglePause()
-                    }
-                    
-                    QuickActionButton(
-                        icon: "lightbulb.fill",
-                        label: "提示",
-                        isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
-                        color: .yellow
-                    ) {
-                        viewModel.showHint()
+        VStack(spacing: 4) {
+            HStack(spacing: 10) {
+                QuickActionButton(
+                    icon: "arrow.clockwise",
+                    label: "新局",
+                    isEnabled: true,
+                    color: .blue
+                ) {
+                    if viewModel.isGameActive {
+                        showingNewGameConfirmation = true
+                    } else {
+                        viewModel.newGame()
                     }
                 }
+                
+                QuickActionButton(
+                    icon: "arrow.uturn.backward",
+                    label: "撤销",
+                    isEnabled: viewModel.canUndo && viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
+                    color: .indigo
+                ) {
+                    viewModel.undo()
+                }
+                
+                QuickActionButton(
+                    icon: viewModel.isPaused ? "play.fill" : "pause.fill",
+                    label: viewModel.isPaused ? "继续" : "暂停",
+                    isEnabled: viewModel.isGameActive && viewModel.gameBoard.gameState == .playing,
+                    color: viewModel.isPaused ? .green : .orange
+                ) {
+                    viewModel.togglePause()
+                }
+                
+                QuickActionButton(
+                    icon: "lightbulb.fill",
+                    label: "提示",
+                    isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
+                    color: .yellow
+                ) {
+                    viewModel.showHint()
+                }
             }
-            .padding(12)
-            .surfaceCard(radius: 18, fillColor: Color(.secondarySystemBackground).opacity(0.88), shadowOpacity: 0.03)
+            .padding(10)
+            .surfaceCard(radius: 16, fillColor: Color(.secondarySystemBackground).opacity(0.84), shadowOpacity: 0.02)
             
             HStack(spacing: 8) {
                 InstructionChip(icon: "hand.tap", text: "点按翻开")
@@ -134,14 +132,14 @@ struct GameBottomControlPanel: View {
                     .font(.caption.weight(.semibold))
                     .foregroundColor(viewModel.isPaused ? .orange : (viewModel.gameBoard.gameState == .playing ? .green : .secondary))
                     .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
+                    .padding(.vertical, 5)
                     .background(
                         Capsule()
                             .fill((viewModel.isPaused ? Color.orange : Color.green).opacity(0.14))
                     )
             }
-            .padding(.horizontal, 10)
-            .padding(.top, 2)
+            .padding(.horizontal, 6)
+            .padding(.top, 1)
         }
     }
 }

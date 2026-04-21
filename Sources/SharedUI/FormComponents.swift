@@ -1,0 +1,57 @@
+import SwiftUI
+
+struct SettingsPill: View {
+    let title: String
+    let color: Color
+    
+    var body: some View {
+        Text(title)
+            .font(.caption.weight(.semibold))
+            .foregroundColor(color)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(Capsule().fill(color.opacity(0.14)))
+    }
+}
+
+struct StepperView: View {
+    let title: String
+    @Binding var value: Int
+    let range: ClosedRange<Int>
+    
+    var body: some View {
+        Stepper {
+            HStack {
+                Text(title)
+                Spacer()
+                Text("\(value)")
+                    .font(.system(.body, design: .monospaced))
+                    .fontWeight(.medium)
+            }
+        } onIncrement: {
+            if value < range.upperBound {
+                value += 1
+            }
+        } onDecrement: {
+            if value > range.lowerBound {
+                value -= 1
+            }
+        }
+    }
+}
+
+struct StatRow: View {
+    let title: String
+    let value: String
+    var valueColor: Color = .secondary
+    
+    var body: some View {
+        HStack {
+            Text(title)
+            Spacer()
+            Text(value)
+                .foregroundColor(valueColor)
+                .fontWeight(.medium)
+        }
+    }
+}

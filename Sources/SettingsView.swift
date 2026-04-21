@@ -9,7 +9,7 @@ struct SettingsView: View {
     private var settingsGradient: some View {
         LinearGradient(
             colors: [
-                themeManager.gameTheme.boardBackgroundColor.opacity(0.22),
+                themeManager.gameTheme.boardBackgroundColor.opacity(0.18),
                 Color(.systemBackground)
             ],
             startPoint: .top,
@@ -116,67 +116,6 @@ struct SettingsView: View {
         }
     }
     
-    private func challengeModeIcon(_ mode: ChallengeMode) -> String {
-        switch mode {
-        case .none: return "gamecontroller.fill"
-        case .daily: return "calendar"
-        case .timed: return "timer"
-        case .noGuess: return "brain.head.profile"
-        }
-    }
-    private func settingsPill(title: String, color: Color) -> some View {
-        Text(title)
-            .font(.caption.weight(.semibold))
-            .foregroundColor(color)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(Capsule().fill(color.opacity(0.14)))
-    }
-}
-
-struct StepperView: View {
-    let title: String
-    @Binding var value: Int
-    let range: ClosedRange<Int>
-    
-    var body: some View {
-        Stepper {
-            HStack {
-                Text(title)
-                Spacer()
-                Text("\(value)")
-                    .font(.system(.body, design: .monospaced))
-                    .fontWeight(.medium)
-            }
-        } onIncrement: {
-            if value < range.upperBound {
-                value += 1
-            }
-        } onDecrement: {
-            if value > range.lowerBound {
-                value -= 1
-            }
-        }
-    }
-}
-
-// MARK: - StatRow
-struct StatRow: View {
-    let title: String
-    let value: String
-    var valueColor: Color = .secondary
-    
-    var body: some View {
-        HStack {
-            Text(title)
-            Spacer()
-            Text(value)
-                .foregroundColor(valueColor)
-                .fontWeight(.medium)
-        }
-    }
-}
-
 struct SettingsView_Previews: PreviewProvider {
     static var previews: some View {
         SettingsView()
