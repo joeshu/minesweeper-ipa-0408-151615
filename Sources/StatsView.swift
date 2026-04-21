@@ -479,15 +479,20 @@ struct StatsView: View {
             
             if records.isEmpty {
                 VStack(spacing: 12) {
-                    Image(systemName: "doc.text")
-                        .font(.system(size: 40))
+                    Image(systemName: "chart.bar.xaxis")
+                        .font(.system(size: 34))
                         .foregroundColor(.secondary)
                     Text("暂无游戏记录")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                    Text(selectedDifficulty == nil ? "先完成一局游戏，这里会展示最近战绩。" : "当前难度还没有记录，试着切换难度或先完成一局。")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 40)
+                .padding(.vertical, 28)
+                .padding(.horizontal, 16)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
                         .fill(Color(.secondarySystemBackground))

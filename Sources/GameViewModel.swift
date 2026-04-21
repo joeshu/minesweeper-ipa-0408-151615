@@ -46,6 +46,7 @@ class GameViewModel: ObservableObject {
     private var boardSafeRadius: Int = 1
     private var requireLogicalSolvableBoard: Bool = false
     private var hasUsedHintInCurrentGame: Bool = false
+    private var hasProcessedCurrentGameCompletion: Bool = false
     
     init() {
         self.gameBoard = GameBoard(rows: Difficulty.easy.rows, 
@@ -121,6 +122,7 @@ class GameViewModel: ObservableObject {
         hintPosition = nil
         newlyUnlockedAchievements = []
         hasUsedHintInCurrentGame = false
+        hasProcessedCurrentGameCompletion = false
         gameStateManager.clearUndoStack()
         gameStateManager.clearSavedGame()
         hasSavedGame = false
@@ -483,7 +485,13 @@ class GameViewModel: ObservableObject {
     }
     
     // MARK: - 自动保存
-    
+
+    func persistIfNeeded() {
+        guard gameBoard.gameState == .playing else { return }
+        guard gameBoard.revealedCount > 0 || gameBoard.flaggedCount > 0 || elapsedTime > 0 else { return }
+        autoSave()
+    }
+
     func autoSave() {
         let snapshot = gameBoard.createSnapshot(elapsedTime: elapsedTime)
         gameStateManager.saveGame(
@@ -514,6 +522,7 @@ class GameViewModel: ObservableObject {
         gameBoard.restore(from: savedGame.snapshot)
         elapsedTime = savedGame.snapshot.elapsedTime
         isGameActive = true
+        hasProcessedCurrentGameCompletion = false
         canUndo = false
         
         // 恢复计时器
@@ -532,6 +541,11 @@ class GameViewModel: ObservableObject {
     private func checkGameState() {
         switch gameBoard.gameState {
         case .won:
+            guard !hasProcessedCurrentGameCompletion else {
+                canUndo = gameStateManager.canUndo
+                return
+            }
+            hasProcessedCurrentGameCompletion = true
             stopTimer()
             soundManager.playWin()
             hapticManager.gameWon()
@@ -558,6 +572,11 @@ class GameViewModel: ObservableObject {
             clearSavedGame()
             
         case .lost:
+            guard !hasProcessedCurrentGameCompletion else {
+                canUndo = gameStateManager.canUndo
+                return
+            }
+            hasProcessedCurrentGameCompletion = true
             stopTimer()
             soundManager.playLose()
             hapticManager.gameLost()
@@ -598,6 +617,9 @@ class GameViewModel: ObservableObject {
         canUndo = false
         hintPosition = nil
         isShowingHint = false
+        hasUsedHintInCurrentGame = false
+        hasProcessedCurrentGameCompletion = false
+        newlyUnlockedAchievements = []
         gameStateManager.clearUndoStack()
         clearSavedGame()
         animationManager.stopAllAnimations()

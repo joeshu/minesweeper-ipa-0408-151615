@@ -279,7 +279,7 @@ struct SettingsView: View {
                 }
                 
                 // 游戏统计
-                Section(header: Text("游戏统计")) {
+                Section(header: Text("游戏统计"), footer: Text("清除后将删除本机所有历史战绩与成就解锁进度，且无法恢复。")) {
                     StatRow(title: "总游戏数", value: "\(viewModel.gameStats.totalGames)")
                     StatRow(title: "胜利次数", value: "\(viewModel.gameStats.wins)", valueColor: .green)
                     StatRow(title: "失败次数", value: "\(viewModel.gameStats.losses)", valueColor: .red)
@@ -290,6 +290,7 @@ struct SettingsView: View {
                     } label: {
                         Label("清除所有记录", systemImage: "trash")
                     }
+                    .disabled(viewModel.gameStats.totalGames == 0)
                 }
                 
                 // 关于
@@ -324,7 +325,7 @@ struct SettingsView: View {
                     viewModel.gameStats.clearAllRecords()
                 }
             } message: {
-                Text("确定要清除所有游戏记录吗？此操作无法撤销。")
+                Text(viewModel.gameStats.totalGames == 0 ? "当前没有可清除的游戏记录。" : "确定要清除所有游戏记录吗？此操作会同时清空历史战绩与成就进度，且无法撤销。")
             }
         }
     }

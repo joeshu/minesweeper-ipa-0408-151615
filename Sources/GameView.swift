@@ -29,6 +29,10 @@ struct GameView: View {
                         .padding(.horizontal)
                         .padding(.top, 6)
                 }
+
+                boardInstructionBar
+                    .padding(.horizontal)
+                    .padding(.top, 6)
                 
                 // 游戏板
                 gameBoardView
@@ -273,6 +277,26 @@ struct GameView: View {
         .padding(10)
         .background(
             RoundedRectangle(cornerRadius: 10)
+                .fill(Color(.secondarySystemBackground))
+        )
+    }
+
+    private var boardInstructionBar: some View {
+        HStack(spacing: 10) {
+            InstructionChip(icon: "hand.tap", text: "点按翻开")
+            InstructionChip(icon: "flag.fill", text: "长按插旗")
+
+            if viewModel.gameBoard.gameState == .playing {
+                Spacer(minLength: 0)
+                Text(viewModel.isPaused ? "已暂停" : "进行中")
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(viewModel.isPaused ? .orange : .green)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
                 .fill(Color(.secondarySystemBackground))
         )
     }
@@ -532,6 +556,8 @@ struct GameView: View {
                     resultRow(title: "模式", value: viewModel.challengeMode.rawValue)
                     resultRow(title: "难度", value: viewModel.difficulty.rawValue)
                     resultRow(title: "用时", value: viewModel.formattedTime)
+                    resultRow(title: "已翻开", value: "\(viewModel.gameBoard.revealedCount) 格")
+                    resultRow(title: "已标记", value: "\(viewModel.gameBoard.flaggedCount)/\(viewModel.gameBoard.totalMines)")
                     if viewModel.challengeMode == .noGuess && !viewModel.gameBoard.generationQualityNote.isEmpty {
                         resultRow(title: "盘面质量", value: viewModel.gameBoard.generationQualityNote)
                     }
@@ -587,6 +613,27 @@ struct GameView: View {
         }
     }
 
+}
+
+private struct InstructionChip: View {
+    let icon: String
+    let text: String
+
+    var body: some View {
+        HStack(spacing: 5) {
+            Image(systemName: icon)
+                .font(.caption)
+            Text(text)
+                .font(.caption)
+        }
+        .foregroundColor(.secondary)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .background(
+            Capsule()
+                .fill(Color(.tertiarySystemBackground))
+        )
+    }
 }
 
 // MARK: - 快捷操作按钮

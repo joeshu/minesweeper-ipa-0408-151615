@@ -2,6 +2,7 @@ import SwiftUI
 
 @main
 struct MinesweeperApp: App {
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var gameViewModel = GameViewModel()
     @StateObject private var themeManager = ThemeManager.shared
     
@@ -10,6 +11,11 @@ struct MinesweeperApp: App {
             ContentView()
                 .environmentObject(gameViewModel)
                 .environmentObject(themeManager)
+                .onChange(of: scenePhase) { _, newPhase in
+                    if newPhase != .active {
+                        gameViewModel.persistIfNeeded()
+                    }
+                }
         }
     }
 }
@@ -18,6 +24,7 @@ struct ContentView: View {
     @EnvironmentObject var gameViewModel: GameViewModel
     @EnvironmentObject var themeManager: ThemeManager
     @State private var selectedTab = 0
+    @AppStorage("lastSelectedTab") private var lastSelectedTab = 0
     
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -38,6 +45,12 @@ struct ContentView: View {
                     Label("设置", systemImage: "gear")
                 }
                 .tag(2)
+        }
+        .onAppear {
+            selectedTab = lastSelectedTab
+        }
+        .onChange(of: selectedTab) { _, newValue in
+            lastSelectedTab = newValue
         }
         .accentColor(.blue)
         .preferredColorScheme(themeManager.appTheme.colorScheme)
