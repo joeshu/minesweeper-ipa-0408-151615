@@ -180,6 +180,8 @@ struct GameView: View {
         case .noGuess: return .green
         }
     }
+    
+    private var generationBanner: some View {
         HStack(spacing: 10) {
             Image(systemName: viewModel.gameBoard.generationQualityNote.contains("严格") ? "shield.checkered" : "wand.and.stars")
                 .foregroundColor(viewModel.gameBoard.generationQualityNote.contains("严格") ? .green : .orange)
@@ -196,30 +198,6 @@ struct GameView: View {
         }
         .padding(12)
         .surfaceCard(radius: 16, fillColor: Color(.secondarySystemBackground).opacity(0.88), shadowOpacity: 0.04)
-    }
-
-    private var boardInstructionBar: some View {
-        HStack(spacing: 10) {
-            InstructionChip(icon: "hand.tap", text: "点按翻开")
-            InstructionChip(icon: "flag.fill", text: "长按插旗")
-            InstructionChip(icon: "square.grid.3x3.fill", text: "双击快开")
-
-            if viewModel.gameBoard.gameState == .playing {
-                Spacer(minLength: 0)
-                Text(viewModel.isPaused ? "已暂停" : "进行中")
-                    .font(.caption.weight(.semibold))
-                    .foregroundColor(viewModel.isPaused ? .orange : .green)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(
-                        Capsule()
-                            .fill((viewModel.isPaused ? Color.orange : Color.green).opacity(0.14))
-                    )
-            }
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 12)
-        .surfaceCard(radius: 16, fillColor: Color(.secondarySystemBackground).opacity(0.86), shadowOpacity: 0.04)
     }
     
     private var hintBanner: some View {

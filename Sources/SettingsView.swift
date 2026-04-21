@@ -116,6 +116,24 @@ struct SettingsView: View {
         }
     }
     
+    private func challengeModeIcon(_ mode: ChallengeMode) -> String {
+        switch mode {
+        case .none: return "gamecontroller.fill"
+        case .daily: return "calendar"
+        case .timed: return "timer"
+        case .noGuess: return "brain.head.profile"
+        }
+    }
+}
+
+struct SettingsView_Previews: PreviewProvider {
+    static var previews: some View {
+        SettingsView()
+            .environmentObject(GameViewModel())
+            .environmentObject(ThemeManager.shared)
+    }
+}
+    
 struct SettingsView_Previews: PreviewProvider {
     static var previews: some View {
         SettingsView()

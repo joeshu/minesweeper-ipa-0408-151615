@@ -361,16 +361,4 @@ struct SettingsAboutSection: View {
     }
 }
 
-struct SettingsPill: View {
-    let title: String
-    let color: Color
-    
-    var body: some View {
-        Text(title)
-            .font(.caption.weight(.semibold))
-            .foregroundColor(color)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(Capsule().fill(color.opacity(0.14)))
-    }
 }
