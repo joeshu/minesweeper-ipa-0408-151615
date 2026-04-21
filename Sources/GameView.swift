@@ -1,72 +1,5 @@
 import SwiftUI
 
-struct SurfaceCardModifier: ViewModifier {
-    var radius: CGFloat = 18
-    var fillColor: Color = Color(.secondarySystemBackground).opacity(0.96)
-    var strokeOpacity: Double = 0.06
-    var shadowOpacity: Double = 0.06
-    var shadowRadius: CGFloat = 14
-    var shadowY: CGFloat = 6
-    
-    func body(content: Content) -> some View {
-        content
-            .background(
-                RoundedRectangle(cornerRadius: radius, style: .continuous)
-                    .fill(fillColor)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: radius, style: .continuous)
-                            .stroke(Color.primary.opacity(strokeOpacity), lineWidth: 1)
-                    )
-                    .shadow(color: .black.opacity(shadowOpacity), radius: shadowRadius, x: 0, y: shadowY)
-            )
-    }
-}
-
-extension View {
-    func surfaceCard(
-        radius: CGFloat = 18,
-        fillColor: Color = Color(.secondarySystemBackground).opacity(0.96),
-        strokeOpacity: Double = 0.06,
-        shadowOpacity: Double = 0.06,
-        shadowRadius: CGFloat = 14,
-        shadowY: CGFloat = 6
-    ) -> some View {
-        modifier(
-            SurfaceCardModifier(
-                radius: radius,
-                fillColor: fillColor,
-                strokeOpacity: strokeOpacity,
-                shadowOpacity: shadowOpacity,
-                shadowRadius: shadowRadius,
-                shadowY: shadowY
-            )
-        )
-    }
-}
-
-struct SectionHeaderView: View {
-    let title: String
-    let subtitle: String?
-    
-    init(_ title: String, subtitle: String? = nil) {
-        self.title = title
-        self.subtitle = subtitle
-    }
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.headline.weight(.bold))
-            if let subtitle {
-                Text(subtitle)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
-
 struct GameView: View {
     @EnvironmentObject var viewModel: GameViewModel
     @EnvironmentObject var themeManager: ThemeManager
@@ -74,6 +7,8 @@ struct GameView: View {
     @State private var showingLoadGameConfirmation = false
     @State private var boardScale: CGFloat = 1.0
     @State private var boardOffset: CGSize = .zero
+    
+    private let boardHeaderReservedHeight: CGFloat = 28
     
     private var statusTitle: String {
         if viewModel.isPaused { return "已暂停" }
@@ -121,32 +56,32 @@ struct GameView: View {
             backgroundGradient
             
             VStack(spacing: 0) {
-                // 游戏信息栏
-                gameInfoBar
-                    .padding(.horizontal)
-                    .padding(.top, 6)
-                
-                // 快捷操作栏
-                quickActionBar
-                    .padding(.horizontal)
-                    .padding(.top, 6)
-                
-                if !viewModel.gameBoard.generationQualityNote.isEmpty && viewModel.challengeMode == .noGuess {
-                    generationBanner
-                        .padding(.horizontal)
-                        .padding(.top, 6)
-                }
-
-                boardInstructionBar
-                    .padding(.horizontal)
-                    .padding(.top, 6)
-                
-                // 游戏板
                 gameBoardView
                     .frame(maxHeight: .infinity)
-                    .padding(.horizontal, 4)
+                    .padding(.horizontal, 8)
                     .padding(.top, 6)
                     .padding(.bottom, 6)
+                
+                VStack(spacing: 0) {
+                    gameInfoBar
+                        .padding(.horizontal)
+                        .padding(.top, 4)
+                    
+                    quickActionBar
+                        .padding(.horizontal)
+                        .padding(.top, 6)
+                    
+                    if !viewModel.gameBoard.generationQualityNote.isEmpty && viewModel.challengeMode == .noGuess {
+                        generationBanner
+                            .padding(.horizontal)
+                            .padding(.top, 6)
+                    }
+
+                    boardInstructionBar
+                        .padding(.horizontal)
+                        .padding(.top, 6)
+                        .padding(.bottom, 6)
+                }
             }
             
             // 暂停覆盖层
@@ -497,7 +432,7 @@ struct GameView: View {
     private var gameBoardView: some View {
         GeometryReader { geometry in
             let availableWidth = geometry.size.width
-            let availableHeight = geometry.size.height
+            let availableHeight = max(geometry.size.height - boardHeaderReservedHeight, geometry.size.height * 0.82)
             let cols = CGFloat(viewModel.gameBoard.cols)
             let rows = CGFloat(viewModel.gameBoard.rows)
             let spacing: CGFloat = 2
@@ -505,14 +440,29 @@ struct GameView: View {
             let totalSpacingY = (rows - 1) * spacing
             let cellWidth = (availableWidth - totalSpacingX) / cols
             let cellHeight = (availableHeight - totalSpacingY) / rows
-            let cellSize = min(cellWidth, cellHeight, 72)
+            let cellSize = min(cellWidth, cellHeight, 88)
             let boardWidth = cols * cellSize + totalSpacingX
             let boardHeight = rows * cellSize + totalSpacingY
-            let offsetX = (availableWidth - boardWidth) / 2
-            let offsetY = (availableHeight - boardHeight) / 2
+            let offsetX = max(0, (availableWidth - boardWidth) / 2)
+            let offsetY = max(0, (availableHeight - boardHeight) / 2)
             
-            VStack(alignment: .leading, spacing: 12) {
-                SectionHeaderView("当前棋盘", subtitle: "大盘自动居中，小盘保留留白，阅读节奏更稳定。")
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(alignment: .center) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("当前棋盘")
+                            .font(.headline.weight(.bold))
+                        Text("游戏页的视觉重心固定给棋盘，信息与控制收到底部。")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer(minLength: 0)
+                    Text("\(viewModel.gameBoard.rows)×\(viewModel.gameBoard.cols)")
+                        .font(.caption.weight(.semibold))
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Capsule().fill(Color.primary.opacity(0.06)))
+                }
                 
                 ScrollView([.horizontal, .vertical], showsIndicators: false) {
                     LazyVStack(spacing: spacing) {
@@ -546,15 +496,15 @@ struct GameView: View {
                     .padding(10)
                     .background(
                         RoundedRectangle(cornerRadius: 22, style: .continuous)
-                            .fill(themeManager.gameTheme.boardBackgroundColor.opacity(0.96))
+                            .fill(themeManager.gameTheme.boardBackgroundColor.opacity(0.98))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 22, style: .continuous)
                                     .stroke(Color.primary.opacity(0.06), lineWidth: 1)
                             )
                             .shadow(color: .black.opacity(0.12), radius: 12, x: 0, y: 6)
                     )
-                    .padding(.horizontal, max(0, offsetX))
-                    .padding(.vertical, max(0, offsetY))
+                    .padding(.horizontal, offsetX)
+                    .padding(.vertical, offsetY)
                 }
             }
         }
