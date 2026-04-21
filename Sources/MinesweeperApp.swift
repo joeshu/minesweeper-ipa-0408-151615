@@ -11,7 +11,7 @@ struct MinesweeperApp: App {
             ContentView()
                 .environmentObject(gameViewModel)
                 .environmentObject(themeManager)
-                .onChange(of: scenePhase) { _, newPhase in
+                .onChange(of: scenePhase) { newPhase in
                     if newPhase != .active {
                         gameViewModel.persistIfNeeded()
                     }
@@ -49,7 +49,7 @@ struct ContentView: View {
         .onAppear {
             selectedTab = lastSelectedTab
         }
-        .onChange(of: selectedTab) { _, newValue in
+        .onChange(of: selectedTab) { newValue in
             lastSelectedTab = newValue
         }
         .accentColor(.blue)
