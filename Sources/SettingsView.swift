@@ -66,10 +66,12 @@ struct SettingsView: View {
                     SectionHeaderView("触觉反馈", subtitle: "插旗、胜负和关键操作通过触觉建立即时确认。")
                 }
                 
-                Section(footer: Text("清除后将删除本机所有历史战绩与成就解锁进度，且无法恢复。")) {
+                Section {
                     statsSectionContent
                 } header: {
                     SectionHeaderView("游戏统计", subtitle: "这里适合定期清理，保持试验体验和正式记录分开。")
+                } footer: {
+                    Text("清除后将删除本机所有历史战绩与成就解锁进度，且无法恢复。")
                 }
                 
                 Section {
