@@ -200,7 +200,12 @@ struct GameBottomControlPanel: View {
             shadowOpacity: themeManager.gameTheme == .cyber ? 0.02 : 0.01,
             shadowRadius: 16,
             shadowY: 6
-        )    @EnvironmentObject var themeManager: ThemeManager
+        )
+    }
+}
+
+struct FuturisticSummaryStrip: View {
+    @EnvironmentObject var themeManager: ThemeManager
     
     let icon: String
     let title: String
