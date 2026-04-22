@@ -6,22 +6,12 @@ struct DailyChallengeStatus: Codable {
     let completed: Bool
 }
 
-struct TacticalAssessment {
-    let title: String
-    let detail: String
-    let grade: String
-    let gradeColorHex: String
-    let signature: String
-}
-
 struct HintDescriptor {
     enum Kind {
         case safe
         case flag
         case risky
         case none
-        case scan
-        case chain
     }
     
     let position: (row: Int, col: Int)?
@@ -60,7 +50,6 @@ class GameStats: ObservableObject {
     @Published var noGuessStrictBoards: Int = 0
     @Published var noGuessFallbackBoards: Int = 0
     @Published var achievements: [Achievement] = AchievementCatalog.all
-    @Published var tacticalAssessmentHistory: [TacticalAssessment] = []
     
     private let recordsKey = "gameRecords"
     private let dailyChallengeStatusKey = "dailyChallengeStatuses"
@@ -128,13 +117,6 @@ class GameStats: ObservableObject {
         return unlocked
     }
     
-
-    func recordAssessment(_ assessment: TacticalAssessment) {
-        tacticalAssessmentHistory.insert(assessment, at: 0)
-        if tacticalAssessmentHistory.count > 20 {
-            tacticalAssessmentHistory = Array(tacticalAssessmentHistory.prefix(20))
-        }
-    }
 
     private func evaluateAchievements(for record: GameRecord, hasUsedHint: Bool) -> [Achievement] {
         var unlocked: [Achievement] = []
