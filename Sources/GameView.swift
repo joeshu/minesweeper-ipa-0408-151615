@@ -65,19 +65,19 @@ struct GameView: View {
                         modeBadgeColor: modeBadgeColor
                     )
                     .environmentObject(viewModel)
-                    .padding(.horizontal, 8)
-                    .padding(.top, 2)
+                    .padding(.horizontal, 10)
+                    .padding(.top, 6)
                     
                     GameBottomControlPanel(showingNewGameConfirmation: $showingNewGameConfirmation)
                         .environmentObject(viewModel)
-                        .padding(.horizontal, 8)
-                        .padding(.top, 6)
-                        .padding(.bottom, 4)
+                        .padding(.horizontal, 10)
+                        .padding(.top, 8)
+                        .padding(.bottom, 6)
 
                     if !viewModel.gameBoard.generationQualityNote.isEmpty && viewModel.challengeMode == .noGuess {
                         generationBanner
-                            .padding(.horizontal, 8)
-                            .padding(.bottom, 4)
+                            .padding(.horizontal, 10)
+                            .padding(.bottom, 6)
                     }
                 }
                 
@@ -86,7 +86,7 @@ struct GameView: View {
                     .environmentObject(themeManager)
                     .frame(maxHeight: .infinity)
                     .padding(.horizontal, 4)
-                    .padding(.top, 2)
+                    .padding(.top, 1)
                     .padding(.bottom, 4)
             }
             

@@ -11,33 +11,33 @@ struct GameTopStatusBar: View {
     let modeBadgeColor: Color
     
     var body: some View {
-        HStack(alignment: .center, spacing: 8) {
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 6) {
+        HStack(alignment: .center, spacing: 10) {
+            VStack(alignment: .leading, spacing: 5) {
+                HStack(spacing: 7) {
                     Circle()
                         .fill(statusColor.opacity(0.18))
-                        .frame(width: 8, height: 8)
+                        .frame(width: 9, height: 9)
                         .overlay(
                             Circle()
                                 .fill(statusColor)
-                                .frame(width: 4.5, height: 4.5)
+                                .frame(width: 5, height: 5)
                         )
                     Text(statusTitle)
-                        .font(.caption.weight(.bold))
+                        .font(.subheadline.weight(.bold))
                     Text(progressText)
-                        .font(.caption2.weight(.semibold))
+                        .font(.caption.weight(.semibold))
                         .foregroundColor(statusColor)
                 }
                 
                 Text(statusSubtitle)
-                    .font(themeManager.gameTheme == .cyber ? .system(size: 10, weight: .medium, design: .rounded) : .caption2)
+                    .font(themeManager.gameTheme == .cyber ? .system(size: 11, weight: .medium, design: .rounded) : .caption)
                     .foregroundColor(.secondary)
                     .lineLimit(1)
             }
             
             Spacer(minLength: 0)
             
-            HStack(spacing: 5) {
+            HStack(spacing: 6) {
                 CompactGameStatChip(
                     icon: "flag.fill",
                     iconColor: .red,
@@ -64,11 +64,11 @@ struct GameTopStatusBar: View {
                 )
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 7)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 10)
         .background(cardBackground)
         .overlay(cardOverlay)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
     
     @ViewBuilder
@@ -100,21 +100,21 @@ struct GameBottomControlPanel: View {
     @Binding var showingNewGameConfirmation: Bool
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 6) {
                 Text("快速操作")
-                    .font(.caption.weight(.bold))
+                    .font(.subheadline.weight(.bold))
                     .foregroundColor(.primary)
                 
                 Text(viewModel.isPaused ? "暂停中" : (viewModel.gameBoard.gameState == .playing ? "对局进行中" : "等待下一局"))
-                    .font(.caption2.weight(.medium))
+                    .font(.caption.weight(.medium))
                     .foregroundColor(viewModel.isPaused ? .orange : (viewModel.gameBoard.gameState == .playing ? .green : .secondary))
                 
                 Spacer(minLength: 0)
             }
             
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 6) {
+                HStack(spacing: 7) {
                     QuickActionButton(
                         icon: "arrow.clockwise",
                         label: "新局",
@@ -176,9 +176,9 @@ struct GameBottomControlPanel: View {
                 .padding(.vertical, 1)
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 8)
-        .surfaceCard(radius: 12, fillColor: Color(.secondarySystemBackground).opacity(0.72), shadowOpacity: 0.01)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 10)
+        .surfaceCard(radius: 14, fillColor: Color(.secondarySystemBackground).opacity(0.74), shadowOpacity: 0.015)
     }
 }
 
