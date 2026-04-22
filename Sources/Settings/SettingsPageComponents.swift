@@ -5,18 +5,18 @@ struct SettingsOverviewSection: View {
     @EnvironmentObject var themeManager: ThemeManager
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            SectionHeaderView("当前配置", subtitle: "快速查看模式、主题、声音与操作反馈是否符合当前手感。")
-            HStack {
+        VStack(alignment: .leading, spacing: 10) {
+            SectionHeaderView("当前配置", subtitle: "快速查看模式、主题、声音与操作反馈。")
+            HStack(spacing: 8) {
                 SettingsPill(title: viewModel.challengeMode.rawValue, color: .blue)
                 SettingsPill(title: themeManager.gameTheme.rawValue, color: .green)
                 SettingsPill(title: viewModel.soundManager.isSoundEnabled ? "音效开" : "音效关", color: .orange)
             }
-            Text("现在使用 \(viewModel.difficulty.rawValue) 难度，界面与反馈已按产品化方向统一整理。")
+            Text(viewModel.difficulty.rawValue)
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 4)
     }
 }
 
@@ -104,20 +104,20 @@ struct SettingsCustomBoardSection: View {
                 range: 1...(viewModel.customRows * viewModel.customCols - 9)
             )
             
-            VStack(alignment: .leading, spacing: 12) {
-                VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text("当前配置")
-                        .font(.caption)
+                        .font(.caption2)
                         .foregroundColor(.secondary)
                     Text(customConfigSummary)
-                        .font(.headline)
+                        .font(.subheadline.weight(.semibold))
                     Text("雷密度：\(String(format: "%.1f", viewModel.customMineDensity * 100))%")
-                        .font(.caption)
+                        .font(.caption2)
                         .foregroundColor(viewModel.customMineDensity > 0.22 ? .orange : .secondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(12)
-                .surfaceCard(radius: 14, fillColor: Color(.secondarySystemBackground).opacity(0.82), shadowOpacity: 0)
+                .padding(10)
+                .surfaceCard(radius: 12, fillColor: Color(.secondarySystemBackground).opacity(0.8), shadowOpacity: 0)
                 
                 TextField("预设名称", text: $viewModel.presetNameDraft)
                     .textInputAutocapitalization(.never)
@@ -211,10 +211,10 @@ struct SettingsChallengeModesSection: View {
                             }
                             Spacer()
                         }
-                        .padding(12)
+                        .padding(10)
                         .surfaceCard(
-                            radius: 14,
-                            fillColor: viewModel.challengeMode == mode ? challengeModeColor(mode).opacity(0.08) : Color(.secondarySystemBackground).opacity(0.82),
+                            radius: 12,
+                            fillColor: viewModel.challengeMode == mode ? challengeModeColor(mode).opacity(0.08) : Color(.secondarySystemBackground).opacity(0.8),
                             shadowOpacity: 0
                         )
                     }

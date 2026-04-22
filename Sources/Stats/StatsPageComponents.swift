@@ -4,21 +4,21 @@ struct StatsHeroHeaderSection: View {
     @EnvironmentObject var viewModel: GameViewModel
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            SectionHeaderView("战绩总览", subtitle: "把关键指标收在一屏内，优先看到趋势，再看细节。")
+        VStack(alignment: .leading, spacing: 10) {
+            SectionHeaderView("战绩总览", subtitle: "关键指标一屏直看。")
             
-            HStack(spacing: 10) {
+            HStack(spacing: 8) {
                 DashboardMiniCard(title: "总胜率", value: String(format: "%.1f%%", viewModel.gameStats.getWinRate()), color: .green)
                 DashboardMiniCard(title: "打卡", value: "\(viewModel.gameStats.getDailyChallengeStreak())天", color: .orange)
             }
-            HStack(spacing: 10) {
+            HStack(spacing: 8) {
                 DashboardMiniCard(title: "成就", value: "\(viewModel.gameStats.unlockedAchievementsCount())个", color: .yellow)
                 DashboardMiniCard(title: "连胜", value: "\(viewModel.gameStats.bestWinStreak())局", color: .purple)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .surfaceCard(radius: 22, fillColor: Color(.secondarySystemBackground).opacity(0.94), shadowOpacity: 0.08)
+        .padding(12)
+        .surfaceCard(radius: 18, fillColor: Color(.secondarySystemBackground).opacity(0.92), shadowOpacity: 0.05)
     }
 }
 
@@ -26,49 +26,43 @@ struct StatsAchievementsSection: View {
     @EnvironmentObject var viewModel: GameViewModel
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            SectionHeaderView("成就", subtitle: "把高光时刻做成卡片，强化完成感。")
+        VStack(alignment: .leading, spacing: 10) {
+            SectionHeaderView("成就", subtitle: "高光时刻卡片化收纳。")
             
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
+                HStack(spacing: 10) {
                     ForEach(viewModel.gameStats.achievements) { achievement in
-                        VStack(alignment: .leading, spacing: 10) {
-                            HStack(spacing: 8) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(spacing: 6) {
                                 Image(systemName: achievement.icon)
-                                    .font(.title3)
+                                    .font(.subheadline)
                                     .foregroundColor(achievement.isUnlocked ? .yellow : .gray)
                                 Spacer()
                                 Text(achievement.isUnlocked ? "已解锁" : "未解锁")
                                     .font(.caption2.weight(.semibold))
                                     .foregroundColor(achievement.isUnlocked ? .green : .secondary)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 3)
-                                    .background(
-                                        Capsule()
-                                            .fill(achievement.isUnlocked ? Color.green.opacity(0.12) : Color(.systemGray5))
-                                    )
                             }
 
                             Text(achievement.title)
-                                .font(.subheadline.weight(.semibold))
+                                .font(.caption.weight(.semibold))
                                 .lineLimit(1)
 
                             Text(achievement.detail)
-                                .font(.caption)
+                                .font(.caption2)
                                 .foregroundColor(.secondary)
                                 .lineLimit(2)
 
                             Spacer(minLength: 0)
                         }
-                        .frame(width: 176, height: 144, alignment: .leading)
-                        .padding(12)
+                        .frame(width: 156, height: 118, alignment: .leading)
+                        .padding(10)
                         .surfaceCard(
-                            radius: 16,
-                            fillColor: Color(.secondarySystemBackground).opacity(0.94),
-                            strokeOpacity: achievement.isUnlocked ? 0.22 : 0.06,
-                            shadowOpacity: 0.05,
-                            shadowRadius: 10,
-                            shadowY: 4
+                            radius: 14,
+                            fillColor: Color(.secondarySystemBackground).opacity(0.92),
+                            strokeOpacity: achievement.isUnlocked ? 0.18 : 0.05,
+                            shadowOpacity: 0.03,
+                            shadowRadius: 8,
+                            shadowY: 3
                         )
                     }
                 }
@@ -82,18 +76,18 @@ struct StatsNoGuessSection: View {
     let formatTime: (TimeInterval) -> String
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            SectionHeaderView("无猜挑战", subtitle: "关注严格命中与回退比例，判断盘面质量是否稳定。")
+        VStack(alignment: .leading, spacing: 10) {
+            SectionHeaderView("无猜挑战", subtitle: "看严格命中与回退比例。")
             
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 8) {
                 StatsInfoRow(label: "对局数", systemImage: "brain.head.profile", value: "\(viewModel.gameStats.noGuessGames)")
                 StatsInfoRow(label: "胜率", systemImage: "checkmark.seal", value: String(format: "%.1f%%", viewModel.gameStats.getNoGuessWinRate()), valueColor: .green)
                 StatsInfoRow(label: "最佳时间", systemImage: "stopwatch", value: viewModel.gameStats.noGuessBestTime == nil ? "--:--" : formatTime(viewModel.gameStats.noGuessBestTime!))
                 StatsInfoRow(label: "严格命中", systemImage: "shield.checkered", value: "\(viewModel.gameStats.noGuessStrictBoards)", valueColor: .green)
                 StatsInfoRow(label: "回退生成", systemImage: "wand.and.stars", value: "\(viewModel.gameStats.noGuessFallbackBoards)", valueColor: .orange)
             }
-            .padding(14)
-            .surfaceCard(radius: 18, fillColor: Color(.secondarySystemBackground).opacity(0.92), shadowOpacity: 0.04)
+            .padding(12)
+            .surfaceCard(radius: 16, fillColor: Color(.secondarySystemBackground).opacity(0.9), shadowOpacity: 0.03)
         }
     }
 }
@@ -105,17 +99,17 @@ struct StatsDailyChallengeSection: View {
     var body: some View {
         let todayStatus = viewModel.gameStats.getTodayDailyChallengeStatus()
         
-        return VStack(alignment: .leading, spacing: 12) {
-            SectionHeaderView("每日挑战", subtitle: "今天有没有打卡、成绩如何，一眼可见。")
+        return VStack(alignment: .leading, spacing: 10) {
+            SectionHeaderView("每日挑战", subtitle: "今日状态一眼可见。")
             
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 8) {
                 StatsInfoRow(label: "今日状态", systemImage: todayStatus == nil ? "calendar.badge.clock" : "calendar.badge.checkmark", value: todayStatus == nil ? "未完成" : "已完成", valueColor: todayStatus == nil ? .secondary : .green)
                 StatsInfoRow(label: "今日最佳", systemImage: "trophy", value: todayStatus == nil ? "--:--" : formatTime(todayStatus!.bestTime))
                 StatsInfoRow(label: "连续打卡", systemImage: "flame.fill", value: "\(viewModel.gameStats.getDailyChallengeStreak()) 天", valueColor: .orange)
                 StatsInfoRow(label: "累计完成", systemImage: "calendar.circle", value: "\(viewModel.gameStats.getDailyChallengeCompletedDays()) 天")
             }
-            .padding(14)
-            .surfaceCard(radius: 18, fillColor: Color(.secondarySystemBackground).opacity(0.92), shadowOpacity: 0.04)
+            .padding(12)
+            .surfaceCard(radius: 16, fillColor: Color(.secondarySystemBackground).opacity(0.9), shadowOpacity: 0.03)
         }
     }
 }
@@ -327,19 +321,19 @@ struct DashboardMiniCard: View {
     let color: Color
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 4) {
             Text(title)
-                .font(.caption)
+                .font(.caption2)
                 .foregroundColor(.secondary)
             Text(value)
-                .font(.headline.weight(.bold))
+                .font(.subheadline.weight(.bold))
                 .foregroundColor(color)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(10)
+        .padding(8)
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemBackground).opacity(0.85))
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color(.systemBackground).opacity(0.84))
         )
     }
 }
