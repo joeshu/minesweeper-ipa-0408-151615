@@ -21,7 +21,7 @@ struct StatsHeroHeaderSection: View {
         .padding(14)
         .surfaceCard(
             radius: 20,
-            fillColor: themeManager.gameTheme == .cyber ? Color.white.opacity(0.08) : Color(.secondarySystemBackground).opacity(0.92),
+            fillColor: themeManager.gameTheme == .cyber ? Color.white.opacity(0.08) : themeManager.gameTheme.pageCardFill,
             strokeOpacity: themeManager.gameTheme == .cyber ? 0.05 : 0.04,
             shadowOpacity: 0.03,
             shadowRadius: 14,
@@ -32,6 +32,7 @@ struct StatsHeroHeaderSection: View {
 
 struct StatsAchievementsSection: View {
     @EnvironmentObject var viewModel: GameViewModel
+    @EnvironmentObject var themeManager: ThemeManager
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -66,7 +67,7 @@ struct StatsAchievementsSection: View {
                         .padding(10)
                         .surfaceCard(
                             radius: 14,
-                            fillColor: Color(.secondarySystemBackground).opacity(0.92),
+                            fillColor: themeManager.gameTheme.pageCardFill,
                             strokeOpacity: achievement.isUnlocked ? 0.18 : 0.05,
                             shadowOpacity: 0.03,
                             shadowRadius: 8,
@@ -81,6 +82,7 @@ struct StatsAchievementsSection: View {
 
 struct StatsNoGuessSection: View {
     @EnvironmentObject var viewModel: GameViewModel
+    @EnvironmentObject var themeManager: ThemeManager
     let formatTime: (TimeInterval) -> String
     
     var body: some View {
@@ -95,13 +97,14 @@ struct StatsNoGuessSection: View {
                 StatsInfoRow(label: "回退生成", systemImage: "wand.and.stars", value: "\(viewModel.gameStats.noGuessFallbackBoards)", valueColor: .orange)
             }
             .padding(12)
-            .surfaceCard(radius: 16, fillColor: Color(.secondarySystemBackground).opacity(0.9), shadowOpacity: 0.03)
+            .surfaceCard(radius: 16, fillColor: themeManager.gameTheme.pageCardFill, shadowOpacity: 0.03)
         }
     }
 }
 
 struct StatsDailyChallengeSection: View {
     @EnvironmentObject var viewModel: GameViewModel
+    @EnvironmentObject var themeManager: ThemeManager
     let formatTime: (TimeInterval) -> String
     
     var body: some View {
@@ -117,13 +120,14 @@ struct StatsDailyChallengeSection: View {
                 StatsInfoRow(label: "累计完成", systemImage: "calendar.circle", value: "\(viewModel.gameStats.getDailyChallengeCompletedDays()) 天")
             }
             .padding(12)
-            .surfaceCard(radius: 16, fillColor: Color(.secondarySystemBackground).opacity(0.9), shadowOpacity: 0.03)
+            .surfaceCard(radius: 16, fillColor: themeManager.gameTheme.pageCardFill, shadowOpacity: 0.03)
         }
     }
 }
 
 struct StatsChallengeOverviewSection: View {
     @EnvironmentObject var viewModel: GameViewModel
+    @EnvironmentObject var themeManager: ThemeManager
     
     var body: some View {
         let challengeRecords = viewModel.gameStats.getChallengeRecords()
@@ -137,7 +141,7 @@ struct StatsChallengeOverviewSection: View {
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(14)
-                    .surfaceCard(radius: 18, fillColor: Color(.secondarySystemBackground).opacity(0.92), shadowOpacity: 0.04)
+                    .surfaceCard(radius: 18, fillColor: themeManager.gameTheme.pageCardFill, shadowOpacity: 0.04)
             } else {
                 VStack(alignment: .leading, spacing: 10) {
                     StatsInfoRow(label: "挑战局数", systemImage: "flag.checkered", value: "\(challengeRecords.count)")
@@ -147,13 +151,14 @@ struct StatsChallengeOverviewSection: View {
                     }
                 }
                 .padding(14)
-                .surfaceCard(radius: 18, fillColor: Color(.secondarySystemBackground).opacity(0.92), shadowOpacity: 0.04)
+                .surfaceCard(radius: 18, fillColor: themeManager.gameTheme.pageCardFill, shadowOpacity: 0.04)
             }
         }
     }
 }
 
 struct StatsDifficultyFilterSection: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Binding var selectedDifficulty: Difficulty?
     
     var body: some View {
@@ -185,12 +190,13 @@ struct StatsDifficultyFilterSection: View {
             }
         }
         .padding(10)
-        .surfaceCard(radius: 14, fillColor: Color(.secondarySystemBackground).opacity(0.86), shadowOpacity: 0.03)
+        .surfaceCard(radius: 14, fillColor: themeManager.gameTheme.pageInnerCardFill, shadowOpacity: 0.03)
     }
 }
 
 struct StatsBestTimesSection: View {
     @EnvironmentObject var viewModel: GameViewModel
+    @EnvironmentObject var themeManager: ThemeManager
     let difficultyColor: (Difficulty) -> Color
     let formatTime: (TimeInterval) -> String
     
@@ -220,7 +226,7 @@ struct StatsBestTimesSection: View {
                 }
             }
             .padding(14)
-            .surfaceCard(radius: 18, fillColor: Color(.secondarySystemBackground).opacity(0.92), shadowOpacity: 0.04)
+            .surfaceCard(radius: 18, fillColor: themeManager.gameTheme.pageCardFill, shadowOpacity: 0.04)
         }
     }
 }
@@ -276,13 +282,14 @@ struct StatsWinRateSection: View {
                 }
             }
             .padding(14)
-            .surfaceCard(radius: 18, fillColor: Color(.secondarySystemBackground).opacity(0.92), shadowOpacity: 0.04)
+            .surfaceCard(radius: 18, fillColor: themeManager.gameTheme.pageCardFill, shadowOpacity: 0.04)
         }
     }
 }
 
 struct StatsRecentGamesSection: View {
     @EnvironmentObject var viewModel: GameViewModel
+    @EnvironmentObject var themeManager: ThemeManager
     let selectedDifficulty: Difficulty?
     
     var body: some View {
@@ -309,7 +316,7 @@ struct StatsRecentGamesSection: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 20)
                 .padding(.horizontal, 12)
-                .surfaceCard(radius: 16, fillColor: Color(.secondarySystemBackground).opacity(0.9), shadowOpacity: 0.03)
+                .surfaceCard(radius: 16, fillColor: themeManager.gameTheme.pageCardFill, shadowOpacity: 0.03)
             } else {
                 VStack(spacing: 8) {
                     ForEach(records.prefix(10)) { record in
@@ -317,7 +324,7 @@ struct StatsRecentGamesSection: View {
                     }
                 }
                 .padding(10)
-                .surfaceCard(radius: 16, fillColor: Color(.secondarySystemBackground).opacity(0.9), shadowOpacity: 0.03)
+                .surfaceCard(radius: 16, fillColor: themeManager.gameTheme.pageCardFill, shadowOpacity: 0.03)
             }
         }
     }
@@ -344,7 +351,7 @@ struct DashboardMiniCard: View {
         .padding(.vertical, 9)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(themeManager.gameTheme == .cyber ? Color.white.opacity(0.06) : Color(.systemBackground).opacity(0.76))
+                .fill(themeManager.gameTheme == .cyber ? Color.white.opacity(0.06) : themeManager.gameTheme.pageInnerCardFill)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)

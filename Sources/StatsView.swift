@@ -10,8 +10,8 @@ struct StatsView: View {
             if themeManager.useGradientBackground {
                 LinearGradient(
                     colors: [
-                        themeManager.gameTheme.boardBackgroundColor.opacity(0.24),
-                        Color(.systemBackground)
+                        themeManager.gameTheme.pageTopTint,
+                        themeManager.gameTheme.pageBottomTint
                     ],
                     startPoint: .top,
                     endPoint: .bottom
@@ -33,20 +33,27 @@ struct StatsView: View {
                         .environmentObject(themeManager)
                     StatsAchievementsSection()
                         .environmentObject(viewModel)
+                        .environmentObject(themeManager)
                     StatsNoGuessSection(formatTime: formatTime)
                         .environmentObject(viewModel)
+                        .environmentObject(themeManager)
                     StatsDailyChallengeSection(formatTime: formatTime)
                         .environmentObject(viewModel)
+                        .environmentObject(themeManager)
                     StatsChallengeOverviewSection()
                         .environmentObject(viewModel)
+                        .environmentObject(themeManager)
                     StatsDifficultyFilterSection(selectedDifficulty: $selectedDifficulty)
+                        .environmentObject(themeManager)
                     StatsBestTimesSection(difficultyColor: difficultyColor, formatTime: formatTime)
                         .environmentObject(viewModel)
+                        .environmentObject(themeManager)
                     StatsWinRateSection(difficultyColor: difficultyColor, winRateColor: winRateColor)
                         .environmentObject(viewModel)
                         .environmentObject(themeManager)
                     StatsRecentGamesSection(selectedDifficulty: selectedDifficulty)
                         .environmentObject(viewModel)
+                        .environmentObject(themeManager)
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 12)

@@ -9,8 +9,8 @@ struct SettingsView: View {
     private var settingsGradient: some View {
         LinearGradient(
             colors: [
-                themeManager.gameTheme.boardBackgroundColor.opacity(0.18),
-                Color(.systemBackground)
+                themeManager.gameTheme.pageTopTint,
+                themeManager.gameTheme.pageBottomTint
             ],
             startPoint: .top,
             endPoint: .bottom

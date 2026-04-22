@@ -22,6 +22,53 @@ struct SurfaceCardModifier: ViewModifier {
     }
 }
 
+extension GameTheme {
+    var pageTopTint: Color {
+        switch self {
+        case .cyber:
+            return Color(red: 0.82, green: 0.92, blue: 1.0)
+        default:
+            return boardBackgroundColor.opacity(0.24)
+        }
+    }
+    
+    var pageBottomTint: Color {
+        switch self {
+        case .cyber:
+            return Color(red: 0.93, green: 0.97, blue: 1.0)
+        default:
+            return Color(.systemBackground)
+        }
+    }
+    
+    var pageCardFill: Color {
+        switch self {
+        case .cyber:
+            return Color.white.opacity(0.10)
+        default:
+            return Color(.secondarySystemBackground).opacity(0.90)
+        }
+    }
+    
+    var pageInnerCardFill: Color {
+        switch self {
+        case .cyber:
+            return Color.white.opacity(0.06)
+        default:
+            return Color(.secondarySystemBackground).opacity(0.84)
+        }
+    }
+    
+    var pageCardStrokeOpacity: Double {
+        switch self {
+        case .cyber:
+            return 0.05
+        default:
+            return 0.04
+        }
+    }
+}
+
 extension View {
     func surfaceCard(
         radius: CGFloat = 18,
