@@ -74,6 +74,30 @@ struct GameView: View {
                         .padding(.top, 2)
                         .padding(.bottom, 2)
                     
+                    if let summary = viewModel.scanRiskSummary {
+                        FuturisticSummaryStrip(
+                            icon: "wave.3.right.circle.fill",
+                            title: summary.title,
+                            detail: summary.detail,
+                            accent: summary.tone == .safe ? .green : .cyan,
+                            trailingText: "SCAN"
+                        )
+                        .padding(.horizontal, 8)
+                        .padding(.bottom, 2)
+                    }
+                    
+                    if let summary = viewModel.chainSummary {
+                        FuturisticSummaryStrip(
+                            icon: "point.3.filled.connected.trianglepath.dotted",
+                            title: summary.title,
+                            detail: summary.detail,
+                            accent: .mint,
+                            trailingText: summary.emphasis
+                        )
+                        .padding(.horizontal, 8)
+                        .padding(.bottom, 2)
+                    }
+
                     if !viewModel.gameBoard.generationQualityNote.isEmpty && viewModel.challengeMode == .noGuess {
                         generationBanner
                             .padding(.horizontal, 8)

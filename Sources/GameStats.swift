@@ -14,6 +14,18 @@ struct TacticalAssessment {
     let signature: String
 }
 
+struct ScanRiskSummary {
+    let title: String
+    let detail: String
+    let tone: HintDescriptor.Kind
+}
+
+struct ChainSummary {
+    let title: String
+    let detail: String
+    let emphasis: String
+}
+
 struct HintDescriptor {
     enum Kind {
         case safe

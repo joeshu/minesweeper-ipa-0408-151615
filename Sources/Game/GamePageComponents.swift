@@ -135,6 +135,52 @@ struct GameBottomControlPanel: View {
     }
 }
 
+struct FuturisticSummaryStrip: View {
+    let icon: String
+    let title: String
+    let detail: String
+    let accent: Color
+    let trailingText: String?
+    
+    var body: some View {
+        HStack(spacing: 10) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(accent.opacity(0.16))
+                    .frame(width: 28, height: 28)
+                Image(systemName: icon)
+                    .font(.caption.weight(.bold))
+                    .foregroundColor(accent)
+            }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(.primary)
+                    .lineLimit(1)
+                Text(detail)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .lineLimit(2)
+            }
+            
+            Spacer(minLength: 6)
+            
+            if let trailingText, !trailingText.isEmpty {
+                Text(trailingText)
+                    .font(.caption2.weight(.bold))
+                    .foregroundColor(accent)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 4)
+                    .background(Capsule().fill(accent.opacity(0.12)))
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .surfaceCard(radius: 12, fillColor: Color(.secondarySystemBackground).opacity(0.76), shadowOpacity: 0.015)
+    }
+}
+
 struct GameBoardContainer: View {
     @EnvironmentObject var viewModel: GameViewModel
     @EnvironmentObject var themeManager: ThemeManager

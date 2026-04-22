@@ -38,10 +38,8 @@ class GameViewModel: ObservableObject {
     @Published var boardStatusDetail: String = ""
     @Published var boardStatusTone: BoardStatusTone = .neutral
     @Published var newlyUnlockedAchievements: [Achievement] = []
-    @Published var tacticalAssessment: TacticalAssessment? = nil
-    @Published var scanUsesRemaining: Int = 2
-    @Published var isScanOverlayVisible: Bool = false
-    @Published var chainHighlights: [(row: Int, col: Int)] = []
+    @Published var scanRiskSummary: ScanRiskSummary? = nil
+    @Published var chainSummary: ChainSummary? = nil
     
     let gameStats = GameStats()
     let soundManager = SoundManager.shared
@@ -172,6 +170,8 @@ class GameViewModel: ObservableObject {
         scanUsesRemaining = challengeMode == .none ? 2 : 3
         isScanOverlayVisible = false
         chainHighlights = []
+        scanRiskSummary = nil
+        chainSummary = nil
         tacticalAssessment = nil
         isGameActive = false
         showGameOverAlert = false
@@ -473,6 +473,8 @@ class GameViewModel: ObservableObject {
         hintMessage = descriptor.message
         hintKind = descriptor.kind
         isShowingHint = descriptor.position != nil
+        scanRiskSummary = nil
+        chainSummary = nil
         
         if isShowingHint {
             hapticManager.impact(.light)
@@ -495,13 +497,18 @@ class GameViewModel: ObservableObject {
         isScanOverlayVisible = true
         hintKind = .scan
         chainHighlights = []
-        postBoardStatus("已启动风险扫描", detail: "优先关注高亮区域。", tone: .positive, lock: 0.08)
+        chainSummary = nil
+        let summary = buildScanRiskSummary()
+        scanRiskSummary = summary
+        hintMessage = summary.detail
+        postBoardStatus(summary.title, detail: summary.detail, tone: .positive, lock: 0.08)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) { [weak self] in
             self?.isScanOverlayVisible = false
             if self?.hintKind == .scan {
                 self?.hintKind = .none
             }
+            self?.scanRiskSummary = nil
         }
     }
     
@@ -515,16 +522,103 @@ class GameViewModel: ObservableObject {
         
         chainHighlights = chain
         hintKind = .chain
-        postBoardStatus("已高亮逻辑链", detail: "沿这组数字与候选格继续判断。", tone: .positive, lock: 0.08)
+        scanRiskSummary = nil
+        let summary = buildChainSummary(from: chain)
+        chainSummary = summary
+        hintMessage = summary.detail
+        postBoardStatus(summary.title, detail: summary.detail, tone: .positive, lock: 0.08)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 3.2) { [weak self] in
             self?.chainHighlights = []
             if self?.hintKind == .chain {
                 self?.hintKind = .none
             }
+            self?.chainSummary = nil
         }
     }
     
+    private func buildScanRiskSummary() -> ScanRiskSummary {
+        var hiddenCount = 0
+        var flaggedCount = 0
+        var frontierCount = 0
+        
+        for row in 0..<gameBoard.rows {
+            for col in 0..<gameBoard.cols {
+                let cell = gameBoard.cells[row][col]
+                if cell.isFlagged {
+                    flaggedCount += 1
+                }
+                if cell.isHidden && !cell.isFlagged {
+                    hiddenCount += 1
+                    if hasRevealedNeighbor(row: row, col: col) {
+                        frontierCount += 1
+                    }
+                }
+            }
+        }
+        
+        if frontierCount == 0 {
+            return ScanRiskSummary(
+                title: "扫描未锁定前线",
+                detail: "当前盘面信息较少，先翻开新的安全区。",
+                tone: .warning
+            )
+        }
+        
+        let remainingMinesEstimate = max(0, gameBoard.totalMines - flaggedCount)
+        if frontierCount >= max(4, hiddenCount / 3) {
+            return ScanRiskSummary(
+                title: "前线密度偏高",
+                detail: "约 \(frontierCount) 个候选格贴近已知数字，优先处理边缘信息链。",
+                tone: .scan
+            )
+        }
+        
+        return ScanRiskSummary(
+            title: "风险窗口已收缩",
+            detail: "剩余约 \(remainingMinesEstimate) 雷，前线候选 \(frontierCount) 格，可继续精判。",
+            tone: .safe
+        )
+    }
+    
+    private func buildChainSummary(from chain: [(row: Int, col: Int)]) -> ChainSummary {
+        let anchor = chain.first ?? (0, 0)
+        let branchCount = max(0, chain.count - 1)
+        let emphasis: String
+        
+        switch challengeMode {
+        case .none:
+            emphasis = "普通协议"
+        case .daily:
+            emphasis = "每日协议"
+        case .timed:
+            emphasis = "速推协议"
+        case .noGuess:
+            emphasis = "纯逻辑协议"
+        }
+        
+        return ChainSummary(
+            title: "链路锚点 R\(anchor.row + 1) · C\(anchor.col + 1)",
+            detail: branchCount > 0 ? "已串联 \(branchCount) 个候选格，先围绕锚点附近交叉验证。" : "已定位单点锚位，可先从这里继续推理。",
+            emphasis: emphasis
+        )
+    }
+    
+    private func hasRevealedNeighbor(row: Int, col: Int) -> Bool {
+        for dr in -1...1 {
+            for dc in -1...1 {
+                if dr == 0 && dc == 0 { continue }
+                let nr = row + dr
+                let nc = col + dc
+                guard nr >= 0 && nr < gameBoard.rows && nc >= 0 && nc < gameBoard.cols else { continue }
+                if gameBoard.cells[nr][nc].isRevealed {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
     private func computeHintDescriptor() -> HintDescriptor {
         if let flagTarget = findFlagRecommendation() {
             return HintDescriptor(position: flagTarget, message: "已高亮建议标雷的位置", kind: .flag)
@@ -864,6 +958,8 @@ class GameViewModel: ObservableObject {
         scanUsesRemaining = challengeMode == .none ? 2 : 3
         isScanOverlayVisible = false
         chainHighlights = []
+        scanRiskSummary = nil
+        chainSummary = nil
         tacticalAssessment = nil
         hasUsedHintInCurrentGame = false
         hasProcessedCurrentGameCompletion = false
