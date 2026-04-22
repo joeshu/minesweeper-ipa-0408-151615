@@ -167,15 +167,28 @@ struct GameView: View {
     private var backgroundGradient: some View {
         Group {
             if themeManager.useGradientBackground {
-                LinearGradient(
-                    colors: [
-                        themeManager.gameTheme.boardBackgroundColor.opacity(0.3),
-                        Color(.systemBackground)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
+                if themeManager.gameTheme == .cyber {
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.02, green: 0.05, blue: 0.12),
+                            Color(red: 0.05, green: 0.10, blue: 0.20),
+                            Color(.systemBackground)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    .ignoresSafeArea()
+                } else {
+                    LinearGradient(
+                        colors: [
+                            themeManager.gameTheme.boardBackgroundColor.opacity(0.3),
+                            Color(.systemBackground)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .ignoresSafeArea()
+                }
             } else {
                 Color(.systemBackground)
                     .ignoresSafeArea()

@@ -48,7 +48,7 @@ struct GameTopStatusBar: View {
         }
         .padding(.horizontal, 6)
         .padding(.vertical, 5)
-        .surfaceCard(radius: 10, fillColor: Color(.secondarySystemBackground).opacity(0.74), shadowOpacity: 0.01)
+        .surfaceCard(radius: 10, fillColor: themeManager.gameTheme == .cyber ? Color.black.opacity(0.22) : Color(.secondarySystemBackground).opacity(0.74), shadowOpacity: themeManager.gameTheme == .cyber ? 0.05 : 0.01)
     }
 }
 
@@ -105,7 +105,7 @@ struct GameBottomControlPanel: View {
         }
         .padding(.horizontal, 5)
         .padding(.vertical, 5)
-        .surfaceCard(radius: 10, fillColor: Color(.secondarySystemBackground).opacity(0.72), shadowOpacity: 0.01)
+        .surfaceCard(radius: 10, fillColor: themeManager.gameTheme == .cyber ? Color.black.opacity(0.18) : Color(.secondarySystemBackground).opacity(0.72), shadowOpacity: themeManager.gameTheme == .cyber ? 0.05 : 0.01)
     }
 }
 
@@ -118,7 +118,7 @@ struct GameBoardContainer: View {
     var body: some View {
         GeometryReader { geometry in
             let availableWidth = geometry.size.width
-            let availableHeight = max(geometry.size.height - boardHeaderReservedHeight, geometry.size.height * 0.94)
+            let availableHeight = max(geometry.size.height - boardHeaderReservedHeight, geometry.size.height * 0.96)
             let cols = CGFloat(viewModel.gameBoard.cols)
             let rows = CGFloat(viewModel.gameBoard.rows)
             let spacing: CGFloat = 2
@@ -126,23 +126,23 @@ struct GameBoardContainer: View {
             let totalSpacingY = (rows - 1) * spacing
             let cellWidth = (availableWidth - totalSpacingX) / cols
             let cellHeight = (availableHeight - totalSpacingY) / rows
-            let cellSize = min(cellWidth, cellHeight, 112)
+            let cellSize = min(cellWidth, cellHeight, 116)
             let boardWidth = cols * cellSize + totalSpacingX
             let boardHeight = rows * cellSize + totalSpacingY
             let offsetX = max(0, (availableWidth - boardWidth) / 2)
             let offsetY = max(0, (availableHeight - boardHeight) / 2)
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 3) {
                 HStack(alignment: .center) {
                     Text("棋盘")
-                        .font(.caption.weight(.bold))
+                        .font(.caption2.weight(.bold))
                     Spacer(minLength: 0)
                     Text("\(viewModel.gameBoard.rows)×\(viewModel.gameBoard.cols)")
                         .font(.caption2.weight(.semibold))
                         .foregroundColor(.secondary)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 4)
-                        .background(Capsule().fill(Color.primary.opacity(0.05)))
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 3)
+                        .background(Capsule().fill(Color.primary.opacity(0.04)))
                 }
                 
                 ScrollView([.horizontal, .vertical], showsIndicators: false) {
@@ -174,15 +174,15 @@ struct GameBoardContainer: View {
                             }
                         }
                     }
-                    .padding(6)
+                    .padding(5)
                     .background(
-                        RoundedRectangle(cornerRadius: 20, style: .continuous)
-                            .fill(themeManager.gameTheme.boardBackgroundColor.opacity(0.99))
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .fill(themeManager.gameTheme.boardBackgroundColor.opacity(0.995))
                             .overlay(
-                                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                    .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+                                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                    .stroke(Color.primary.opacity(0.04), lineWidth: 1)
                             )
-                            .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+                            .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
                     )
                     .padding(.horizontal, offsetX)
                     .padding(.vertical, offsetY)

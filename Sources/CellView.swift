@@ -84,7 +84,7 @@ struct CellView: View {
         case .flagged:
             return themeManager.gameTheme.cellFlaggedColor
         case .questioned:
-            return themeManager.gameTheme == .graphite ? Color(red: 0.42, green: 0.35, blue: 0.72).opacity(0.28) : Color.purple.opacity(0.2)
+            return themeManager.gameTheme == .graphite ? Color(red: 0.42, green: 0.35, blue: 0.72).opacity(0.28) : (themeManager.gameTheme == .cyber ? Color(red: 0.62, green: 0.26, blue: 1.0).opacity(0.3) : Color.purple.opacity(0.2))
         case .exploded:
             return themeManager.gameTheme.cellExplodedColor
         case .revealed:
@@ -101,11 +101,11 @@ struct CellView: View {
         case .revealed where !cell.isMine && cell.neighborMines > 0:
             return themeManager.colorForNumber(cell.neighborMines)
         case .flagged:
-            return themeManager.gameTheme == .graphite ? Color(red: 0.89, green: 0.28, blue: 0.24) : .red
+            return themeManager.gameTheme == .graphite ? Color(red: 0.89, green: 0.28, blue: 0.24) : (themeManager.gameTheme == .cyber ? Color(red: 1.0, green: 0.28, blue: 0.60) : .red)
         case .questioned:
-            return themeManager.gameTheme == .graphite ? Color(red: 0.70, green: 0.62, blue: 0.98) : .purple
+            return themeManager.gameTheme == .graphite ? Color(red: 0.70, green: 0.62, blue: 0.98) : (themeManager.gameTheme == .cyber ? Color(red: 0.70, green: 0.48, blue: 1.0) : .purple)
         default:
-            return themeManager.gameTheme == .graphite ? Color.white.opacity(0.92) : .primary
+            return themeManager.gameTheme == .graphite ? Color.white.opacity(0.92) : (themeManager.gameTheme == .cyber ? Color(red: 0.05, green: 0.12, blue: 0.18) : .primary)
         }
     }
     

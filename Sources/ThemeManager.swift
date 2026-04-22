@@ -23,6 +23,7 @@ enum GameTheme: String, CaseIterable, Identifiable {
     case neon = "霓虹"
     case nature = "自然"
     case graphite = "石墨"
+    case cyber = "未来"
     
     var id: String { rawValue }
     
@@ -38,6 +39,8 @@ enum GameTheme: String, CaseIterable, Identifiable {
             return Color.green.opacity(0.15)
         case .graphite:
             return Color(red: 0.18, green: 0.2, blue: 0.24)
+        case .cyber:
+            return Color(red: 0.06, green: 0.10, blue: 0.18)
         }
     }
     
@@ -53,6 +56,8 @@ enum GameTheme: String, CaseIterable, Identifiable {
             return Color.green.opacity(0.05)
         case .graphite:
             return Color(red: 0.93, green: 0.95, blue: 0.98)
+        case .cyber:
+            return Color(red: 0.78, green: 0.95, blue: 1.0)
         }
     }
     
@@ -68,6 +73,8 @@ enum GameTheme: String, CaseIterable, Identifiable {
             return Color.orange.opacity(0.25)
         case .graphite:
             return Color(red: 0.85, green: 0.26, blue: 0.22).opacity(0.28)
+        case .cyber:
+            return Color(red: 1.0, green: 0.22, blue: 0.58).opacity(0.32)
         }
     }
     
@@ -83,6 +90,8 @@ enum GameTheme: String, CaseIterable, Identifiable {
             return Color.red.opacity(0.75)
         case .graphite:
             return Color(red: 0.78, green: 0.18, blue: 0.18)
+        case .cyber:
+            return Color(red: 1.0, green: 0.25, blue: 0.33)
         }
     }
     
@@ -98,6 +107,8 @@ enum GameTheme: String, CaseIterable, Identifiable {
             return Color.green.opacity(0.08)
         case .graphite:
             return Color(red: 0.12, green: 0.13, blue: 0.16).opacity(0.96)
+        case .cyber:
+            return Color(red: 0.02, green: 0.05, blue: 0.12).opacity(0.98)
         }
     }
     
@@ -113,6 +124,8 @@ enum GameTheme: String, CaseIterable, Identifiable {
             return Color.green.opacity(0.2)
         case .graphite:
             return Color.white.opacity(0.08)
+        case .cyber:
+            return Color.cyan.opacity(0.22)
         }
     }
     
@@ -142,6 +155,17 @@ enum GameTheme: String, CaseIterable, Identifiable {
                 Color(red: 0.25, green: 0.79, blue: 0.81),
                 Color(red: 0.96, green: 0.78, blue: 0.28),
                 Color(red: 0.55, green: 0.62, blue: 0.74)
+            ]
+        case .cyber:
+            return [
+                Color(red: 0.20, green: 0.95, blue: 1.0),
+                Color(red: 0.44, green: 1.0, blue: 0.72),
+                Color(red: 1.0, green: 0.38, blue: 0.52),
+                Color(red: 0.72, green: 0.52, blue: 1.0),
+                Color(red: 1.0, green: 0.70, blue: 0.25),
+                Color(red: 0.30, green: 0.82, blue: 1.0),
+                Color(red: 0.96, green: 0.92, blue: 0.36),
+                Color(red: 0.72, green: 0.82, blue: 1.0)
             ]
         }
     }
