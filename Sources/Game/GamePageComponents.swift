@@ -11,7 +11,7 @@ struct GameTopStatusBar: View {
     let modeBadgeColor: Color
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top, spacing: 14) {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 9) {
@@ -78,12 +78,58 @@ struct GameTopStatusBar: View {
                 
                 Spacer(minLength: 0)
             }
+            
+            if hasTopStatusInsights {
+                VStack(spacing: 6) {
+                    if !viewModel.gameBoard.generationQualityNote.isEmpty && viewModel.challengeMode == .noGuess {
+                        TopStatusInsightRow(
+                            icon: viewModel.gameBoard.generationQualityNote.contains("严格") ? "shield.checkered" : "wand.and.stars",
+                            title: "盘面质量",
+                            detail: viewModel.gameBoard.generationQualityNote,
+                            accent: viewModel.gameBoard.generationQualityNote.contains("严格") ? .green : .orange,
+                            tag: "NO-GUESS"
+                        )
+                    }
+                    
+                    if !viewModel.boardStatusMessage.isEmpty {
+                        TopStatusInsightRow(
+                            icon: boardStatusIcon,
+                            title: viewModel.boardStatusMessage,
+                            detail: viewModel.boardStatusDetail.isEmpty ? "继续沿当前节奏推进。" : viewModel.boardStatusDetail,
+                            accent: boardStatusColor,
+                            tag: nil
+                        )
+                    }
+                }
+            }
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 13)
         .background(cardBackground)
         .overlay(cardOverlay)
         .clipShape(RoundedRectangle(cornerRadius: 17, style: .continuous))
+    }
+    
+    private var hasTopStatusInsights: Bool {
+        (!viewModel.gameBoard.generationQualityNote.isEmpty && viewModel.challengeMode == .noGuess) || !viewModel.boardStatusMessage.isEmpty
+    }
+    
+    private var boardStatusColor: Color {
+        switch viewModel.boardStatusTone {
+        case .neutral: return .blue
+        case .positive: return .green
+        case .warning: return .orange
+        case .danger: return .red
+        }
+    }
+    
+    private var boardStatusIcon: String {
+        switch viewModel.boardStatusTone {
+        case .neutral: return "circle.fill"
+        case .positive: return "checkmark"
+        case .warning: return "flag.fill"
+        case .danger: return "xmark"
+        }
     }
     
     @ViewBuilder
@@ -287,9 +333,9 @@ struct GameBoardContainer: View {
             let spacing: CGFloat = 2
             let totalSpacingX = (cols - 1) * spacing
             let totalSpacingY = (rows - 1) * spacing
-            let boardHeaderHeight: CGFloat = hasBoardInsights ? 112 : 54
+            let boardHeaderHeight: CGFloat = 46
             let boardInnerPadding: CGFloat = 6
-            let boardAreaHeight = max(availableHeight - boardHeaderHeight - boardInnerPadding * 2, availableHeight * 0.86)
+            let boardAreaHeight = max(availableHeight - boardHeaderHeight - boardInnerPadding * 2, availableHeight * 0.90)
             let cellWidth = (availableWidth - totalSpacingX - boardInnerPadding * 2) / cols
             let cellHeight = (boardAreaHeight - totalSpacingY) / rows
             let cellSize = min(cellWidth, cellHeight, 112)
@@ -344,83 +390,36 @@ struct GameBoardContainer: View {
     }
     
     private var hasBoardInsights: Bool {
-        viewModel.scanRiskSummary != nil ||
-        viewModel.chainSummary != nil ||
-        (!viewModel.gameBoard.generationQualityNote.isEmpty && viewModel.challengeMode == .noGuess) ||
-        !viewModel.boardStatusMessage.isEmpty
+        false
     }
     
     private var boardHeader: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .center, spacing: 10) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(themeManager.gameTheme == .cyber ? "战术棋盘" : "棋盘区")
-                        .font(.caption.weight(.bold))
-                        .foregroundColor(themeManager.gameTheme == .cyber ? Color(red: 0.20, green: 0.38, blue: 0.54) : .primary)
-                    if themeManager.gameTheme == .cyber {
-                        Text("AURORA GRID")
-                            .font(.system(size: 9.5, weight: .semibold, design: .rounded))
-                            .foregroundColor(Color(red: 0.32, green: 0.62, blue: 0.82))
-                    }
-                }
-                
-                Spacer(minLength: 0)
-                
-                HStack(spacing: 6) {
-                    BoardMetaChip(
-                        title: "尺寸",
-                        value: "\(viewModel.gameBoard.rows)×\(viewModel.gameBoard.cols)",
-                        accent: themeManager.gameTheme == .cyber ? Color(red: 0.30, green: 0.68, blue: 0.88) : .secondary
-                    )
-                    
-                    BoardMetaChip(
-                        title: "地雷",
-                        value: "\(viewModel.gameBoard.totalMines)",
-                        accent: .orange
-                    )
+        HStack(alignment: .center, spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(themeManager.gameTheme == .cyber ? "战术棋盘" : "棋盘区")
+                    .font(.caption.weight(.bold))
+                    .foregroundColor(themeManager.gameTheme == .cyber ? Color(red: 0.20, green: 0.38, blue: 0.54) : .primary)
+                if themeManager.gameTheme == .cyber {
+                    Text("AURORA GRID")
+                        .font(.system(size: 9.5, weight: .semibold, design: .rounded))
+                        .foregroundColor(Color(red: 0.32, green: 0.62, blue: 0.82))
                 }
             }
             
-            VStack(spacing: 6) {
-                if !viewModel.gameBoard.generationQualityNote.isEmpty && viewModel.challengeMode == .noGuess {
-                    BoardInsightRow(
-                        icon: viewModel.gameBoard.generationQualityNote.contains("严格") ? "shield.checkered" : "wand.and.stars",
-                        title: "盘面质量",
-                        detail: viewModel.gameBoard.generationQualityNote,
-                        accent: viewModel.gameBoard.generationQualityNote.contains("严格") ? .green : .orange,
-                        tag: "NO-GUESS"
-                    )
-                }
+            Spacer(minLength: 0)
+            
+            HStack(spacing: 6) {
+                BoardMetaChip(
+                    title: "尺寸",
+                    value: "\(viewModel.gameBoard.rows)×\(viewModel.gameBoard.cols)",
+                    accent: themeManager.gameTheme == .cyber ? Color(red: 0.30, green: 0.68, blue: 0.88) : .secondary
+                )
                 
-                if let summary = viewModel.scanRiskSummary {
-                    BoardInsightRow(
-                        icon: "wave.3.right.circle.fill",
-                        title: summary.title,
-                        detail: summary.detail,
-                        accent: summary.tone == .safe ? .green : .cyan,
-                        tag: "SCAN"
-                    )
-                }
-                
-                if let summary = viewModel.chainSummary {
-                    BoardInsightRow(
-                        icon: "point.3.filled.connected.trianglepath.dotted",
-                        title: summary.title,
-                        detail: summary.detail,
-                        accent: .mint,
-                        tag: summary.emphasis
-                    )
-                }
-                
-                if !viewModel.boardStatusMessage.isEmpty {
-                    BoardInsightRow(
-                        icon: boardStatusIcon,
-                        title: viewModel.boardStatusMessage,
-                        detail: viewModel.boardStatusDetail.isEmpty ? "继续沿当前节奏推进。" : viewModel.boardStatusDetail,
-                        accent: boardStatusColor,
-                        tag: nil
-                    )
-                }
+                BoardMetaChip(
+                    title: "地雷",
+                    value: "\(viewModel.gameBoard.totalMines)",
+                    accent: .orange
+                )
             }
         }
         .padding(.horizontal, 2)
