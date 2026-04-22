@@ -42,6 +42,7 @@ class GameViewModel: ObservableObject {
     @Published var chainHighlights: [(row: Int, col: Int)] = []
     @Published var chainAnchorHighlights: [(row: Int, col: Int)] = []
     @Published var chainCandidateHighlights: [(row: Int, col: Int)] = []
+    @Published var scanRiskSummary: String = ""
     
     let gameStats = GameStats()
     let soundManager = SoundManager.shared
@@ -173,6 +174,7 @@ class GameViewModel: ObservableObject {
         chainHighlights = []
         chainAnchorHighlights = []
         chainCandidateHighlights = []
+        scanRiskSummary = ""
         tacticalAssessment = nil
         isGameActive = false
         showGameOverAlert = false
@@ -494,7 +496,8 @@ class GameViewModel: ObservableObject {
         chainHighlights = []
         chainAnchorHighlights = []
         chainCandidateHighlights = []
-        postBoardStatus("已启动风险扫描", detail: "优先关注高亮区域。", tone: .positive, lock: 0.08)
+        scanRiskSummary = buildScanRiskSummary()
+        postBoardStatus("已启动风险扫描", detail: scanRiskSummary, tone: .positive, lock: 0.08)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) { [weak self] in
             self?.isScanOverlayVisible = false
@@ -515,8 +518,9 @@ class GameViewModel: ObservableObject {
         chainHighlights = chain
         chainAnchorHighlights = Array(chain.prefix(1))
         chainCandidateHighlights = Array(chain.dropFirst())
+        scanRiskSummary = "链核心 \(chainAnchorHighlights.count) · 候选 \(chainCandidateHighlights.count)"
         hintKind = .chain
-        postBoardStatus("已高亮逻辑链", detail: "沿这组数字与候选格继续判断。", tone: .positive, lock: 0.08)
+        postBoardStatus("已高亮逻辑链", detail: scanRiskSummary, tone: .positive, lock: 0.08)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 3.2) { [weak self] in
             self?.chainHighlights = []
@@ -585,7 +589,28 @@ class GameViewModel: ObservableObject {
         return nil
     }
     
-    private func buildLogicChainHighlights() -> [(row: Int, col: Int)] {
+    private func buildScanRiskSummary() -> String {
+        var low = 0
+        var medium = 0
+        var high = 0
+        
+        for row in 0..<gameBoard.rows {
+            for col in 0..<gameBoard.cols {
+                let cell = gameBoard.cells[row][col]
+                guard cell.isHidden else { continue }
+                if cell.isMine || cell.neighborMines >= 4 {
+                    high += 1
+                } else if cell.neighborMines >= 2 {
+                    medium += 1
+                } else {
+                    low += 1
+                }
+            }
+        }
+        
+        return "低风险 \(low) · 中风险 \(medium) · 高风险 \(high)"
+    }
+
         for row in 0..<gameBoard.rows {
             for col in 0..<gameBoard.cols {
                 let cell = gameBoard.cells[row][col]
@@ -870,6 +895,7 @@ class GameViewModel: ObservableObject {
         chainHighlights = []
         chainAnchorHighlights = []
         chainCandidateHighlights = []
+        scanRiskSummary = ""
         tacticalAssessment = nil
         newlyUnlockedAchievements = []
         gameStateManager.clearUndoStack()

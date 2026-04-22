@@ -141,6 +141,15 @@ struct GameView: View {
                 }
             }
             
+            if !viewModel.scanRiskSummary.isEmpty && !viewModel.isScanOverlayVisible && !viewModel.chainHighlights.isEmpty {
+                VStack {
+                    Spacer(minLength: 0)
+                    chainSummaryBanner
+                        .padding(.horizontal, 14)
+                        .padding(.bottom, 88)
+                }
+            }
+            
             // 动画效果层
             ExplosionEffectView()
             ConfettiEffectView()
@@ -342,6 +351,29 @@ struct GameView: View {
         }
     }
 
+    private var chainSummaryBanner: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "point.3.filled.connected.trianglepath.dotted")
+                .font(.caption)
+                .foregroundColor(.cyan)
+            Text(viewModel.scanRiskSummary)
+                .font(.caption2.monospaced())
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.secondarySystemBackground))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.cyan.opacity(0.16), lineWidth: 1)
+                )
+        )
+    }
+
+    private var boardStatusColor: Color {
         switch viewModel.boardStatusTone {
         case .neutral: return .blue
         case .positive: return .green

@@ -48,6 +48,13 @@ struct GameTopStatusBar: View {
                 )
             }
             
+            if !viewModel.scanRiskSummary.isEmpty {
+                Text(viewModel.scanRiskSummary)
+                    .font(.caption2.monospaced())
+                    .foregroundColor(themeManager.gameTheme == .cyber ? .cyan : .secondary)
+                    .lineLimit(1)
+            }
+            
             Spacer(minLength: 0)
             
             ModeBadge(
