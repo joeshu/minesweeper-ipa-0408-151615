@@ -10,67 +10,67 @@ struct GameTopStatusBar: View {
     let modeBadgeColor: Color
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .top, spacing: 10) {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 7) {
-                        Circle()
-                            .fill(statusColor.opacity(0.18))
-                            .frame(width: 8, height: 8)
-                            .overlay(
-                                Circle()
-                                    .fill(statusColor)
-                                    .frame(width: 5, height: 5)
-                            )
-                        Text(statusTitle)
-                            .font(.subheadline.weight(.bold))
-                    }
-                    Text(statusSubtitle)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Text(progressText)
-                        .font(.caption2.weight(.semibold))
-                        .foregroundColor(statusColor)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .center, spacing: 8) {
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(statusColor.opacity(0.18))
+                        .frame(width: 8, height: 8)
+                        .overlay(
+                            Circle()
+                                .fill(statusColor)
+                                .frame(width: 5, height: 5)
+                        )
+                    Text(statusTitle)
+                        .font(.caption.weight(.bold))
                 }
+                
+                Text(progressText)
+                    .font(.caption2.weight(.semibold))
+                    .foregroundColor(statusColor)
+                
                 Spacer(minLength: 0)
-                VStack(alignment: .trailing, spacing: 6) {
-                    ModeBadge(
-                        title: viewModel.challengeMode == .none ? viewModel.difficulty.rawValue : viewModel.challengeMode.badgeTitle,
-                        color: modeBadgeColor
-                    )
-                    ModeBadge(
-                        title: "\(viewModel.gameBoard.rows)×\(viewModel.gameBoard.cols)",
-                        color: .secondary
-                    )
-                }
+                
+                ModeBadge(
+                    title: viewModel.challengeMode == .none ? viewModel.difficulty.rawValue : viewModel.challengeMode.badgeTitle,
+                    color: modeBadgeColor
+                )
+                
+                ModeBadge(
+                    title: "\(viewModel.gameBoard.rows)×\(viewModel.gameBoard.cols)",
+                    color: .secondary
+                )
             }
             
-            HStack(spacing: 10) {
-                GameStatChip(
+            HStack(spacing: 8) {
+                CompactGameStatChip(
                     icon: "flag.fill",
                     iconColor: .red,
-                    title: "剩余地雷",
                     value: "\(viewModel.remainingMines)"
                 )
                 
-                GameStatChip(
+                CompactGameStatChip(
                     icon: viewModel.challengeMode == .timed ? "timer" : "clock",
                     iconColor: viewModel.challengeMode == .timed ? .orange : .blue,
-                    title: viewModel.challengeMode == .timed ? "剩余时间" : "当前用时",
                     value: viewModel.challengeMode == .timed ? "\(viewModel.challengeSecondsRemaining)s" : viewModel.formattedTime
                 )
+                
+                Text(statusSubtitle)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             
             if viewModel.challengeMode == .noGuess && !viewModel.gameBoard.generationQualityNote.isEmpty {
-                ModeBadge(
-                    title: viewModel.gameBoard.generationQualityNote.contains("严格") ? "严格无猜盘面" : "回退增强盘面",
-                    color: viewModel.gameBoard.generationQualityNote.contains("严格") ? .green : .orange
-                )
+                Text(viewModel.gameBoard.generationQualityNote.contains("严格") ? "严格无猜盘面" : "回退增强盘面")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundColor(viewModel.gameBoard.generationQualityNote.contains("严格") ? .green : .orange)
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .surfaceCard(radius: 16, fillColor: Color(.secondarySystemBackground).opacity(0.86), shadowOpacity: 0.03)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .surfaceCard(radius: 14, fillColor: Color(.secondarySystemBackground).opacity(0.82), shadowOpacity: 0.02)
     }
 }
 
@@ -79,8 +79,8 @@ struct GameBottomControlPanel: View {
     @Binding var showingNewGameConfirmation: Bool
     
     var body: some View {
-        VStack(spacing: 4) {
-            HStack(spacing: 10) {
+        VStack(spacing: 2) {
+            HStack(spacing: 8) {
                 QuickActionButton(
                     icon: "arrow.clockwise",
                     label: "新局",
@@ -121,26 +121,20 @@ struct GameBottomControlPanel: View {
                     viewModel.showHint()
                 }
             }
-            .padding(10)
-            .surfaceCard(radius: 16, fillColor: Color(.secondarySystemBackground).opacity(0.84), shadowOpacity: 0.02)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 8)
+            .surfaceCard(radius: 14, fillColor: Color(.secondarySystemBackground).opacity(0.8), shadowOpacity: 0.01)
             
-            HStack(spacing: 8) {
-                InstructionChip(icon: "hand.tap", text: "点按翻开")
-                InstructionChip(icon: "flag.fill", text: "长按插旗")
-                InstructionChip(icon: "square.grid.3x3.fill", text: "双击快开")
+            HStack(spacing: 6) {
+                InstructionChip(icon: "hand.tap", text: "点按")
+                InstructionChip(icon: "flag.fill", text: "长按")
+                InstructionChip(icon: "square.grid.3x3.fill", text: "双击")
                 Spacer(minLength: 0)
                 Text(viewModel.isPaused ? "已暂停" : (viewModel.gameBoard.gameState == .playing ? "进行中" : "已结束"))
-                    .font(.caption.weight(.semibold))
+                    .font(.caption2.weight(.semibold))
                     .foregroundColor(viewModel.isPaused ? .orange : (viewModel.gameBoard.gameState == .playing ? .green : .secondary))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(
-                        Capsule()
-                            .fill((viewModel.isPaused ? Color.orange : Color.green).opacity(0.14))
-                    )
             }
-            .padding(.horizontal, 6)
-            .padding(.top, 1)
+            .padding(.horizontal, 4)
         }
     }
 }
@@ -225,6 +219,29 @@ struct GameBoardContainer: View {
                 }
             }
         }
+    }
+}
+
+struct CompactGameStatChip: View {
+    let icon: String
+    let iconColor: Color
+    let value: String
+    
+    var body: some View {
+        HStack(spacing: 5) {
+            Image(systemName: icon)
+                .font(.caption2)
+                .foregroundColor(iconColor)
+            Text(value)
+                .font(.caption.weight(.bold))
+                .monospacedDigit()
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color(.systemBackground).opacity(0.82))
+        )
     }
 }
 
