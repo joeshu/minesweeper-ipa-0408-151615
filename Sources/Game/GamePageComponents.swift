@@ -281,9 +281,9 @@ struct GameBoardContainer: View {
             let spacing: CGFloat = 2
             let totalSpacingX = (cols - 1) * spacing
             let totalSpacingY = (rows - 1) * spacing
-            let boardHeaderHeight: CGFloat = hasBoardInsights ? 66 : 34
+            let boardHeaderHeight: CGFloat = hasBoardInsights ? 84 : 42
             let boardInnerPadding: CGFloat = 6
-            let boardAreaHeight = max(availableHeight - boardHeaderHeight - boardInnerPadding * 2, availableHeight * 0.84)
+            let boardAreaHeight = max(availableHeight - boardHeaderHeight - boardInnerPadding * 2, availableHeight * 0.83)
             let cellWidth = (availableWidth - totalSpacingX - boardInnerPadding * 2) / cols
             let cellHeight = (boardAreaHeight - totalSpacingY) / rows
             let cellSize = min(cellWidth, cellHeight, 112)
@@ -342,39 +342,37 @@ struct GameBoardContainer: View {
     }
     
     private var boardHeader: some View {
-        VStack(alignment: .leading, spacing: hasBoardInsights ? 8 : 4) {
-            HStack(alignment: .center, spacing: 8) {
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(themeManager.gameTheme == .cyber ? "战术棋盘" : "棋盘")
+        VStack(alignment: .leading, spacing: hasBoardInsights ? 10 : 6) {
+            HStack(alignment: .top, spacing: 10) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(themeManager.gameTheme == .cyber ? "战术棋盘" : "棋盘区")
                         .font(.caption.weight(.bold))
                     if themeManager.gameTheme == .cyber {
                         Text("AURORA GRID")
-                            .font(.system(size: 9, weight: .semibold, design: .rounded))
+                            .font(.system(size: 9.5, weight: .semibold, design: .rounded))
                             .foregroundColor(Color(red: 0.28, green: 0.66, blue: 0.88))
                     }
                 }
                 
                 Spacer(minLength: 0)
                 
-                HStack(spacing: 6) {
-                    Text("\(viewModel.gameBoard.rows)×\(viewModel.gameBoard.cols)")
-                        .font(.caption2.weight(.semibold))
-                        .foregroundColor(.secondary)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 4)
-                        .background(Capsule().fill(themeManager.gameTheme == .cyber ? Color(red: 0.28, green: 0.74, blue: 0.94).opacity(0.10) : Color.primary.opacity(0.05)))
+                HStack(spacing: 7) {
+                    BoardMetaChip(
+                        title: "尺寸",
+                        value: "\(viewModel.gameBoard.rows)×\(viewModel.gameBoard.cols)",
+                        accent: themeManager.gameTheme == .cyber ? Color(red: 0.28, green: 0.74, blue: 0.94) : .secondary
+                    )
                     
-                    Text("\(viewModel.gameBoard.totalMines)雷")
-                        .font(.caption2.weight(.semibold))
-                        .foregroundColor(.secondary)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 4)
-                        .background(Capsule().fill(Color.primary.opacity(0.04)))
+                    BoardMetaChip(
+                        title: "地雷",
+                        value: "\(viewModel.gameBoard.totalMines)",
+                        accent: .orange
+                    )
                 }
             }
             
             if hasBoardInsights {
-                VStack(spacing: 6) {
+                HStack(spacing: 8) {
                     if let summary = viewModel.scanRiskSummary {
                         BoardInsightRow(
                             icon: "wave.3.right.circle.fill",
@@ -397,6 +395,7 @@ struct GameBoardContainer: View {
                 }
             }
         }
+        .padding(.horizontal, 2)
     }
     
     @ViewBuilder
@@ -427,14 +426,14 @@ struct BoardInsightRow: View {
                 .foregroundColor(accent)
                 .frame(width: 20)
             
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.caption.weight(.semibold))
                     .lineLimit(1)
                 Text(detail)
                     .font(.caption2)
                     .foregroundColor(.secondary)
-                    .lineLimit(1)
+                    .lineLimit(2)
             }
             
             Spacer(minLength: 4)
@@ -448,15 +447,43 @@ struct BoardInsightRow: View {
                     .background(Capsule().fill(accent.opacity(themeManager.gameTheme == .cyber ? 0.10 : 0.12)))
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 8)
-        .padding(.vertical, 6)
+        .padding(.vertical, 7)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.white.opacity(themeManager.gameTheme == .cyber ? 0.55 : 0.45))
+                .fill(Color.white.opacity(themeManager.gameTheme == .cyber ? 0.58 : 0.48))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .stroke(accent.opacity(themeManager.gameTheme == .cyber ? 0.18 : 0.10), lineWidth: 1)
+        )
+    }
+}
+
+struct BoardMetaChip: View {
+    let title: String
+    let value: String
+    let accent: Color
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title)
+                .font(.system(size: 9, weight: .semibold, design: .rounded))
+                .foregroundColor(.secondary)
+            Text(value)
+                .font(.caption.weight(.bold))
+                .foregroundColor(accent)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .background(
+            RoundedRectangle(cornerRadius: 11, style: .continuous)
+                .fill(Color.white.opacity(0.46))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 11, style: .continuous)
+                .stroke(accent.opacity(0.12), lineWidth: 1)
         )
     }
 }
