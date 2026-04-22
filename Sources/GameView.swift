@@ -8,7 +8,7 @@ struct GameView: View {
     @State private var boardScale: CGFloat = 1.0
     @State private var boardOffset: CGSize = .zero
     
-    private let boardHeaderReservedHeight: CGFloat = 8
+    private let boardHeaderReservedHeight: CGFloat = 4
     
     private var statusTitle: String {
         if viewModel.isPaused { return "已暂停" }
@@ -65,19 +65,19 @@ struct GameView: View {
                         modeBadgeColor: modeBadgeColor
                     )
                     .environmentObject(viewModel)
-                    .padding(.horizontal, 10)
-                    .padding(.top, 2)
+                    .padding(.horizontal, 8)
+                    .padding(.top, 1)
                     
                     GameBottomControlPanel(showingNewGameConfirmation: $showingNewGameConfirmation)
                         .environmentObject(viewModel)
-                        .padding(.horizontal, 10)
-                        .padding(.top, 3)
-                        .padding(.bottom, 3)
+                        .padding(.horizontal, 8)
+                        .padding(.top, 2)
+                        .padding(.bottom, 2)
                     
                     if !viewModel.gameBoard.generationQualityNote.isEmpty && viewModel.challengeMode == .noGuess {
                         generationBanner
-                            .padding(.horizontal, 10)
-                            .padding(.bottom, 3)
+                            .padding(.horizontal, 8)
+                            .padding(.bottom, 2)
                     }
                 }
                 
@@ -85,9 +85,9 @@ struct GameView: View {
                     .environmentObject(viewModel)
                     .environmentObject(themeManager)
                     .frame(maxHeight: .infinity)
-                    .padding(.horizontal, 4)
-                    .padding(.top, 2)
-                    .padding(.bottom, 4)
+                    .padding(.horizontal, 2)
+                    .padding(.top, 1)
+                    .padding(.bottom, 3)
             }
             
             // 暂停覆盖层
@@ -119,6 +119,17 @@ struct GameView: View {
                 }
                 .transition(.move(edge: .bottom).combined(with: .opacity))
                 .animation(themeManager.enableAnimations ? .easeInOut(duration: 0.18) : nil, value: viewModel.hintMessage)
+            }
+            
+            if !viewModel.boardStatusMessage.isEmpty && !viewModel.showGameOverAlert && !viewModel.showWinAlert {
+                VStack {
+                    Spacer(minLength: 0)
+                    boardStatusBanner
+                        .padding(.horizontal, 14)
+                        .padding(.bottom, viewModel.hintMessage.isEmpty ? 12 : 70)
+                }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .animation(themeManager.enableAnimations ? .easeInOut(duration: 0.16) : nil, value: viewModel.boardStatusMessage)
             }
             
             // 动画效果层
@@ -233,7 +244,52 @@ struct GameView: View {
         )
     }
     
-    private var hintTitle: String {
+    private var boardStatusBanner: some View {
+        HStack(spacing: 8) {
+            Circle()
+                .fill(boardStatusColor.opacity(0.18))
+                .frame(width: 18, height: 18)
+                .overlay(
+                    Image(systemName: boardStatusIcon)
+                        .font(.caption2.weight(.bold))
+                        .foregroundColor(boardStatusColor)
+                )
+            
+            Text(viewModel.boardStatusMessage)
+                .font(.caption.weight(.semibold))
+                .foregroundColor(.primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.secondarySystemBackground))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(boardStatusColor.opacity(0.18), lineWidth: 1)
+                )
+        )
+    }
+
+    private var boardStatusColor: Color {
+        switch viewModel.boardStatusTone {
+        case .neutral: return .blue
+        case .positive: return .green
+        case .warning: return .orange
+        case .danger: return .red
+        }
+    }
+    
+    private var boardStatusIcon: String {
+        switch viewModel.boardStatusTone {
+        case .neutral: return "circle.fill"
+        case .positive: return "checkmark"
+        case .warning: return "flag.fill"
+        case .danger: return "xmark"
+        }
+    }
+
         switch viewModel.hintKind {
         case .safe: return "安全提示"
         case .flag: return "标雷提示"

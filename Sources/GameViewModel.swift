@@ -3,6 +3,12 @@ import Combine
 
 @MainActor
 class GameViewModel: ObservableObject {
+    enum BoardStatusTone {
+        case neutral
+        case positive
+        case warning
+        case danger
+    }
     @Published var gameBoard: GameBoard
     @Published var difficulty: Difficulty = .easy
     @Published var elapsedTime: TimeInterval = 0
@@ -26,7 +32,9 @@ class GameViewModel: ObservableObject {
     @Published var presetNameDraft: String = ""
     @Published var challengeMode: ChallengeMode = .none
     @Published var challengeSecondsRemaining: Int = 0
-    @Published var newlyUnlockedAchievements: [Achievement] = []
+    @Published var interactionLockUntil: Date? = nil
+    @Published var boardStatusMessage: String = ""
+    @Published var boardStatusTone: BoardStatusTone = .neutral
     
     let gameStats = GameStats()
     let soundManager = SoundManager.shared
@@ -47,6 +55,13 @@ class GameViewModel: ObservableObject {
     private var requireLogicalSolvableBoard: Bool = false
     private var hasUsedHintInCurrentGame: Bool = false
     private var hasProcessedCurrentGameCompletion: Bool = false
+    
+    private var isInteractionLocked: Bool {
+        if let lockUntil = interactionLockUntil {
+            return Date() < lockUntil
+        }
+        return false
+    }
     
     init() {
         self.gameBoard = GameBoard(rows: Difficulty.easy.rows, 
@@ -235,9 +250,9 @@ class GameViewModel: ObservableObject {
     
     func revealCell(row: Int, col: Int) {
         guard gameBoard.gameState == .playing && !isPaused else { return }
+        guard !isInteractionLocked else { return }
         guard gameBoard.cells[row][col].isHidden else { return }
         
-        // 保存状态用于撤销
         if isGameActive {
             saveStateForUndo()
         }
@@ -245,9 +260,9 @@ class GameViewModel: ObservableObject {
         if !isGameActive {
             startTimer()
             isGameActive = true
+            postBoardStatus("已开始，先找确定位置", tone: .neutral)
         }
         
-        // 清除提示
         hintPosition = nil
         hintMessage = ""
         hintKind = .none
@@ -256,9 +271,16 @@ class GameViewModel: ObservableObject {
         let exploded = gameBoard.revealCell(row: row, col: col)
         
         if exploded {
-            // 触发爆炸动画
             let position = getCellPosition(row: row, col: col)
             animationManager.triggerExplosion(at: position, in: UIScreen.main.bounds.size)
+            postBoardStatus("踩雷了，先复盘这一步", tone: .danger, lock: 0.35)
+        } else {
+            let cell = gameBoard.cells[row][col]
+            if cell.neighborMines == 0 {
+                postBoardStatus("已自动扩展空白区域", tone: .positive, lock: 0.08)
+            } else {
+                postBoardStatus("已翻开安全格", tone: .neutral, lock: 0.05)
+            }
         }
         
         soundManager.playClick()
@@ -266,7 +288,6 @@ class GameViewModel: ObservableObject {
         
         checkGameState()
         
-        // 自动保存
         if isGameActive {
             autoSave()
         }
@@ -274,8 +295,10 @@ class GameViewModel: ObservableObject {
     
     func toggleFlag(row: Int, col: Int) {
         guard gameBoard.gameState == .playing && !isPaused else { return }
+        guard !isInteractionLocked else { return }
         
-        // 保存状态用于撤销
+        let wasFlagged = gameBoard.cells[row][col].isFlagged
+        
         if isGameActive {
             saveStateForUndo()
         }
@@ -283,8 +306,8 @@ class GameViewModel: ObservableObject {
         gameBoard.toggleFlag(row: row, col: col)
         soundManager.playFlag()
         hapticManager.cellFlagged()
+        postBoardStatus(wasFlagged ? "已取消标记" : "已标记疑似雷区", tone: .warning, lock: 0.06)
         
-        // 自动保存
         if isGameActive {
             autoSave()
         }
@@ -292,8 +315,8 @@ class GameViewModel: ObservableObject {
     
     func quickReveal(row: Int, col: Int) {
         guard gameBoard.gameState == .playing && !isPaused else { return }
+        guard !isInteractionLocked else { return }
         
-        // 保存状态用于撤销
         if isGameActive {
             saveStateForUndo()
         }
@@ -303,12 +326,14 @@ class GameViewModel: ObservableObject {
         if exploded {
             let position = getCellPosition(row: row, col: col)
             animationManager.triggerExplosion(at: position, in: UIScreen.main.bounds.size)
+            postBoardStatus("快开失败，附近判断有误", tone: .danger, lock: 0.35)
+        } else {
+            postBoardStatus("已执行快开", tone: .positive, lock: 0.08)
         }
         
         soundManager.playClick()
         checkGameState()
         
-        // 自动保存
         if isGameActive {
             autoSave()
         }
@@ -335,6 +360,7 @@ class GameViewModel: ObservableObject {
         canUndo = gameStateManager.canUndo
         hintPosition = nil
         isShowingHint = false
+        postBoardStatus("已撤销上一步", tone: .neutral, lock: 0.05)
         
         hapticManager.impact(.light)
     }
@@ -484,9 +510,21 @@ class GameViewModel: ObservableObject {
         return false
     }
     
-    // MARK: - 自动保存
+    private func postBoardStatus(_ message: String, tone: BoardStatusTone, lock: TimeInterval = 0) {
+        boardStatusMessage = message
+        boardStatusTone = tone
+        interactionLockUntil = lock > 0 ? Date().addingTimeInterval(lock) : nil
+        
+        if lock > 0 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + lock) { [weak self] in
+                guard let self else { return }
+                if let until = self.interactionLockUntil, Date() >= until {
+                    self.interactionLockUntil = nil
+                }
+            }
+        }
+    }
 
-    func persistIfNeeded() {
         guard gameBoard.gameState == .playing else { return }
         guard gameBoard.revealedCount > 0 || gameBoard.flaggedCount > 0 || elapsedTime > 0 else { return }
         autoSave()
