@@ -10,30 +10,30 @@ struct GameTopStatusBar: View {
     let modeBadgeColor: Color
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .top, spacing: 12) {
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .top, spacing: 10) {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 7) {
                         Circle()
                             .fill(statusColor.opacity(0.18))
-                            .frame(width: 10, height: 10)
+                            .frame(width: 8, height: 8)
                             .overlay(
                                 Circle()
                                     .fill(statusColor)
-                                    .frame(width: 6, height: 6)
+                                    .frame(width: 5, height: 5)
                             )
                         Text(statusTitle)
-                            .font(.headline.weight(.bold))
+                            .font(.subheadline.weight(.bold))
                     }
                     Text(statusSubtitle)
-                        .font(.subheadline)
+                        .font(.caption)
                         .foregroundColor(.secondary)
                     Text(progressText)
-                        .font(.caption.weight(.semibold))
+                        .font(.caption2.weight(.semibold))
                         .foregroundColor(statusColor)
                 }
                 Spacer(minLength: 0)
-                VStack(alignment: .trailing, spacing: 8) {
+                VStack(alignment: .trailing, spacing: 6) {
                     ModeBadge(
                         title: viewModel.challengeMode == .none ? viewModel.difficulty.rawValue : viewModel.challengeMode.badgeTitle,
                         color: modeBadgeColor
@@ -45,7 +45,7 @@ struct GameTopStatusBar: View {
                 }
             }
             
-            HStack(spacing: 12) {
+            HStack(spacing: 10) {
                 GameStatChip(
                     icon: "flag.fill",
                     iconColor: .red,
@@ -68,8 +68,9 @@ struct GameTopStatusBar: View {
                 )
             }
         }
-        .padding(16)
-        .surfaceCard(radius: 20, fillColor: Color(.secondarySystemBackground).opacity(0.92), shadowOpacity: 0.05)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .surfaceCard(radius: 16, fillColor: Color(.secondarySystemBackground).opacity(0.86), shadowOpacity: 0.03)
     }
 }
 
@@ -153,7 +154,7 @@ struct GameBoardContainer: View {
     var body: some View {
         GeometryReader { geometry in
             let availableWidth = geometry.size.width
-            let availableHeight = max(geometry.size.height - boardHeaderReservedHeight, geometry.size.height * 0.84)
+            let availableHeight = max(geometry.size.height - boardHeaderReservedHeight, geometry.size.height * 0.9)
             let cols = CGFloat(viewModel.gameBoard.cols)
             let rows = CGFloat(viewModel.gameBoard.rows)
             let spacing: CGFloat = 2
@@ -161,28 +162,23 @@ struct GameBoardContainer: View {
             let totalSpacingY = (rows - 1) * spacing
             let cellWidth = (availableWidth - totalSpacingX) / cols
             let cellHeight = (availableHeight - totalSpacingY) / rows
-            let cellSize = min(cellWidth, cellHeight, 92)
+            let cellSize = min(cellWidth, cellHeight, 104)
             let boardWidth = cols * cellSize + totalSpacingX
             let boardHeight = rows * cellSize + totalSpacingY
             let offsetX = max(0, (availableWidth - boardWidth) / 2)
             let offsetY = max(0, (availableHeight - boardHeight) / 2)
             
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 6) {
                 HStack(alignment: .center) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("当前棋盘")
-                            .font(.headline.weight(.bold))
-                        Text("游戏页的视觉重心固定给棋盘，信息与控制收到底部。")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
+                    Text("当前棋盘")
+                        .font(.subheadline.weight(.bold))
                     Spacer(minLength: 0)
                     Text("\(viewModel.gameBoard.rows)×\(viewModel.gameBoard.cols)")
-                        .font(.caption.weight(.semibold))
+                        .font(.caption2.weight(.semibold))
                         .foregroundColor(.secondary)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(Capsule().fill(Color.primary.opacity(0.06)))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 5)
+                        .background(Capsule().fill(Color.primary.opacity(0.05)))
                 }
                 
                 ScrollView([.horizontal, .vertical], showsIndicators: false) {
@@ -214,13 +210,13 @@ struct GameBoardContainer: View {
                             }
                         }
                     }
-                    .padding(10)
+                    .padding(8)
                     .background(
                         RoundedRectangle(cornerRadius: 22, style: .continuous)
-                            .fill(themeManager.gameTheme.boardBackgroundColor.opacity(0.98))
+                            .fill(themeManager.gameTheme.boardBackgroundColor.opacity(0.99))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 22, style: .continuous)
-                                    .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+                                    .stroke(Color.primary.opacity(0.05), lineWidth: 1)
                             )
                             .shadow(color: .black.opacity(0.12), radius: 12, x: 0, y: 6)
                     )

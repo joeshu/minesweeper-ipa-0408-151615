@@ -8,7 +8,7 @@ struct GameView: View {
     @State private var boardScale: CGFloat = 1.0
     @State private var boardOffset: CGSize = .zero
     
-    private let boardHeaderReservedHeight: CGFloat = 18
+    private let boardHeaderReservedHeight: CGFloat = 8
     
     private var statusTitle: String {
         if viewModel.isPaused { return "已暂停" }
@@ -60,9 +60,9 @@ struct GameView: View {
                     .environmentObject(viewModel)
                     .environmentObject(themeManager)
                     .frame(maxHeight: .infinity)
-                    .padding(.horizontal, 8)
-                    .padding(.top, 6)
-                    .padding(.bottom, 6)
+                    .padding(.horizontal, 4)
+                    .padding(.top, 4)
+                    .padding(.bottom, 4)
                 
                 VStack(spacing: 0) {
                     GameTopStatusBar(
@@ -73,19 +73,19 @@ struct GameView: View {
                         modeBadgeColor: modeBadgeColor
                     )
                     .environmentObject(viewModel)
-                    .padding(.horizontal)
-                    .padding(.top, 4)
+                    .padding(.horizontal, 12)
+                    .padding(.top, 2)
                     
                     GameBottomControlPanel(showingNewGameConfirmation: $showingNewGameConfirmation)
                         .environmentObject(viewModel)
-                        .padding(.horizontal)
-                        .padding(.top, 6)
-                        .padding(.bottom, 6)
+                        .padding(.horizontal, 12)
+                        .padding(.top, 4)
+                        .padding(.bottom, 4)
                     
                     if !viewModel.gameBoard.generationQualityNote.isEmpty && viewModel.challengeMode == .noGuess {
                         generationBanner
-                            .padding(.horizontal)
-                            .padding(.bottom, 6)
+                            .padding(.horizontal, 12)
+                            .padding(.bottom, 4)
                     }
                 }
             }
