@@ -40,6 +40,8 @@ class GameViewModel: ObservableObject {
     @Published var scanUsesRemaining: Int = 2
     @Published var isScanOverlayVisible: Bool = false
     @Published var chainHighlights: [(row: Int, col: Int)] = []
+    @Published var chainAnchorHighlights: [(row: Int, col: Int)] = []
+    @Published var chainCandidateHighlights: [(row: Int, col: Int)] = []
     
     let gameStats = GameStats()
     let soundManager = SoundManager.shared
@@ -75,7 +77,15 @@ class GameViewModel: ObservableObject {
         return false
     }
     
-    private var modeStatusTitle: String {
+    private var modeProtocolLabel: String {
+        switch challengeMode {
+        case .none: return "CIVIL-SCAN"
+        case .daily: return "DAILY-OPS"
+        case .timed: return "RUSH-PROTOCOL"
+        case .noGuess: return "PURE-LOGIC"
+        }
+    }
+    
         switch challengeMode {
         case .none: return "普通模式已开始"
         case .daily: return "每日挑战开始"
@@ -161,6 +171,8 @@ class GameViewModel: ObservableObject {
         scanUsesRemaining = challengeMode == .none ? 2 : 3
         isScanOverlayVisible = false
         chainHighlights = []
+        chainAnchorHighlights = []
+        chainCandidateHighlights = []
         tacticalAssessment = nil
         isGameActive = false
         showGameOverAlert = false
@@ -480,6 +492,8 @@ class GameViewModel: ObservableObject {
         isScanOverlayVisible = true
         hintKind = .scan
         chainHighlights = []
+        chainAnchorHighlights = []
+        chainCandidateHighlights = []
         postBoardStatus("已启动风险扫描", detail: "优先关注高亮区域。", tone: .positive, lock: 0.08)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) { [weak self] in
@@ -499,11 +513,15 @@ class GameViewModel: ObservableObject {
         }
         
         chainHighlights = chain
+        chainAnchorHighlights = Array(chain.prefix(1))
+        chainCandidateHighlights = Array(chain.dropFirst())
         hintKind = .chain
         postBoardStatus("已高亮逻辑链", detail: "沿这组数字与候选格继续判断。", tone: .positive, lock: 0.08)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 3.2) { [weak self] in
             self?.chainHighlights = []
+            self?.chainAnchorHighlights = []
+            self?.chainCandidateHighlights = []
             if self?.hintKind == .chain {
                 self?.hintKind = .none
             }
@@ -850,6 +868,8 @@ class GameViewModel: ObservableObject {
         scanUsesRemaining = challengeMode == .none ? 2 : 3
         isScanOverlayVisible = false
         chainHighlights = []
+        chainAnchorHighlights = []
+        chainCandidateHighlights = []
         tacticalAssessment = nil
         newlyUnlockedAchievements = []
         gameStateManager.clearUndoStack()

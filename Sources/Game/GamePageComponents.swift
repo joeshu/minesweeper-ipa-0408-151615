@@ -51,8 +51,8 @@ struct GameTopStatusBar: View {
             Spacer(minLength: 0)
             
             ModeBadge(
-                title: viewModel.challengeMode == .none ? viewModel.difficulty.rawValue : viewModel.challengeMode.badgeTitle,
-                color: modeBadgeColor
+                title: viewModel.modeProtocolLabel,
+                color: themeManager.gameTheme == .cyber ? .cyan : modeBadgeColor
             )
         }
         .padding(.horizontal, 6)
@@ -173,6 +173,8 @@ struct GameBoardContainer: View {
                                                 viewModel.hintPosition?.row == row &&
                                                 viewModel.hintPosition?.col == col
                                     let isChainHighlight = viewModel.chainHighlights.contains { $0.row == row && $0.col == col }
+                                    let isChainAnchor = viewModel.chainAnchorHighlights.contains { $0.row == row && $0.col == col }
+                                    let isChainCandidate = viewModel.chainCandidateHighlights.contains { $0.row == row && $0.col == col }
                                     
                                     CellView(
                                         cell: cell,
@@ -180,6 +182,8 @@ struct GameBoardContainer: View {
                                         isHint: isHint,
                                         isScanOverlayVisible: viewModel.isScanOverlayVisible,
                                         isChainHighlight: isChainHighlight,
+                                        isChainAnchor: isChainAnchor,
+                                        isChainCandidate: isChainCandidate,
                                         onTap: {
                                             viewModel.revealCell(row: row, col: col)
                                         },

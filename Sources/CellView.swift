@@ -6,6 +6,8 @@ struct CellView: View {
     let isHint: Bool
     let isScanOverlayVisible: Bool
     let isChainHighlight: Bool
+    let isChainAnchor: Bool
+    let isChainCandidate: Bool
     let onTap: () -> Void
     let onLongPress: () -> Void
     let onDoubleTap: () -> Void
@@ -46,10 +48,10 @@ struct CellView: View {
             
             if isChainHighlight {
                 RoundedRectangle(cornerRadius: cellSize * 0.15)
-                    .stroke(Color.cyan.opacity(0.9), lineWidth: 2)
+                    .stroke(isChainAnchor ? Color.cyan.opacity(0.95) : Color.mint.opacity(0.88), lineWidth: isChainAnchor ? 2.4 : 1.8)
                     .background(
                         RoundedRectangle(cornerRadius: cellSize * 0.15)
-                            .fill(Color.cyan.opacity(0.16))
+                            .fill((isChainAnchor ? Color.cyan : Color.mint).opacity(isChainAnchor ? 0.20 : 0.12))
                     )
             }
             
@@ -112,7 +114,10 @@ struct CellView: View {
     
     private var scanOverlayColor: Color {
         if cell.isMine {
-            return Color.red.opacity(0.18)
+            return Color.red.opacity(0.22)
+        }
+        if cell.neighborMines >= 4 {
+            return Color.red.opacity(0.14)
         }
         if cell.neighborMines >= 3 {
             return Color.orange.opacity(0.16)
