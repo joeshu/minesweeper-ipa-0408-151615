@@ -133,11 +133,3 @@ struct SettingsView_Previews: PreviewProvider {
             .environmentObject(ThemeManager.shared)
     }
 }
-    
-struct SettingsView_Previews: PreviewProvider {
-    static var previews: some View {
-        SettingsView()
-            .environmentObject(GameViewModel())
-            .environmentObject(ThemeManager.shared)
-    }
-}

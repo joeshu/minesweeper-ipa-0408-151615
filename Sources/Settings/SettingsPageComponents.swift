@@ -360,5 +360,3 @@ struct SettingsAboutSection: View {
         }
     }
 }
-
-}
