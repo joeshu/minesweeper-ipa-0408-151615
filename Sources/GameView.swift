@@ -302,6 +302,8 @@ struct GameView: View {
         case .safe: return "安全提示"
         case .flag: return "标雷提示"
         case .risky: return "风险提示"
+        case .scan: return "风险扫描"
+        case .chain: return "逻辑链"
         case .none: return "提示"
         }
     }
@@ -311,6 +313,8 @@ struct GameView: View {
         case .safe: return .green
         case .flag: return .red
         case .risky: return .orange
+        case .scan: return .cyan
+        case .chain: return .mint
         case .none: return .secondary
         }
     }
@@ -320,6 +324,8 @@ struct GameView: View {
         case .safe: return "checkmark.seal.fill"
         case .flag: return "flag.fill"
         case .risky: return "exclamationmark.triangle.fill"
+        case .scan: return "wave.3.right.circle.fill"
+        case .chain: return "point.3.filled.connected.trianglepath.dotted"
         case .none: return "lightbulb.max.fill"
         }
     }
