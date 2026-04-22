@@ -525,6 +525,9 @@ class GameViewModel: ObservableObject {
         }
     }
 
+    // MARK: - 自动保存
+
+    func persistIfNeeded() {
         guard gameBoard.gameState == .playing else { return }
         guard gameBoard.revealedCount > 0 || gameBoard.flaggedCount > 0 || elapsedTime > 0 else { return }
         autoSave()

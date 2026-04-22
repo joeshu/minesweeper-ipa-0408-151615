@@ -290,6 +290,7 @@ struct GameView: View {
         }
     }
 
+    private var hintTitle: String {
         switch viewModel.hintKind {
         case .safe: return "安全提示"
         case .flag: return "标雷提示"
@@ -297,7 +298,7 @@ struct GameView: View {
         case .none: return "提示"
         }
     }
-    
+
     private var hintColor: Color {
         switch viewModel.hintKind {
         case .safe: return .green
