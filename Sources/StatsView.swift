@@ -30,6 +30,7 @@ struct StatsView: View {
                         .environmentObject(viewModel)
                         .environmentObject(themeManager)
                     overviewCards
+                        .environmentObject(themeManager)
                     StatsAchievementsSection()
                         .environmentObject(viewModel)
                     StatsNoGuessSection(formatTime: formatTime)
@@ -123,16 +124,18 @@ struct StatsView: View {
 
 // MARK: - 统计卡片
 struct StatCard: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    
     let title: String
     let value: String
     let icon: String
     let color: Color
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 10) {
             HStack {
                 Image(systemName: icon)
-                    .font(.title2)
+                    .font(.title3.weight(.semibold))
                     .foregroundColor(color)
                 Spacer()
             }
@@ -141,16 +144,21 @@ struct StatCard: View {
                 .font(.system(.title2, design: .rounded))
                 .fontWeight(.bold)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .foregroundColor(themeManager.gameTheme == .cyber ? Color.white.opacity(0.96) : .primary)
             
             Text(title)
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+        .padding(14)
+        .surfaceCard(
+            radius: 16,
+            fillColor: themeManager.gameTheme == .cyber ? Color.white.opacity(0.07) : Color(.secondarySystemBackground).opacity(0.9),
+            strokeOpacity: themeManager.gameTheme == .cyber ? 0.05 : 0.04,
+            shadowOpacity: 0.025,
+            shadowRadius: 10,
+            shadowY: 4
         )
     }
 }

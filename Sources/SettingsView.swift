@@ -42,6 +42,7 @@ struct SettingsView: View {
                     Section {
                         SettingsCustomBoardSection(customConfigSummary: customConfigSummary)
                             .environmentObject(viewModel)
+                            .environmentObject(themeManager)
                     } header: {
                         SectionHeaderView("自定义棋盘", subtitle: "把常玩的尺寸保存成预设，减少重复调参。")
                     }

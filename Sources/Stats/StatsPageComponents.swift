@@ -324,12 +324,14 @@ struct StatsRecentGamesSection: View {
 }
 
 struct DashboardMiniCard: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    
     let title: String
     let value: String
     let color: Color
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 3) {
+        VStack(alignment: .leading, spacing: 5) {
             Text(title)
                 .font(.caption2)
                 .foregroundColor(.secondary)
@@ -338,10 +340,15 @@ struct DashboardMiniCard: View {
                 .foregroundColor(color)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(7)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 9)
         .background(
-            RoundedRectangle(cornerRadius: 9)
-                .fill(Color(.systemBackground).opacity(0.84))
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(themeManager.gameTheme == .cyber ? Color.white.opacity(0.06) : Color(.systemBackground).opacity(0.76))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(color.opacity(themeManager.gameTheme == .cyber ? 0.12 : 0.08), lineWidth: 1)
         )
     }
 }

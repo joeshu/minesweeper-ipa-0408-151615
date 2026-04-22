@@ -15,6 +15,8 @@ struct SettingsPill: View {
 }
 
 struct StepperView: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    
     let title: String
     @Binding var value: Int
     let range: ClosedRange<Int>
@@ -23,10 +25,12 @@ struct StepperView: View {
         Stepper {
             HStack {
                 Text(title)
+                    .font(.body.weight(.medium))
                 Spacer()
                 Text("\(value)")
                     .font(.system(.body, design: .monospaced))
-                    .fontWeight(.medium)
+                    .fontWeight(.semibold)
+                    .foregroundColor(themeManager.gameTheme == .cyber ? Color(red: 0.26, green: 0.66, blue: 0.92) : .primary)
             }
         } onIncrement: {
             if value < range.upperBound {
@@ -37,6 +41,16 @@ struct StepperView: View {
                 value -= 1
             }
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(themeManager.gameTheme == .cyber ? Color.white.opacity(0.06) : Color(.secondarySystemBackground).opacity(0.86))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Color.primary.opacity(themeManager.gameTheme == .cyber ? 0.05 : 0.04), lineWidth: 1)
+        )
     }
 }
 

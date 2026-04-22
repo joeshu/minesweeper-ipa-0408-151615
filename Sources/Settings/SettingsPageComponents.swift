@@ -76,10 +76,11 @@ struct SettingsDifficultySection: View {
 
 struct SettingsCustomBoardSection: View {
     @EnvironmentObject var viewModel: GameViewModel
+    @EnvironmentObject var themeManager: ThemeManager
     let customConfigSummary: String
     
     var body: some View {
-        Group {
+        VStack(alignment: .leading, spacing: 12) {
             StepperView(
                 title: "行数",
                 value: Binding(
@@ -125,8 +126,8 @@ struct SettingsCustomBoardSection: View {
                 range: 1...(viewModel.customRows * viewModel.customCols - 9)
             )
             
-            VStack(alignment: .leading, spacing: 10) {
-                VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 5) {
                     Text("当前配置")
                         .font(.caption2)
                         .foregroundColor(.secondary)
@@ -137,11 +138,24 @@ struct SettingsCustomBoardSection: View {
                         .foregroundColor(viewModel.customMineDensity > 0.22 ? .orange : .secondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(10)
-                .surfaceCard(radius: 12, fillColor: Color(.secondarySystemBackground).opacity(0.8), shadowOpacity: 0)
+                .padding(12)
+                .surfaceCard(
+                    radius: 14,
+                    fillColor: themeManager.gameTheme == .cyber ? Color.white.opacity(0.05) : Color(.secondarySystemBackground).opacity(0.84),
+                    strokeOpacity: themeManager.gameTheme == .cyber ? 0.05 : 0.04,
+                    shadowOpacity: 0.01,
+                    shadowRadius: 8,
+                    shadowY: 3
+                )
                 
                 TextField("预设名称", text: $viewModel.presetNameDraft)
                     .textInputAutocapitalization(.never)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(themeManager.gameTheme == .cyber ? Color.white.opacity(0.05) : Color(.secondarySystemBackground).opacity(0.84))
+                    )
                 
                 Button {
                     viewModel.saveCurrentAsPreset()
@@ -176,7 +190,7 @@ struct SettingsCustomBoardSection: View {
                             }
                             .buttonStyle(.borderless)
                         }
-                        .padding(.vertical, 4)
+                        .padding(.vertical, 6)
                     }
                 }
             }
