@@ -129,67 +129,64 @@ struct GameBottomControlPanel: View {
                 Spacer(minLength: 0)
             }
             
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 7) {
-                    QuickActionButton(
-                        icon: "arrow.clockwise",
-                        label: "新局",
-                        isEnabled: true,
-                        color: .blue
-                    ) {
-                        if viewModel.isGameActive {
-                            showingNewGameConfirmation = true
-                        } else {
-                            viewModel.newGame()
-                        }
-                    }
-                    
-                    QuickActionButton(
-                        icon: "arrow.uturn.backward",
-                        label: "撤销",
-                        isEnabled: viewModel.canUndo && viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
-                        color: .indigo
-                    ) {
-                        viewModel.undo()
-                    }
-                    
-                    QuickActionButton(
-                        icon: viewModel.isPaused ? "play.fill" : "pause.fill",
-                        label: viewModel.isPaused ? "继续" : "暂停",
-                        isEnabled: viewModel.isGameActive && viewModel.gameBoard.gameState == .playing,
-                        color: viewModel.isPaused ? .green : .orange
-                    ) {
-                        viewModel.togglePause()
-                    }
-                    
-                    QuickActionButton(
-                        icon: "lightbulb.fill",
-                        label: "提示",
-                        isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
-                        color: .yellow
-                    ) {
-                        viewModel.showHint()
-                    }
-                    
-                    QuickActionButton(
-                        icon: "wave.3.right.circle.fill",
-                        label: "扫描",
-                        isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused && viewModel.scanUsesRemaining > 0,
-                        color: .cyan
-                    ) {
-                        viewModel.activateScanOverlay()
-                    }
-                    
-                    QuickActionButton(
-                        icon: "point.3.filled.connected.trianglepath.dotted",
-                        label: "链路",
-                        isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
-                        color: .mint
-                    ) {
-                        viewModel.activateLogicChainHighlight()
+            HStack(spacing: 7) {
+                QuickActionButton(
+                    icon: "arrow.clockwise",
+                    label: "新局",
+                    isEnabled: true,
+                    color: .blue
+                ) {
+                    if viewModel.isGameActive {
+                        showingNewGameConfirmation = true
+                    } else {
+                        viewModel.newGame()
                     }
                 }
-                .padding(.vertical, 1)
+                
+                QuickActionButton(
+                    icon: "arrow.uturn.backward",
+                    label: "撤销",
+                    isEnabled: viewModel.canUndo && viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
+                    color: .indigo
+                ) {
+                    viewModel.undo()
+                }
+                
+                QuickActionButton(
+                    icon: viewModel.isPaused ? "play.fill" : "pause.fill",
+                    label: viewModel.isPaused ? "继续" : "暂停",
+                    isEnabled: viewModel.isGameActive && viewModel.gameBoard.gameState == .playing,
+                    color: viewModel.isPaused ? .green : .orange
+                ) {
+                    viewModel.togglePause()
+                }
+                
+                QuickActionButton(
+                    icon: "lightbulb.fill",
+                    label: "提示",
+                    isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
+                    color: .yellow
+                ) {
+                    viewModel.showHint()
+                }
+                
+                QuickActionButton(
+                    icon: "wave.3.right.circle.fill",
+                    label: "扫描",
+                    isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused && viewModel.scanUsesRemaining > 0,
+                    color: .cyan
+                ) {
+                    viewModel.activateScanOverlay()
+                }
+                
+                QuickActionButton(
+                    icon: "point.3.filled.connected.trianglepath.dotted",
+                    label: "链路",
+                    isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
+                    color: .mint
+                ) {
+                    viewModel.activateLogicChainHighlight()
+                }
             }
         }
         .padding(.horizontal, 10)
