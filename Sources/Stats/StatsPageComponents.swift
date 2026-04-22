@@ -33,7 +33,6 @@ struct StatsHeroHeaderSection: View {
 struct StatsAchievementsSection: View {
     @EnvironmentObject var viewModel: GameViewModel
     @EnvironmentObject var themeManager: ThemeManager
-    @EnvironmentObject var themeManager: ThemeManager
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
