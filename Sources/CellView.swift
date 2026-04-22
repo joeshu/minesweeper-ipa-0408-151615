@@ -45,6 +45,7 @@ struct CellView: View {
         .frame(width: cellSize, height: cellSize)
         .scaleEffect(scale)
         .animation(themeManager.enableAnimations ? .easeInOut(duration: 0.08) : nil, value: scale)
+        .animation(themeManager.enableAnimations ? .easeInOut(duration: 0.12) : nil, value: isHint)
         .onTapGesture {
             guard !suppressTap else {
                 suppressTap = false

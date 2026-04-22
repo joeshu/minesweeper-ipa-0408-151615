@@ -33,6 +33,7 @@ class GameViewModel: ObservableObject {
     @Published var challengeMode: ChallengeMode = .none
     @Published var challengeSecondsRemaining: Int = 0
     @Published var interactionLockUntil: Date? = nil
+    @Published var lastInteractionAt: Date? = nil
     @Published var boardStatusMessage: String = ""
     @Published var boardStatusDetail: String = ""
     @Published var boardStatusTone: BoardStatusTone = .neutral
@@ -61,6 +62,13 @@ class GameViewModel: ObservableObject {
     private var isInteractionLocked: Bool {
         if let lockUntil = interactionLockUntil {
             return Date() < lockUntil
+        }
+        return false
+    }
+    
+    private var isRapidInteraction: Bool {
+        if let lastInteractionAt {
+            return Date().timeIntervalSince(lastInteractionAt) < 0.12
         }
         return false
     }
@@ -304,7 +312,8 @@ class GameViewModel: ObservableObject {
         }
         
         soundManager.playClick()
-        hapticManager.cellTapped()
+        hapticManager.cellTapped(isRapid: isRapidInteraction)
+        lastInteractionAt = Date()
         
         checkGameState()
         
@@ -324,8 +333,9 @@ class GameViewModel: ObservableObject {
         }
         
         gameBoard.toggleFlag(row: row, col: col)
-        soundManager.playFlag()
-        hapticManager.cellFlagged()
+        soundManager.playFlag(isRapid: isRapidInteraction)
+        hapticManager.cellFlagged(isRapid: isRapidInteraction)
+        lastInteractionAt = Date()
         postBoardStatus(
             wasFlagged ? "已取消标记" : "已标记疑似雷区",
             detail: wasFlagged ? "重新判断这块区域。" : "继续核对周围数字。",
@@ -357,6 +367,8 @@ class GameViewModel: ObservableObject {
         }
         
         soundManager.playClick()
+        hapticManager.cellTapped(isRapid: isRapidInteraction)
+        lastInteractionAt = Date()
         checkGameState()
         
         if isGameActive {

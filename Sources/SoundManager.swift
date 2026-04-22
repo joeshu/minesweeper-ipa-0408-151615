@@ -50,12 +50,20 @@ class SoundManager: ObservableObject {
         }
     }
     
-    func playClick() {
-        playSound("click")
+    func playClick(isRapid: Bool = false) {
+        if isRapid {
+            playSound("flag")
+        } else {
+            playSound("click")
+        }
     }
     
-    func playFlag() {
-        playSound("flag")
+    func playFlag(isRapid: Bool = false) {
+        if isRapid {
+            playSound("click")
+        } else {
+            playSound("flag")
+        }
     }
     
     func playWin() {

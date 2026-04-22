@@ -68,12 +68,12 @@ class HapticManager: ObservableObject {
     
     // MARK: - 游戏特定的触觉反馈
     
-    func cellTapped() {
-        impact(.light)
+    func cellTapped(isRapid: Bool = false) {
+        impact(isRapid ? .soft : .light)
     }
     
-    func cellFlagged() {
-        impact(.medium)
+    func cellFlagged(isRapid: Bool = false) {
+        impact(isRapid ? .rigid : .medium)
     }
     
     func cellQuestioned() {
