@@ -70,6 +70,7 @@ struct GameView: View {
                     
                     GameBottomControlPanel(showingNewGameConfirmation: $showingNewGameConfirmation)
                         .environmentObject(viewModel)
+                        .environmentObject(themeManager)
                         .padding(.horizontal, 10)
                         .padding(.top, 6)
                         .padding(.bottom, 5)

@@ -90,8 +90,8 @@ struct GameTopStatusBar: View {
         if themeManager.gameTheme == .cyber {
             LinearGradient(
                 colors: [
-                    Color.white.opacity(0.94),
-                    Color(red: 0.88, green: 0.96, blue: 1.0).opacity(0.96)
+                    Color.white.opacity(0.78),
+                    Color(red: 0.86, green: 0.95, blue: 1.0).opacity(0.86)
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -105,20 +105,21 @@ struct GameTopStatusBar: View {
     @ViewBuilder
     private var cardOverlay: some View {
         RoundedRectangle(cornerRadius: 17, style: .continuous)
-            .stroke(themeManager.gameTheme == .cyber ? Color(red: 0.34, green: 0.74, blue: 0.94).opacity(0.24) : Color.primary.opacity(0.05), lineWidth: 1)
+            .stroke(themeManager.gameTheme == .cyber ? Color(red: 0.28, green: 0.66, blue: 0.88).opacity(0.18) : Color.primary.opacity(0.05), lineWidth: 1)
     }
 }
 
 struct GameBottomControlPanel: View {
     @EnvironmentObject var viewModel: GameViewModel
+    @EnvironmentObject var themeManager: ThemeManager
     @Binding var showingNewGameConfirmation: Bool
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 9) {
             HStack(spacing: 6) {
                 Text("快速操作")
                     .font(.subheadline.weight(.bold))
-                    .foregroundColor(.primary)
+                    .foregroundColor(themeManager.gameTheme == .cyber ? Color(red: 0.20, green: 0.34, blue: 0.46) : .primary)
                 
                 Text(viewModel.isPaused ? "暂停中" : (viewModel.gameBoard.gameState == .playing ? "对局进行中" : "等待下一局"))
                     .font(.caption.weight(.medium))
@@ -192,12 +193,14 @@ struct GameBottomControlPanel: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 10)
-        .surfaceCard(radius: 14, fillColor: Color(.secondarySystemBackground).opacity(0.74), shadowOpacity: 0.015)
-    }
-}
-
-struct FuturisticSummaryStrip: View {
-    @EnvironmentObject var themeManager: ThemeManager
+        .surfaceCard(
+            radius: 16,
+            fillColor: themeManager.gameTheme == .cyber ? Color.white.opacity(0.58) : Color(.secondarySystemBackground).opacity(0.74),
+            strokeOpacity: themeManager.gameTheme == .cyber ? 0.05 : 0.06,
+            shadowOpacity: themeManager.gameTheme == .cyber ? 0.02 : 0.01,
+            shadowRadius: 16,
+            shadowY: 6
+        )    @EnvironmentObject var themeManager: ThemeManager
     
     let icon: String
     let title: String
@@ -400,13 +403,31 @@ struct GameBoardContainer: View {
     
     @ViewBuilder
     private var boardSurface: some View {
-        RoundedRectangle(cornerRadius: 22, style: .continuous)
-            .fill(themeManager.gameTheme.boardBackgroundColor.opacity(0.99))
-            .overlay(
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .stroke(themeManager.gameTheme == .cyber ? Color(red: 0.30, green: 0.72, blue: 0.94).opacity(0.16) : Color.primary.opacity(0.05), lineWidth: 1)
+        RoundedRectangle(cornerRadius: 24, style: .continuous)
+            .fill(
+                themeManager.gameTheme == .cyber
+                ? LinearGradient(
+                    colors: [
+                        Color.white.opacity(0.70),
+                        Color(red: 0.84, green: 0.94, blue: 1.0).opacity(0.82)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                : LinearGradient(
+                    colors: [
+                        themeManager.gameTheme.boardBackgroundColor.opacity(0.99),
+                        themeManager.gameTheme.boardBackgroundColor.opacity(0.95)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
             )
-            .shadow(color: .black.opacity(themeManager.gameTheme == .cyber ? 0.08 : 0.10), radius: 10, x: 0, y: 5)
+            .overlay(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .stroke(themeManager.gameTheme == .cyber ? Color(red: 0.26, green: 0.66, blue: 0.90).opacity(0.14) : Color.primary.opacity(0.05), lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(themeManager.gameTheme == .cyber ? 0.05 : 0.10), radius: 12, x: 0, y: 6)
     }
 }
 
