@@ -29,6 +29,8 @@ struct StatsView: View {
                     StatsHeroHeaderSection()
                         .environmentObject(viewModel)
                         .environmentObject(themeManager)
+                    StatsTacticalAssessmentsSection()
+                        .environmentObject(viewModel)
                     overviewCards
                     StatsAchievementsSection()
                         .environmentObject(viewModel)

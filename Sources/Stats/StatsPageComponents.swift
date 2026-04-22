@@ -1,5 +1,55 @@
 import SwiftUI
 
+struct StatsTacticalAssessmentsSection: View {
+    @EnvironmentObject var viewModel: GameViewModel
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            SectionHeaderView("任务评估", subtitle: "记录最近的未来任务表现。")
+            
+            if viewModel.gameStats.tacticalAssessmentHistory.isEmpty {
+                Text("还没有任务评估记录，先完成一局未来任务。")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(10)
+                    .surfaceCard(radius: 12, fillColor: Color(.secondarySystemBackground).opacity(0.86), shadowOpacity: 0.02)
+            } else {
+                VStack(spacing: 8) {
+                    ForEach(Array(viewModel.gameStats.tacticalAssessmentHistory.prefix(5).enumerated()), id: \.offset) { _, assessment in
+                        VStack(alignment: .leading, spacing: 3) {
+                            HStack {
+                                Text("\(assessment.signature) · \(assessment.grade)")
+                                    .font(.caption2.monospaced())
+                                    .foregroundColor(colorFromHex(assessment.gradeColorHex))
+                                Spacer(minLength: 0)
+                                Text(assessment.title)
+                                    .font(.caption2.weight(.semibold))
+                                    .foregroundColor(.secondary)
+                            }
+                            Text(assessment.detail)
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(10)
+                        .surfaceCard(radius: 12, fillColor: Color(.secondarySystemBackground).opacity(0.88), shadowOpacity: 0.02)
+                    }
+                }
+            }
+        }
+    }
+    
+    private func colorFromHex(_ hex: String) -> Color {
+        switch hex {
+        case "#47F5FF": return .cyan
+        case "#7CFF8E": return .green
+        case "#FFD25E": return .orange
+        case "#FF9B5E": return Color.orange.opacity(0.9)
+        case "#FF5E7A": return .red
+        default: return .blue
+        }
+    }
+}
+
 struct StatsHeroHeaderSection: View {
     @EnvironmentObject var viewModel: GameViewModel
     @EnvironmentObject var themeManager: ThemeManager

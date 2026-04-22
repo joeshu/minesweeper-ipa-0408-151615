@@ -312,6 +312,9 @@ struct GameView: View {
                     .font(.caption2.weight(.semibold))
                     .foregroundColor(.secondary)
             }
+            Text(assessment.signature)
+                .font(.caption2.monospaced())
+                .foregroundColor(colorFromHex(assessment.gradeColorHex).opacity(0.92))
             Text(assessment.detail)
                 .font(.caption2)
                 .foregroundColor(.secondary)

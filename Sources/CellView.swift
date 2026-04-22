@@ -38,6 +38,10 @@ struct CellView: View {
             if isScanOverlayVisible && cell.state == .hidden {
                 RoundedRectangle(cornerRadius: cellSize * 0.15)
                     .fill(scanOverlayColor)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cellSize * 0.15)
+                            .stroke(scanOverlayStrokeColor, lineWidth: 1)
+                    )
             }
             
             if isChainHighlight {
@@ -91,6 +95,19 @@ struct CellView: View {
                 scale = 1.0
             }
         }
+    }
+    
+    private var scanOverlayStrokeColor: Color {
+        if cell.isMine {
+            return Color.red.opacity(0.34)
+        }
+        if cell.neighborMines >= 3 {
+            return Color.orange.opacity(0.28)
+        }
+        if cell.neighborMines >= 1 {
+            return Color.yellow.opacity(0.22)
+        }
+        return Color.cyan.opacity(0.18)
     }
     
     private var scanOverlayColor: Color {

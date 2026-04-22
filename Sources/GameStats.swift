@@ -11,6 +11,7 @@ struct TacticalAssessment {
     let detail: String
     let grade: String
     let gradeColorHex: String
+    let signature: String
 }
 
 struct HintDescriptor {
@@ -47,6 +48,7 @@ struct GameRecord: Codable, Identifiable {
 }
 
 class GameStats: ObservableObject {
+    @Published var tacticalAssessmentHistory: [TacticalAssessment] = []
     @Published var records: [GameRecord] = []
     @Published var totalGames: Int = 0
     @Published var wins: Int = 0
@@ -126,6 +128,12 @@ class GameStats: ObservableObject {
         return unlocked
     }
     
+
+        tacticalAssessmentHistory.insert(assessment, at: 0)
+        if tacticalAssessmentHistory.count > 20 {
+            tacticalAssessmentHistory = Array(tacticalAssessmentHistory.prefix(20))
+        }
+    }
 
     private func evaluateAchievements(for record: GameRecord, hasUsedHint: Bool) -> [Achievement] {
         var unlocked: [Achievement] = []

@@ -661,6 +661,7 @@ class GameViewModel: ObservableObject {
         let colorHex: String
         let title: String
         let detail: String
+        let signature: String
         
         if result == .won {
             if !hasUsedHintInCurrentGame && challengeMode == .noGuess {
@@ -668,16 +669,19 @@ class GameViewModel: ObservableObject {
                 colorHex = "#47F5FF"
                 title = "逻辑纯净"
                 detail = "无猜链路稳定完成，判断质量很高。"
+                signature = "PURE-LOGIC"
             } else if elapsedTime < 90 {
                 grade = "A"
                 colorHex = "#7CFF8E"
                 title = "清除高效"
                 detail = "推进节奏很稳，效率表现优秀。"
+                signature = "FAST-CLEAR"
             } else {
                 grade = "B"
                 colorHex = "#FFD25E"
                 title = "任务完成"
                 detail = "目标达成，可继续压缩决策时间。"
+                signature = "MISSION-DONE"
             }
         } else {
             if hasUsedHintInCurrentGame {
@@ -685,15 +689,17 @@ class GameViewModel: ObservableObject {
                 colorHex = "#FF9B5E"
                 title = "链路中断"
                 detail = "建议回到高信息密度区域继续判断。"
+                signature = "CHAIN-BREAK"
             } else {
                 grade = "D"
                 colorHex = "#FF5E7A"
                 title = "风险失控"
                 detail = "失误点已暴露，下一局优先避开相同节奏。"
+                signature = "RISK-OVERLOAD"
             }
         }
         
-        return TacticalAssessment(title: title, detail: detail, grade: grade, gradeColorHex: colorHex)
+        return TacticalAssessment(title: title, detail: detail, grade: grade, gradeColorHex: colorHex, signature: signature)
     }
 
     // MARK: - 自动保存
@@ -762,6 +768,9 @@ class GameViewModel: ObservableObject {
             soundManager.playWin()
             hapticManager.gameWon()
             tacticalAssessment = buildTacticalAssessment(result: .won)
+            if let tacticalAssessment {
+                gameStats.recordAssessment(tacticalAssessment)
+            }
             postBoardStatus("本局胜利", detail: modeCompletionDetail(for: .won), tone: .positive)
             showWinAlert = true
             isGameActive = false
@@ -795,6 +804,9 @@ class GameViewModel: ObservableObject {
             soundManager.playLose()
             hapticManager.gameLost()
             tacticalAssessment = buildTacticalAssessment(result: .lost)
+            if let tacticalAssessment {
+                gameStats.recordAssessment(tacticalAssessment)
+            }
             postBoardStatus("本局失败", detail: modeCompletionDetail(for: .lost), tone: .danger)
             showGameOverAlert = true
             isGameActive = false
