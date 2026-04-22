@@ -173,49 +173,49 @@ struct SettingsChallengeModesSection: View {
         Group {
             if viewModel.gameStats.getTodayDailyChallengeStatus() != nil {
                 Label("每日挑战今日已完成", systemImage: "checkmark.seal.fill")
-                    .font(.caption)
+                    .font(.caption2)
                     .foregroundColor(.green)
             }
             
-            VStack(spacing: 10) {
+            VStack(spacing: 8) {
                 ForEach(ChallengeMode.allCases) { mode in
                     Button {
                         viewModel.setChallengeMode(mode)
                     } label: {
-                        HStack(alignment: .center, spacing: 12) {
+                        HStack(alignment: .center, spacing: 10) {
                             ZStack {
                                 Circle()
                                     .fill(challengeModeColor(mode).opacity(0.15))
-                                    .frame(width: 34, height: 34)
+                                    .frame(width: 28, height: 28)
                                 Image(systemName: challengeModeIcon(mode))
+                                    .font(.caption)
                                     .foregroundColor(challengeModeColor(mode))
                             }
                             
-                            VStack(alignment: .leading, spacing: 3) {
-                                HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                HStack(spacing: 6) {
                                     Text(mode.rawValue)
                                         .foregroundColor(.primary)
-                                        .fontWeight(.semibold)
+                                        .font(.caption.weight(.semibold))
                                     if viewModel.challengeMode == mode {
                                         Text("当前")
                                             .font(.caption2)
                                             .foregroundColor(challengeModeColor(mode))
-                                            .padding(.horizontal, 6)
-                                            .padding(.vertical, 2)
-                                            .background(Capsule().fill(challengeModeColor(mode).opacity(0.12)))
                                     }
                                 }
                                 Text(mode.description)
-                                    .font(.caption)
+                                    .font(.caption2)
                                     .foregroundColor(.secondary)
                                     .multilineTextAlignment(.leading)
+                                    .lineLimit(2)
                             }
                             Spacer()
                         }
-                        .padding(10)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
                         .surfaceCard(
                             radius: 12,
-                            fillColor: viewModel.challengeMode == mode ? challengeModeColor(mode).opacity(0.08) : Color(.secondarySystemBackground).opacity(0.8),
+                            fillColor: viewModel.challengeMode == mode ? challengeModeColor(mode).opacity(0.07) : Color(.secondarySystemBackground).opacity(0.78),
                             shadowOpacity: 0
                         )
                     }

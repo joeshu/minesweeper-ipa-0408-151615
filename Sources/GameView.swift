@@ -56,14 +56,6 @@ struct GameView: View {
             backgroundGradient
             
             VStack(spacing: 0) {
-                GameBoardContainer(boardHeaderReservedHeight: boardHeaderReservedHeight)
-                    .environmentObject(viewModel)
-                    .environmentObject(themeManager)
-                    .frame(maxHeight: .infinity)
-                    .padding(.horizontal, 4)
-                    .padding(.top, 4)
-                    .padding(.bottom, 4)
-                
                 VStack(spacing: 0) {
                     GameTopStatusBar(
                         statusTitle: statusTitle,
@@ -73,21 +65,29 @@ struct GameView: View {
                         modeBadgeColor: modeBadgeColor
                     )
                     .environmentObject(viewModel)
-                    .padding(.horizontal, 12)
+                    .padding(.horizontal, 10)
                     .padding(.top, 2)
                     
                     GameBottomControlPanel(showingNewGameConfirmation: $showingNewGameConfirmation)
                         .environmentObject(viewModel)
-                        .padding(.horizontal, 12)
-                        .padding(.top, 4)
-                        .padding(.bottom, 4)
+                        .padding(.horizontal, 10)
+                        .padding(.top, 3)
+                        .padding(.bottom, 3)
                     
                     if !viewModel.gameBoard.generationQualityNote.isEmpty && viewModel.challengeMode == .noGuess {
                         generationBanner
-                            .padding(.horizontal, 12)
-                            .padding(.bottom, 4)
+                            .padding(.horizontal, 10)
+                            .padding(.bottom, 3)
                     }
                 }
+                
+                GameBoardContainer(boardHeaderReservedHeight: boardHeaderReservedHeight)
+                    .environmentObject(viewModel)
+                    .environmentObject(themeManager)
+                    .frame(maxHeight: .infinity)
+                    .padding(.horizontal, 4)
+                    .padding(.top, 2)
+                    .padding(.bottom, 4)
             }
             
             // 暂停覆盖层

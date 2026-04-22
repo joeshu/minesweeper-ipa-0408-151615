@@ -278,38 +278,38 @@ struct StatsRecentGamesSection: View {
     let selectedDifficulty: Difficulty?
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            SectionHeaderView("最近游戏", subtitle: "保留最近 10 局，方便复盘近期状态变化。")
+        VStack(alignment: .leading, spacing: 10) {
+            SectionHeaderView("最近游戏", subtitle: "保留最近 10 局。")
             
             let records = selectedDifficulty != nil
                 ? viewModel.gameStats.getRecords(for: selectedDifficulty)
                 : viewModel.gameStats.records
             
             if records.isEmpty {
-                VStack(spacing: 12) {
+                VStack(spacing: 10) {
                     Image(systemName: "chart.bar.xaxis")
-                        .font(.system(size: 34))
+                        .font(.system(size: 28))
                         .foregroundColor(.secondary)
                     Text("暂无游戏记录")
-                        .font(.headline)
+                        .font(.subheadline.weight(.semibold))
                         .foregroundColor(.secondary)
-                    Text(selectedDifficulty == nil ? "先完成一局游戏，这里会展示最近战绩。" : "当前难度还没有记录，试着切换难度或先完成一局。")
-                        .font(.subheadline)
+                    Text(selectedDifficulty == nil ? "先完成一局游戏，这里会展示最近战绩。" : "当前难度还没有记录。")
+                        .font(.caption)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 28)
-                .padding(.horizontal, 16)
-                .surfaceCard(radius: 18, fillColor: Color(.secondarySystemBackground).opacity(0.92), shadowOpacity: 0.04)
+                .padding(.vertical, 20)
+                .padding(.horizontal, 12)
+                .surfaceCard(radius: 16, fillColor: Color(.secondarySystemBackground).opacity(0.9), shadowOpacity: 0.03)
             } else {
-                VStack(spacing: 12) {
+                VStack(spacing: 8) {
                     ForEach(records.prefix(10)) { record in
                         GameRecordRow(record: record)
                     }
                 }
-                .padding(12)
-                .surfaceCard(radius: 18, fillColor: Color(.secondarySystemBackground).opacity(0.92), shadowOpacity: 0.04)
+                .padding(10)
+                .surfaceCard(radius: 16, fillColor: Color(.secondarySystemBackground).opacity(0.9), shadowOpacity: 0.03)
             }
         }
     }

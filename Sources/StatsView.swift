@@ -179,21 +179,21 @@ struct GameRecordRow: View {
     let record: GameRecord
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            VStack(alignment: .leading, spacing: 5) {
-                HStack(spacing: 6) {
+        HStack(alignment: .top, spacing: 10) {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 5) {
                     Text(record.challengeMode ?? record.difficulty)
-                        .font(.subheadline.weight(.semibold))
+                        .font(.caption.weight(.semibold))
                     Text(record.difficulty)
                         .font(.caption2)
                         .foregroundColor(.secondary)
-                        .padding(.horizontal, 6)
+                        .padding(.horizontal, 5)
                         .padding(.vertical, 2)
                         .background(Capsule().fill(Color(.systemGray5)))
                 }
 
                 Text(formattedDate(record.date))
-                    .font(.caption)
+                    .font(.caption2)
                     .foregroundColor(.secondary)
 
                 Text("\(record.rows)×\(record.cols) · \(record.mineCount)雷")
@@ -203,28 +203,28 @@ struct GameRecordRow: View {
 
             Spacer()
 
-            VStack(alignment: .trailing, spacing: 4) {
+            VStack(alignment: .trailing, spacing: 3) {
                 HStack(spacing: 4) {
                     Image(systemName: record.result == .won ? "checkmark.circle.fill" : "xmark.circle.fill")
                         .foregroundColor(record.result == .won ? .green : .red)
-                        .font(.caption)
+                        .font(.caption2)
                     Text(record.result == .won ? "胜利" : "失败")
-                        .font(.subheadline.weight(.semibold))
+                        .font(.caption.weight(.semibold))
                         .foregroundColor(record.result == .won ? .green : .red)
                 }
 
                 Text(formatTime(record.duration))
-                    .font(.system(.caption, design: .monospaced))
+                    .font(.system(.caption2, design: .monospaced))
                     .foregroundColor(.secondary)
             }
         }
-        .padding(12)
+        .padding(10)
         .background(
-            RoundedRectangle(cornerRadius: 14)
+            RoundedRectangle(cornerRadius: 12)
                 .fill(Color(.secondarySystemBackground))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 14)
-                        .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.primary.opacity(0.04), lineWidth: 1)
                 )
         )
     }
