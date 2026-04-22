@@ -172,11 +172,14 @@ struct GameBoardContainer: View {
                                     let isHint = viewModel.isShowingHint &&
                                                 viewModel.hintPosition?.row == row &&
                                                 viewModel.hintPosition?.col == col
+                                    let isChainHighlight = viewModel.chainHighlights.contains { $0.row == row && $0.col == col }
                                     
                                     CellView(
                                         cell: cell,
                                         cellSize: cellSize,
                                         isHint: isHint,
+                                        isScanOverlayVisible: viewModel.isScanOverlayVisible,
+                                        isChainHighlight: isChainHighlight,
                                         onTap: {
                                             viewModel.revealCell(row: row, col: col)
                                         },

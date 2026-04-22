@@ -39,6 +39,7 @@ class GameViewModel: ObservableObject {
     @Published var tacticalAssessment: TacticalAssessment? = nil
     @Published var scanUsesRemaining: Int = 2
     @Published var isScanOverlayVisible: Bool = false
+    @Published var chainHighlights: [(row: Int, col: Int)] = []
     
     let gameStats = GameStats()
     let soundManager = SoundManager.shared
@@ -159,6 +160,7 @@ class GameViewModel: ObservableObject {
         }
         scanUsesRemaining = challengeMode == .none ? 2 : 3
         isScanOverlayVisible = false
+        chainHighlights = []
         tacticalAssessment = nil
         isGameActive = false
         showGameOverAlert = false
@@ -477,11 +479,32 @@ class GameViewModel: ObservableObject {
         scanUsesRemaining -= 1
         isScanOverlayVisible = true
         hintKind = .scan
+        chainHighlights = []
         postBoardStatus("已启动风险扫描", detail: "优先关注高亮区域。", tone: .positive, lock: 0.08)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) { [weak self] in
             self?.isScanOverlayVisible = false
             if self?.hintKind == .scan {
+                self?.hintKind = .none
+            }
+        }
+    }
+    
+    func activateLogicChainHighlight() {
+        guard gameBoard.gameState == .playing && !isPaused else { return }
+        let chain = buildLogicChainHighlights()
+        guard !chain.isEmpty else {
+            postBoardStatus("未找到清晰逻辑链", detail: "先扩展更多信息后再分析。", tone: .warning, lock: 0.08)
+            return
+        }
+        
+        chainHighlights = chain
+        hintKind = .chain
+        postBoardStatus("已高亮逻辑链", detail: "沿这组数字与候选格继续判断。", tone: .positive, lock: 0.08)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.2) { [weak self] in
+            self?.chainHighlights = []
+            if self?.hintKind == .chain {
                 self?.hintKind = .none
             }
         }
@@ -544,14 +567,15 @@ class GameViewModel: ObservableObject {
         return nil
     }
     
-    private func findLogicChainAnchor() -> (row: Int, col: Int)? {
+    private func buildLogicChainHighlights() -> [(row: Int, col: Int)] {
         for row in 0..<gameBoard.rows {
             for col in 0..<gameBoard.cols {
                 let cell = gameBoard.cells[row][col]
                 guard cell.isRevealed && cell.neighborMines > 0 else { continue }
                 
-                var hiddenNeighbors = 0
-                var flaggedNeighbors = 0
+                var highlights: [(row: Int, col: Int)] = [(row, col)]
+                var hiddenNeighbors: [(row: Int, col: Int)] = []
+                
                 for dr in -1...1 {
                     for dc in -1...1 {
                         if dr == 0 && dc == 0 { continue }
@@ -559,17 +583,19 @@ class GameViewModel: ObservableObject {
                         let nc = col + dc
                         guard nr >= 0 && nr < gameBoard.rows && nc >= 0 && nc < gameBoard.cols else { continue }
                         let neighbor = gameBoard.cells[nr][nc]
-                        if neighbor.isHidden { hiddenNeighbors += 1 }
-                        if neighbor.isFlagged { flaggedNeighbors += 1 }
+                        if neighbor.isHidden || neighbor.isFlagged {
+                            hiddenNeighbors.append((nr, nc))
+                        }
                     }
                 }
                 
-                if hiddenNeighbors >= 2 && flaggedNeighbors < cell.neighborMines {
-                    return (row, col)
+                if hiddenNeighbors.count >= 2 {
+                    highlights.append(contentsOf: hiddenNeighbors.prefix(4))
+                    return highlights
                 }
             }
         }
-        return nil
+        return []
     }
 
         for dr in -1...1 {
@@ -811,6 +837,7 @@ class GameViewModel: ObservableObject {
         hasProcessedCurrentGameCompletion = false
         scanUsesRemaining = challengeMode == .none ? 2 : 3
         isScanOverlayVisible = false
+        chainHighlights = []
         tacticalAssessment = nil
         newlyUnlockedAchievements = []
         gameStateManager.clearUndoStack()
