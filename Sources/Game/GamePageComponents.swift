@@ -156,6 +156,56 @@ struct GameTopStatusBar: View {
     }
 }
 
+struct TopStatusInsightRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    
+    let icon: String
+    let title: String
+    let detail: String
+    let accent: Color
+    let tag: String?
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.caption.weight(.bold))
+                .foregroundColor(accent)
+                .frame(width: 18)
+            
+            VStack(alignment: .leading, spacing: 1) {
+                Text(title)
+                    .font(.caption.weight(.semibold))
+                    .lineLimit(1)
+                Text(detail)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+            }
+            
+            Spacer(minLength: 4)
+            
+            if let tag, !tag.isEmpty {
+                Text(tag)
+                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .foregroundColor(accent)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(Capsule().fill(accent.opacity(themeManager.gameTheme == .cyber ? 0.10 : 0.12)))
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 7)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(themeManager.gameTheme == .cyber ? Color.white.opacity(0.58) : Color(.secondarySystemBackground).opacity(0.88))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(accent.opacity(themeManager.gameTheme == .cyber ? 0.16 : 0.10), lineWidth: 1)
+        )
+    }
+}
+
 struct GameBottomControlPanel: View {
     @EnvironmentObject var viewModel: GameViewModel
     @EnvironmentObject var themeManager: ThemeManager
