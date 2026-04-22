@@ -598,18 +598,47 @@ struct QuickActionButton: View {
                 Text(label)
                     .font(.caption2)
                     .lineLimit(1)
+                if themeManager.gameTheme == .cyber {
+                    Capsule()
+                        .fill(isEnabled ? color.opacity(0.65) : Color.gray.opacity(0.22))
+                        .frame(width: 18, height: 2)
+                }
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 5)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(isEnabled ? color.opacity(0.12) : Color.gray.opacity(0.07))
-            )
+            .background(buttonBackground)
+            .overlay(buttonOverlay)
             .foregroundColor(isEnabled ? color : .gray)
         }
         .disabled(!isEnabled)
         .scaleEffect(isEnabled ? 1.0 : 0.98)
         .animation(themeManager.enableAnimations ? .easeInOut(duration: 0.1) : nil, value: isEnabled)
+    }
+    
+    @ViewBuilder
+    private var buttonBackground: some View {
+        if themeManager.gameTheme == .cyber {
+            RoundedRectangle(cornerRadius: 8)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            isEnabled ? Color.white.opacity(0.88) : Color.gray.opacity(0.06),
+                            isEnabled ? color.opacity(0.10) : Color.gray.opacity(0.04)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+        } else {
+            RoundedRectangle(cornerRadius: 8)
+                .fill(isEnabled ? color.opacity(0.12) : Color.gray.opacity(0.07))
+        }
+    }
+    
+    @ViewBuilder
+    private var buttonOverlay: some View {
+        RoundedRectangle(cornerRadius: 8)
+            .stroke(themeManager.gameTheme == .cyber ? color.opacity(isEnabled ? 0.22 : 0.08) : Color.clear, lineWidth: 1)
     }
 }
 

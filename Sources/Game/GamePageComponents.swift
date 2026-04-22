@@ -2,6 +2,7 @@ import SwiftUI
 
 struct GameTopStatusBar: View {
     @EnvironmentObject var viewModel: GameViewModel
+    @EnvironmentObject var themeManager: ThemeManager
     
     let statusTitle: String
     let statusSubtitle: String
@@ -20,8 +21,16 @@ struct GameTopStatusBar: View {
                             .fill(statusColor)
                             .frame(width: 4, height: 4)
                     )
-                Text(statusTitle)
-                    .font(.caption2.weight(.bold))
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(statusTitle)
+                        .font(.caption2.weight(.bold))
+                    if themeManager.gameTheme == .cyber {
+                        Text(statusSubtitle)
+                            .font(.system(size: 9, weight: .medium, design: .rounded))
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                    }
+                }
                 Text(progressText)
                     .font(.caption2.weight(.semibold))
                     .foregroundColor(statusColor)
@@ -56,7 +65,32 @@ struct GameTopStatusBar: View {
         }
         .padding(.horizontal, 6)
         .padding(.vertical, 5)
-        .surfaceCard(radius: 10, fillColor: Color(.secondarySystemBackground).opacity(0.74), shadowOpacity: 0.01)
+        .background(cardBackground)
+        .overlay(cardOverlay)
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+    
+    @ViewBuilder
+    private var cardBackground: some View {
+        if themeManager.gameTheme == .cyber {
+            LinearGradient(
+                colors: [
+                    Color.white.opacity(0.88),
+                    Color(red: 0.88, green: 0.96, blue: 1.0).opacity(0.92)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        } else {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color(.secondarySystemBackground).opacity(0.74))
+        }
+    }
+    
+    @ViewBuilder
+    private var cardOverlay: some View {
+        RoundedRectangle(cornerRadius: 10, style: .continuous)
+            .stroke(themeManager.gameTheme == .cyber ? Color(red: 0.34, green: 0.74, blue: 0.94).opacity(0.22) : Color.primary.opacity(0.04), lineWidth: 1)
     }
 }
 
@@ -136,6 +170,8 @@ struct GameBottomControlPanel: View {
 }
 
 struct FuturisticSummaryStrip: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    
     let icon: String
     let title: String
     let detail: String
@@ -146,7 +182,7 @@ struct FuturisticSummaryStrip: View {
         HStack(spacing: 10) {
             ZStack {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(accent.opacity(0.16))
+                    .fill(accent.opacity(themeManager.gameTheme == .cyber ? 0.12 : 0.16))
                     .frame(width: 28, height: 28)
                 Image(systemName: icon)
                     .font(.caption.weight(.bold))
@@ -172,12 +208,34 @@ struct FuturisticSummaryStrip: View {
                     .foregroundColor(accent)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 4)
-                    .background(Capsule().fill(accent.opacity(0.12)))
+                    .background(Capsule().fill(accent.opacity(themeManager.gameTheme == .cyber ? 0.10 : 0.12)))
             }
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
-        .surfaceCard(radius: 12, fillColor: Color(.secondarySystemBackground).opacity(0.76), shadowOpacity: 0.015)
+        .background(summaryBackground)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(themeManager.gameTheme == .cyber ? accent.opacity(0.22) : Color.primary.opacity(0.04), lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+    
+    @ViewBuilder
+    private var summaryBackground: some View {
+        if themeManager.gameTheme == .cyber {
+            LinearGradient(
+                colors: [
+                    Color.white.opacity(0.9),
+                    accent.opacity(0.06)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        } else {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color(.secondarySystemBackground).opacity(0.76))
+        }
     }
 }
 
@@ -206,15 +264,22 @@ struct GameBoardContainer: View {
             
             VStack(alignment: .leading, spacing: 4) {
                 HStack(alignment: .center) {
-                    Text("棋盘")
-                        .font(.caption.weight(.bold))
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(themeManager.gameTheme == .cyber ? "战术棋盘" : "棋盘")
+                            .font(.caption.weight(.bold))
+                        if themeManager.gameTheme == .cyber {
+                            Text("AURORA GRID")
+                                .font(.system(size: 9, weight: .semibold, design: .rounded))
+                                .foregroundColor(Color(red: 0.28, green: 0.66, blue: 0.88))
+                        }
+                    }
                     Spacer(minLength: 0)
                     Text("\(viewModel.gameBoard.rows)×\(viewModel.gameBoard.cols)")
                         .font(.caption2.weight(.semibold))
                         .foregroundColor(.secondary)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 4)
-                        .background(Capsule().fill(Color.primary.opacity(0.05)))
+                        .background(Capsule().fill(themeManager.gameTheme == .cyber ? Color(red: 0.28, green: 0.74, blue: 0.94).opacity(0.10) : Color.primary.opacity(0.05)))
                 }
                 
                 ScrollView([.horizontal, .vertical], showsIndicators: false) {
