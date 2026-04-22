@@ -11,9 +11,9 @@ struct GameTopStatusBar: View {
     let modeBadgeColor: Color
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top, spacing: 12) {
-                VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 13) {
+            HStack(alignment: .top, spacing: 13) {
+                VStack(alignment: .leading, spacing: 7) {
                     HStack(spacing: 8) {
                         Circle()
                             .fill(statusColor.opacity(0.18))
@@ -25,23 +25,23 @@ struct GameTopStatusBar: View {
                             )
                         
                         Text(themeManager.gameTheme == .cyber ? "TACTICAL COMMAND" : "对局状态")
-                            .font(.system(size: 10, weight: .bold, design: .rounded))
+                            .font(.system(size: 10.5, weight: .bold, design: .rounded))
                             .foregroundColor(themeManager.gameTheme == .cyber ? Color(red: 0.28, green: 0.66, blue: 0.88) : .secondary)
                     }
                     
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    HStack(alignment: .firstTextBaseline, spacing: 9) {
                         Text(statusTitle)
-                            .font(.title3.weight(.bold))
+                            .font(.title2.weight(.bold))
                         Text(progressText)
                             .font(.caption.weight(.semibold))
                             .foregroundColor(statusColor)
-                            .padding(.horizontal, 8)
+                            .padding(.horizontal, 9)
                             .padding(.vertical, 5)
                             .background(Capsule().fill(statusColor.opacity(0.12)))
                     }
                     
                     Text(statusSubtitle)
-                        .font(themeManager.gameTheme == .cyber ? .system(size: 12, weight: .medium, design: .rounded) : .caption)
+                        .font(themeManager.gameTheme == .cyber ? .system(size: 12.5, weight: .medium, design: .rounded) : .subheadline)
                         .foregroundColor(.secondary)
                         .lineLimit(2)
                 }
@@ -54,7 +54,7 @@ struct GameTopStatusBar: View {
                 )
             }
             
-            HStack(spacing: 8) {
+            HStack(spacing: 9) {
                 CompactGameStatChip(
                     icon: "flag.fill",
                     iconColor: .red,
@@ -78,11 +78,11 @@ struct GameTopStatusBar: View {
                 Spacer(minLength: 0)
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 12)
+        .padding(.horizontal, 13)
+        .padding(.vertical, 13)
         .background(cardBackground)
         .overlay(cardOverlay)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 17, style: .continuous))
     }
     
     @ViewBuilder
@@ -97,14 +97,14 @@ struct GameTopStatusBar: View {
                 endPoint: .bottomTrailing
             )
         } else {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color(.secondarySystemBackground).opacity(0.78))
+            RoundedRectangle(cornerRadius: 17, style: .continuous)
+                .fill(Color(.secondarySystemBackground).opacity(0.8))
         }
     }
     
     @ViewBuilder
     private var cardOverlay: some View {
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
+        RoundedRectangle(cornerRadius: 17, style: .continuous)
             .stroke(themeManager.gameTheme == .cyber ? Color(red: 0.34, green: 0.74, blue: 0.94).opacity(0.24) : Color.primary.opacity(0.05), lineWidth: 1)
     }
 }
