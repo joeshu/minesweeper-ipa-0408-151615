@@ -65,7 +65,7 @@ struct GameView: View {
                         modeBadgeColor: modeBadgeColor
                     )
                     .environmentObject(viewModel)
-                    .padding(.horizontal, 10)
+                    .padding(.horizontal, 11)
                     .padding(.top, 6)
                     
                     GameBottomControlPanel(showingNewGameConfirmation: $showingNewGameConfirmation)

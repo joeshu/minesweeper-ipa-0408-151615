@@ -11,10 +11,10 @@ struct GameTopStatusBar: View {
     let modeBadgeColor: Color
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 13) {
-            HStack(alignment: .top, spacing: 13) {
-                VStack(alignment: .leading, spacing: 7) {
-                    HStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .top, spacing: 14) {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 9) {
                         Circle()
                             .fill(statusColor.opacity(0.18))
                             .frame(width: 10, height: 10)
@@ -29,13 +29,13 @@ struct GameTopStatusBar: View {
                             .foregroundColor(themeManager.gameTheme == .cyber ? Color(red: 0.28, green: 0.66, blue: 0.88) : .secondary)
                     }
                     
-                    HStack(alignment: .firstTextBaseline, spacing: 9) {
+                    HStack(alignment: .firstTextBaseline, spacing: 10) {
                         Text(statusTitle)
                             .font(.title2.weight(.bold))
                         Text(progressText)
                             .font(.caption.weight(.semibold))
                             .foregroundColor(statusColor)
-                            .padding(.horizontal, 9)
+                            .padding(.horizontal, 10)
                             .padding(.vertical, 5)
                             .background(Capsule().fill(statusColor.opacity(0.12)))
                     }
@@ -54,7 +54,7 @@ struct GameTopStatusBar: View {
                 )
             }
             
-            HStack(spacing: 9) {
+            HStack(spacing: 10) {
                 CompactGameStatChip(
                     icon: "flag.fill",
                     iconColor: .red,
@@ -78,7 +78,7 @@ struct GameTopStatusBar: View {
                 Spacer(minLength: 0)
             }
         }
-        .padding(.horizontal, 13)
+        .padding(.horizontal, 14)
         .padding(.vertical, 13)
         .background(cardBackground)
         .overlay(cardOverlay)
