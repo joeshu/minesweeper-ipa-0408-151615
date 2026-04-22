@@ -10,18 +10,18 @@ struct GameTopStatusBar: View {
     let modeBadgeColor: Color
     
     var body: some View {
-        HStack(spacing: 8) {
-            HStack(spacing: 6) {
+        HStack(spacing: 6) {
+            HStack(spacing: 5) {
                 Circle()
                     .fill(statusColor.opacity(0.18))
-                    .frame(width: 8, height: 8)
+                    .frame(width: 7, height: 7)
                     .overlay(
                         Circle()
                             .fill(statusColor)
-                            .frame(width: 5, height: 5)
+                            .frame(width: 4, height: 4)
                     )
                 Text(statusTitle)
-                    .font(.caption.weight(.bold))
+                    .font(.caption2.weight(.bold))
                 Text(progressText)
                     .font(.caption2.weight(.semibold))
                     .foregroundColor(statusColor)
@@ -46,9 +46,9 @@ struct GameTopStatusBar: View {
                 color: modeBadgeColor
             )
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 6)
-        .surfaceCard(radius: 12, fillColor: Color(.secondarySystemBackground).opacity(0.78), shadowOpacity: 0.01)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 5)
+        .surfaceCard(radius: 10, fillColor: Color(.secondarySystemBackground).opacity(0.74), shadowOpacity: 0.01)
     }
 }
 
@@ -57,7 +57,7 @@ struct GameBottomControlPanel: View {
     @Binding var showingNewGameConfirmation: Bool
     
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 6) {
             QuickActionButton(
                 icon: "arrow.clockwise",
                 label: "新局",
@@ -101,11 +101,11 @@ struct GameBottomControlPanel: View {
             Text(viewModel.isPaused ? "暂停" : (viewModel.gameBoard.gameState == .playing ? "进行中" : "结束"))
                 .font(.caption2.weight(.semibold))
                 .foregroundColor(viewModel.isPaused ? .orange : (viewModel.gameBoard.gameState == .playing ? .green : .secondary))
-                .padding(.horizontal, 6)
+                .padding(.leading, 2)
         }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 6)
-        .surfaceCard(radius: 12, fillColor: Color(.secondarySystemBackground).opacity(0.76), shadowOpacity: 0.01)
+        .padding(.horizontal, 5)
+        .padding(.vertical, 5)
+        .surfaceCard(radius: 10, fillColor: Color(.secondarySystemBackground).opacity(0.72), shadowOpacity: 0.01)
     }
 }
 
@@ -118,7 +118,7 @@ struct GameBoardContainer: View {
     var body: some View {
         GeometryReader { geometry in
             let availableWidth = geometry.size.width
-            let availableHeight = max(geometry.size.height - boardHeaderReservedHeight, geometry.size.height * 0.9)
+            let availableHeight = max(geometry.size.height - boardHeaderReservedHeight, geometry.size.height * 0.94)
             let cols = CGFloat(viewModel.gameBoard.cols)
             let rows = CGFloat(viewModel.gameBoard.rows)
             let spacing: CGFloat = 2
@@ -126,22 +126,22 @@ struct GameBoardContainer: View {
             let totalSpacingY = (rows - 1) * spacing
             let cellWidth = (availableWidth - totalSpacingX) / cols
             let cellHeight = (availableHeight - totalSpacingY) / rows
-            let cellSize = min(cellWidth, cellHeight, 104)
+            let cellSize = min(cellWidth, cellHeight, 112)
             let boardWidth = cols * cellSize + totalSpacingX
             let boardHeight = rows * cellSize + totalSpacingY
             let offsetX = max(0, (availableWidth - boardWidth) / 2)
             let offsetY = max(0, (availableHeight - boardHeight) / 2)
             
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 4) {
                 HStack(alignment: .center) {
-                    Text("当前棋盘")
-                        .font(.subheadline.weight(.bold))
+                    Text("棋盘")
+                        .font(.caption.weight(.bold))
                     Spacer(minLength: 0)
                     Text("\(viewModel.gameBoard.rows)×\(viewModel.gameBoard.cols)")
                         .font(.caption2.weight(.semibold))
                         .foregroundColor(.secondary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 5)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 4)
                         .background(Capsule().fill(Color.primary.opacity(0.05)))
                 }
                 
@@ -174,15 +174,15 @@ struct GameBoardContainer: View {
                             }
                         }
                     }
-                    .padding(8)
+                    .padding(6)
                     .background(
-                        RoundedRectangle(cornerRadius: 22, style: .continuous)
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
                             .fill(themeManager.gameTheme.boardBackgroundColor.opacity(0.99))
                             .overlay(
-                                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                                RoundedRectangle(cornerRadius: 20, style: .continuous)
                                     .stroke(Color.primary.opacity(0.05), lineWidth: 1)
                             )
-                            .shadow(color: .black.opacity(0.12), radius: 12, x: 0, y: 6)
+                            .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
                     )
                     .padding(.horizontal, offsetX)
                     .padding(.vertical, offsetY)
@@ -198,7 +198,7 @@ struct CompactGameStatChip: View {
     let value: String
     
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 3) {
             Image(systemName: icon)
                 .font(.caption2)
                 .foregroundColor(iconColor)
@@ -206,11 +206,11 @@ struct CompactGameStatChip: View {
                 .font(.caption2.weight(.bold))
                 .monospacedDigit()
         }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 5)
+        .padding(.horizontal, 5)
+        .padding(.vertical, 4)
         .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(.systemBackground).opacity(0.8))
+            RoundedRectangle(cornerRadius: 7)
+                .fill(Color(.systemBackground).opacity(0.78))
         )
     }
 }
@@ -251,10 +251,10 @@ struct ModeBadge: View {
     
     var body: some View {
         Text(title)
-            .font(.caption.weight(.semibold))
+            .font(.caption2.weight(.semibold))
             .foregroundColor(color == .secondary ? .secondary : color)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 5)
             .background(
                 Capsule()
                     .fill((color == .secondary ? Color.gray : color).opacity(0.14))
