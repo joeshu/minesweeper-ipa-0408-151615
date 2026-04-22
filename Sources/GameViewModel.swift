@@ -38,6 +38,10 @@ class GameViewModel: ObservableObject {
     @Published var boardStatusDetail: String = ""
     @Published var boardStatusTone: BoardStatusTone = .neutral
     @Published var newlyUnlockedAchievements: [Achievement] = []
+    @Published var tacticalAssessment: TacticalAssessment? = nil
+    @Published var scanUsesRemaining: Int = 2
+    @Published var isScanOverlayVisible: Bool = false
+    @Published var chainHighlights: [(row: Int, col: Int)] = []
     @Published var scanRiskSummary: ScanRiskSummary? = nil
     @Published var chainSummary: ChainSummary? = nil
     
@@ -561,7 +565,7 @@ class GameViewModel: ObservableObject {
             return ScanRiskSummary(
                 title: "扫描未锁定前线",
                 detail: "当前盘面信息较少，先翻开新的安全区。",
-                tone: .warning
+                tone: .risky
             )
         }
         
