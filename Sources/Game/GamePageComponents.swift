@@ -39,10 +39,18 @@ struct GameTopStatusBar: View {
                 value: viewModel.challengeMode == .timed ? "\(viewModel.challengeSecondsRemaining)s" : viewModel.formattedTime
             )
             
+            if viewModel.scanUsesRemaining > 0 {
+                CompactGameStatChip(
+                    icon: "wave.3.right.circle.fill",
+                    iconColor: .cyan,
+                    value: "\(viewModel.scanUsesRemaining)"
+                )
+            }
+            
             Spacer(minLength: 0)
             
             ModeBadge(
-                title: viewModel.challengeMode == .none ? viewModel.difficulty.rawValue : viewModel.challengeMode.badgeTitle,
+                title: viewModel.modeProtocolLabel,
                 color: modeBadgeColor
             )
         }
@@ -96,6 +104,24 @@ struct GameBottomControlPanel: View {
                 color: .yellow
             ) {
                 viewModel.showHint()
+            }
+            
+            QuickActionButton(
+                icon: "wave.3.right.circle.fill",
+                label: "扫描",
+                isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused && viewModel.scanUsesRemaining > 0,
+                color: .cyan
+            ) {
+                viewModel.activateScanOverlay()
+            }
+            
+            QuickActionButton(
+                icon: "point.3.filled.connected.trianglepath.dotted",
+                label: "链路",
+                isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
+                color: .mint
+            ) {
+                viewModel.activateLogicChainHighlight()
             }
             
             Text(viewModel.isPaused ? "暂停" : (viewModel.gameBoard.gameState == .playing ? "进行中" : "结束"))
@@ -154,11 +180,14 @@ struct GameBoardContainer: View {
                                     let isHint = viewModel.isShowingHint &&
                                                 viewModel.hintPosition?.row == row &&
                                                 viewModel.hintPosition?.col == col
+                                    let isChainHighlight = viewModel.chainHighlights.contains { $0.row == row && $0.col == col }
                                     
                                     CellView(
                                         cell: cell,
                                         cellSize: cellSize,
                                         isHint: isHint,
+                                        isScanOverlayVisible: viewModel.isScanOverlayVisible,
+                                        isChainHighlight: isChainHighlight,
                                         onTap: {
                                             viewModel.revealCell(row: row, col: col)
                                         },
