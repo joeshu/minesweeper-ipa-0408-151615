@@ -4,21 +4,21 @@ struct StatsHeroHeaderSection: View {
     @EnvironmentObject var viewModel: GameViewModel
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            SectionHeaderView("战绩总览", subtitle: "关键指标一屏直看。")
+        VStack(alignment: .leading, spacing: 8) {
+            SectionHeaderView("战绩总览", subtitle: nil)
             
-            HStack(spacing: 8) {
+            HStack(spacing: 6) {
                 DashboardMiniCard(title: "总胜率", value: String(format: "%.1f%%", viewModel.gameStats.getWinRate()), color: .green)
                 DashboardMiniCard(title: "打卡", value: "\(viewModel.gameStats.getDailyChallengeStreak())天", color: .orange)
             }
-            HStack(spacing: 8) {
+            HStack(spacing: 6) {
                 DashboardMiniCard(title: "成就", value: "\(viewModel.gameStats.unlockedAchievementsCount())个", color: .yellow)
                 DashboardMiniCard(title: "连胜", value: "\(viewModel.gameStats.bestWinStreak())局", color: .purple)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
-        .surfaceCard(radius: 18, fillColor: Color(.secondarySystemBackground).opacity(0.92), shadowOpacity: 0.05)
+        .padding(10)
+        .surfaceCard(radius: 16, fillColor: Color(.secondarySystemBackground).opacity(0.9), shadowOpacity: 0.04)
     }
 }
 
@@ -149,11 +149,11 @@ struct StatsDifficultyFilterSection: View {
     @Binding var selectedDifficulty: Difficulty?
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            SectionHeaderView("难度筛选", subtitle: "先按难度缩小范围，再看时间和战绩更高效。")
+        VStack(alignment: .leading, spacing: 8) {
+            SectionHeaderView("难度筛选", subtitle: nil)
             
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
                     FilterButton(
                         title: "全部",
                         isSelected: selectedDifficulty == nil
@@ -176,8 +176,8 @@ struct StatsDifficultyFilterSection: View {
                 }
             }
         }
-        .padding(14)
-        .surfaceCard(radius: 18, fillColor: Color(.secondarySystemBackground).opacity(0.9), shadowOpacity: 0.04)
+        .padding(10)
+        .surfaceCard(radius: 14, fillColor: Color(.secondarySystemBackground).opacity(0.86), shadowOpacity: 0.03)
     }
 }
 
@@ -321,18 +321,18 @@ struct DashboardMiniCard: View {
     let color: Color
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 3) {
             Text(title)
                 .font(.caption2)
                 .foregroundColor(.secondary)
             Text(value)
-                .font(.subheadline.weight(.bold))
+                .font(.caption.weight(.bold))
                 .foregroundColor(color)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(8)
+        .padding(7)
         .background(
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: 9)
                 .fill(Color(.systemBackground).opacity(0.84))
         )
     }
@@ -345,11 +345,12 @@ struct StatsInfoRow: View {
     var valueColor: Color = .primary
     
     var body: some View {
-        HStack {
+        HStack(spacing: 8) {
             Label(label, systemImage: systemImage)
+                .font(.caption)
             Spacer()
             Text(value)
-                .fontWeight(.semibold)
+                .font(.caption.weight(.semibold))
                 .foregroundColor(valueColor)
         }
     }

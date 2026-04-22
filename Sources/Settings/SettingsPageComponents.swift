@@ -5,18 +5,15 @@ struct SettingsOverviewSection: View {
     @EnvironmentObject var themeManager: ThemeManager
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            SectionHeaderView("当前配置", subtitle: "快速查看模式、主题、声音与操作反馈。")
-            HStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: 8) {
+            SectionHeaderView("当前配置", subtitle: nil)
+            HStack(spacing: 6) {
                 SettingsPill(title: viewModel.challengeMode.rawValue, color: .blue)
                 SettingsPill(title: themeManager.gameTheme.rawValue, color: .green)
                 SettingsPill(title: viewModel.soundManager.isSoundEnabled ? "音效开" : "音效关", color: .orange)
             }
-            Text(viewModel.difficulty.rawValue)
-                .font(.caption)
-                .foregroundColor(.secondary)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 2)
     }
 }
 
@@ -37,18 +34,22 @@ struct SettingsDifficultySection: View {
             }
             .pickerStyle(.segmented)
             
-            VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
                 Text(viewModel.difficulty.description)
-                    .font(.subheadline)
+                    .font(.caption)
                     .foregroundColor(.secondary)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
                 if viewModel.difficulty == .custom {
                     Label(customConfigSummary, systemImage: "slider.horizontal.3")
-                        .font(.caption.weight(.semibold))
+                        .font(.caption2.weight(.semibold))
                         .foregroundColor(.blue)
+                        .lineLimit(1)
                 }
             }
-            .padding(12)
-            .surfaceCard(radius: 14, fillColor: Color(.secondarySystemBackground).opacity(0.78), shadowOpacity: 0)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .surfaceCard(radius: 12, fillColor: Color(.secondarySystemBackground).opacity(0.76), shadowOpacity: 0)
         }
     }
 }

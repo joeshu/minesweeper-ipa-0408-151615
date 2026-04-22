@@ -6,10 +6,10 @@ struct SettingsPill: View {
     
     var body: some View {
         Text(title)
-            .font(.caption.weight(.semibold))
+            .font(.caption2.weight(.semibold))
             .foregroundColor(color)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 5)
             .background(Capsule().fill(color.opacity(0.14)))
     }
 }
