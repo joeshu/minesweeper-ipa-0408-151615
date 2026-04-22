@@ -5,31 +5,25 @@ struct SettingsOverviewSection: View {
     @EnvironmentObject var themeManager: ThemeManager
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            SectionHeaderView("当前配置", subtitle: nil)
-            if themeManager.gameTheme == .cyber {
-                HStack(spacing: 6) {
-                    SettingsPill(title: viewModel.challengeMode.rawValue, color: .cyan)
-                    SettingsPill(title: themeManager.gameTheme.rawValue, color: .purple)
-                    SettingsPill(title: viewModel.soundManager.isSoundEnabled ? "音效开" : "音效关", color: .pink)
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.black.opacity(0.16))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.cyan.opacity(0.18), lineWidth: 1)
-                        )
-                )
-            } else {
-                HStack(spacing: 6) {
-                    SettingsPill(title: viewModel.challengeMode.rawValue, color: .blue)
-                    SettingsPill(title: themeManager.gameTheme.rawValue, color: .green)
-                    SettingsPill(title: viewModel.soundManager.isSoundEnabled ? "音效开" : "音效关", color: .orange)
-                }
+        VStack(alignment: .leading, spacing: 10) {
+            SectionHeaderView("当前配置", subtitle: "当前玩法、主题与音效状态集中展示。")
+            
+            HStack(spacing: 8) {
+                SettingsPill(title: viewModel.challengeMode.rawValue, color: themeManager.gameTheme == .cyber ? .cyan : .blue)
+                SettingsPill(title: themeManager.gameTheme.rawValue, color: themeManager.gameTheme == .cyber ? .purple : .green)
+                SettingsPill(title: viewModel.soundManager.isSoundEnabled ? "音效开" : "音效关", color: themeManager.gameTheme == .cyber ? .pink : .orange)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 10)
+            .surfaceCard(
+                radius: 16,
+                fillColor: themeManager.gameTheme == .cyber ? Color.white.opacity(0.06) : Color(.secondarySystemBackground).opacity(0.88),
+                strokeOpacity: themeManager.gameTheme == .cyber ? 0.05 : 0.04,
+                shadowOpacity: 0.02,
+                shadowRadius: 10,
+                shadowY: 4
+            )
         }
         .padding(.vertical, 2)
     }
@@ -37,10 +31,11 @@ struct SettingsOverviewSection: View {
 
 struct SettingsDifficultySection: View {
     @EnvironmentObject var viewModel: GameViewModel
+    @EnvironmentObject var themeManager: ThemeManager
     let customConfigSummary: String
     
     var body: some View {
-        Group {
+        VStack(alignment: .leading, spacing: 10) {
             Picker("难度", selection: Binding(
                 get: { viewModel.difficulty },
                 set: { viewModel.setDifficulty($0) }
@@ -65,9 +60,16 @@ struct SettingsDifficultySection: View {
                         .lineLimit(1)
                 }
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .surfaceCard(radius: 12, fillColor: Color(.secondarySystemBackground).opacity(0.76), shadowOpacity: 0)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .surfaceCard(
+                radius: 14,
+                fillColor: themeManager.gameTheme == .cyber ? Color.white.opacity(0.05) : Color(.secondarySystemBackground).opacity(0.84),
+                strokeOpacity: themeManager.gameTheme == .cyber ? 0.04 : 0.04,
+                shadowOpacity: 0.01,
+                shadowRadius: 8,
+                shadowY: 3
+            )
         }
     }
 }

@@ -5,24 +5,27 @@ struct StatsHeroHeaderSection: View {
     @EnvironmentObject var themeManager: ThemeManager
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            SectionHeaderView("战绩总览", subtitle: nil)
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeaderView("战绩总览", subtitle: "关键结果先看趋势，再看细项。")
             
-            HStack(spacing: 6) {
+            HStack(spacing: 10) {
                 DashboardMiniCard(title: "总胜率", value: String(format: "%.1f%%", viewModel.gameStats.getWinRate()), color: .green)
                 DashboardMiniCard(title: "打卡", value: "\(viewModel.gameStats.getDailyChallengeStreak())天", color: .orange)
             }
-            HStack(spacing: 6) {
+            HStack(spacing: 10) {
                 DashboardMiniCard(title: "成就", value: "\(viewModel.gameStats.unlockedAchievementsCount())个", color: .yellow)
                 DashboardMiniCard(title: "连胜", value: "\(viewModel.gameStats.bestWinStreak())局", color: .purple)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(10)
+        .padding(14)
         .surfaceCard(
-            radius: 16,
-            fillColor: themeManager.gameTheme == .cyber ? Color.black.opacity(0.18) : Color(.secondarySystemBackground).opacity(0.9),
-            shadowOpacity: themeManager.gameTheme == .cyber ? 0.05 : 0.04
+            radius: 20,
+            fillColor: themeManager.gameTheme == .cyber ? Color.white.opacity(0.08) : Color(.secondarySystemBackground).opacity(0.92),
+            strokeOpacity: themeManager.gameTheme == .cyber ? 0.05 : 0.04,
+            shadowOpacity: 0.03,
+            shadowRadius: 14,
+            shadowY: 6
         )
     }
 }

@@ -33,6 +33,7 @@ struct SettingsView: View {
                 Section {
                     SettingsDifficultySection(customConfigSummary: customConfigSummary)
                         .environmentObject(viewModel)
+                        .environmentObject(themeManager)
                 } header: {
                     SectionHeaderView("游戏难度", subtitle: "优先保证上手清晰，再去调高策略密度。")
                 }
