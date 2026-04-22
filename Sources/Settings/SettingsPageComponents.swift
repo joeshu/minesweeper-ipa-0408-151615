@@ -18,8 +18,8 @@ struct SettingsOverviewSection: View {
             .padding(.vertical, 10)
             .surfaceCard(
                 radius: 16,
-                fillColor: themeManager.gameTheme == .cyber ? Color.white.opacity(0.06) : Color(.secondarySystemBackground).opacity(0.88),
-                strokeOpacity: themeManager.gameTheme == .cyber ? 0.05 : 0.04,
+                fillColor: themeManager.gameTheme.pageInnerCardFill,
+                strokeOpacity: themeManager.gameTheme.pageCardStrokeOpacity,
                 shadowOpacity: 0.02,
                 shadowRadius: 10,
                 shadowY: 4
@@ -64,8 +64,8 @@ struct SettingsDifficultySection: View {
             .padding(.vertical, 10)
             .surfaceCard(
                 radius: 14,
-                fillColor: themeManager.gameTheme == .cyber ? Color.white.opacity(0.05) : Color(.secondarySystemBackground).opacity(0.84),
-                strokeOpacity: themeManager.gameTheme == .cyber ? 0.04 : 0.04,
+                fillColor: themeManager.gameTheme.pageInnerCardFill,
+                strokeOpacity: themeManager.gameTheme.pageCardStrokeOpacity,
                 shadowOpacity: 0.01,
                 shadowRadius: 8,
                 shadowY: 3
@@ -141,8 +141,8 @@ struct SettingsCustomBoardSection: View {
                 .padding(12)
                 .surfaceCard(
                     radius: 14,
-                    fillColor: themeManager.gameTheme == .cyber ? Color.white.opacity(0.05) : Color(.secondarySystemBackground).opacity(0.84),
-                    strokeOpacity: themeManager.gameTheme == .cyber ? 0.05 : 0.04,
+                    fillColor: themeManager.gameTheme.pageInnerCardFill,
+                    strokeOpacity: themeManager.gameTheme.pageCardStrokeOpacity,
                     shadowOpacity: 0.01,
                     shadowRadius: 8,
                     shadowY: 3
@@ -154,7 +154,7 @@ struct SettingsCustomBoardSection: View {
                     .padding(.vertical, 10)
                     .background(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(themeManager.gameTheme == .cyber ? Color.white.opacity(0.05) : Color(.secondarySystemBackground).opacity(0.84))
+                            .fill(themeManager.gameTheme.pageInnerCardFill)
                     )
                 
                 Button {
@@ -250,10 +250,11 @@ struct SettingsChallengeModesSection: View {
                         .padding(.vertical, 8)
                         .surfaceCard(
                             radius: 12,
-                            fillColor: themeManager.gameTheme == .cyber
-                                ? (viewModel.challengeMode == mode ? Color.cyan.opacity(0.10) : Color.black.opacity(0.20))
-                                : (viewModel.challengeMode == mode ? challengeModeColor(mode).opacity(0.07) : Color(.secondarySystemBackground).opacity(0.78)),
-                            shadowOpacity: themeManager.gameTheme == .cyber ? 0.05 : 0
+                            fillColor: viewModel.challengeMode == mode
+                                ? challengeModeColor(mode).opacity(themeManager.gameTheme == .cyber ? 0.10 : 0.07)
+                                : themeManager.gameTheme.pageInnerCardFill,
+                            strokeOpacity: themeManager.gameTheme.pageCardStrokeOpacity,
+                            shadowOpacity: themeManager.gameTheme == .cyber ? 0.03 : 0
                         )
                     }
                     .buttonStyle(.plain)
