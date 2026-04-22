@@ -2,6 +2,7 @@ import SwiftUI
 
 struct StatsHeroHeaderSection: View {
     @EnvironmentObject var viewModel: GameViewModel
+    @EnvironmentObject var themeManager: ThemeManager
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -18,7 +19,11 @@ struct StatsHeroHeaderSection: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(10)
-        .surfaceCard(radius: 16, fillColor: Color(.secondarySystemBackground).opacity(0.9), shadowOpacity: 0.04)
+        .surfaceCard(
+            radius: 16,
+            fillColor: themeManager.gameTheme == .cyber ? Color.black.opacity(0.18) : Color(.secondarySystemBackground).opacity(0.9),
+            shadowOpacity: themeManager.gameTheme == .cyber ? 0.05 : 0.04
+        )
     }
 }
 

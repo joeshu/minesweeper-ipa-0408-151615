@@ -52,6 +52,7 @@ struct SettingsView: View {
                         challengeModeIcon: challengeModeIcon
                     )
                     .environmentObject(viewModel)
+                    .environmentObject(themeManager)
                 } header: {
                     SectionHeaderView("挑战模式", subtitle: "根据目标切换玩法，产品体验会优先突出当前模式。")
                 }
@@ -108,6 +109,14 @@ struct SettingsView: View {
     }
     
     private func challengeModeColor(_ mode: ChallengeMode) -> Color {
+        if themeManager.gameTheme == .cyber {
+            switch mode {
+            case .none: return .cyan
+            case .daily: return .purple
+            case .timed: return .pink
+            case .noGuess: return .green
+            }
+        }
         switch mode {
         case .none: return .blue
         case .daily: return .purple

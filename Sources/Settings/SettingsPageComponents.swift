@@ -7,10 +7,28 @@ struct SettingsOverviewSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             SectionHeaderView("当前配置", subtitle: nil)
-            HStack(spacing: 6) {
-                SettingsPill(title: viewModel.challengeMode.rawValue, color: .blue)
-                SettingsPill(title: themeManager.gameTheme.rawValue, color: .green)
-                SettingsPill(title: viewModel.soundManager.isSoundEnabled ? "音效开" : "音效关", color: .orange)
+            if themeManager.gameTheme == .cyber {
+                HStack(spacing: 6) {
+                    SettingsPill(title: viewModel.challengeMode.rawValue, color: .cyan)
+                    SettingsPill(title: themeManager.gameTheme.rawValue, color: .purple)
+                    SettingsPill(title: viewModel.soundManager.isSoundEnabled ? "音效开" : "音效关", color: .pink)
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.black.opacity(0.16))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.cyan.opacity(0.18), lineWidth: 1)
+                        )
+                )
+            } else {
+                HStack(spacing: 6) {
+                    SettingsPill(title: viewModel.challengeMode.rawValue, color: .blue)
+                    SettingsPill(title: themeManager.gameTheme.rawValue, color: .green)
+                    SettingsPill(title: viewModel.soundManager.isSoundEnabled ? "音效开" : "音效关", color: .orange)
+                }
             }
         }
         .padding(.vertical, 2)
@@ -166,6 +184,7 @@ struct SettingsCustomBoardSection: View {
 
 struct SettingsChallengeModesSection: View {
     @EnvironmentObject var viewModel: GameViewModel
+    @EnvironmentObject var themeManager: ThemeManager
     let challengeModeColor: (ChallengeMode) -> Color
     let challengeModeIcon: (ChallengeMode) -> String
     
@@ -215,8 +234,10 @@ struct SettingsChallengeModesSection: View {
                         .padding(.vertical, 8)
                         .surfaceCard(
                             radius: 12,
-                            fillColor: viewModel.challengeMode == mode ? challengeModeColor(mode).opacity(0.07) : Color(.secondarySystemBackground).opacity(0.78),
-                            shadowOpacity: 0
+                            fillColor: themeManager.gameTheme == .cyber
+                                ? (viewModel.challengeMode == mode ? Color.cyan.opacity(0.10) : Color.black.opacity(0.20))
+                                : (viewModel.challengeMode == mode ? challengeModeColor(mode).opacity(0.07) : Color(.secondarySystemBackground).opacity(0.78)),
+                            shadowOpacity: themeManager.gameTheme == .cyber ? 0.05 : 0
                         )
                     }
                     .buttonStyle(.plain)

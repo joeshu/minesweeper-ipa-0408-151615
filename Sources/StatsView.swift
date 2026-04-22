@@ -28,6 +28,7 @@ struct StatsView: View {
                 VStack(spacing: 18) {
                     StatsHeroHeaderSection()
                         .environmentObject(viewModel)
+                        .environmentObject(themeManager)
                     overviewCards
                     StatsAchievementsSection()
                         .environmentObject(viewModel)
