@@ -4,10 +4,6 @@ struct CellView: View {
     let cell: Cell
     let cellSize: CGFloat
     let isHint: Bool
-    let isScanOverlayVisible: Bool
-    let isChainHighlight: Bool
-    let isChainAnchor: Bool
-    let isChainCandidate: Bool
     let onTap: () -> Void
     let onLongPress: () -> Void
     let onDoubleTap: () -> Void
@@ -34,24 +30,6 @@ struct CellView: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: cellSize * 0.15)
                             .stroke(Color.yellow, lineWidth: 2)
-                    )
-            }
-            
-            if isScanOverlayVisible && cell.state == .hidden {
-                RoundedRectangle(cornerRadius: cellSize * 0.15)
-                    .fill(scanOverlayColor)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: cellSize * 0.15)
-                            .stroke(scanOverlayStrokeColor, lineWidth: 1)
-                    )
-            }
-            
-            if isChainHighlight {
-                RoundedRectangle(cornerRadius: cellSize * 0.15)
-                    .stroke(isChainAnchor ? Color.cyan.opacity(0.95) : Color.mint.opacity(0.88), lineWidth: isChainAnchor ? 2.4 : 1.8)
-                    .background(
-                        RoundedRectangle(cornerRadius: cellSize * 0.15)
-                            .fill((isChainAnchor ? Color.cyan : Color.mint).opacity(isChainAnchor ? 0.20 : 0.12))
                     )
             }
             
@@ -99,35 +77,6 @@ struct CellView: View {
         }
     }
     
-    private var scanOverlayStrokeColor: Color {
-        if cell.isMine {
-            return Color.red.opacity(0.34)
-        }
-        if cell.neighborMines >= 3 {
-            return Color.orange.opacity(0.28)
-        }
-        if cell.neighborMines >= 1 {
-            return Color.yellow.opacity(0.22)
-        }
-        return Color.cyan.opacity(0.18)
-    }
-    
-    private var scanOverlayColor: Color {
-        if cell.isMine {
-            return Color.red.opacity(0.22)
-        }
-        if cell.neighborMines >= 4 {
-            return Color.red.opacity(0.14)
-        }
-        if cell.neighborMines >= 3 {
-            return Color.orange.opacity(0.16)
-        }
-        if cell.neighborMines >= 1 {
-            return Color.yellow.opacity(0.12)
-        }
-        return Color.cyan.opacity(0.08)
-    }
-    
     private var backgroundColor: Color {
         switch cell.state {
         case .hidden:
@@ -135,7 +84,7 @@ struct CellView: View {
         case .flagged:
             return themeManager.gameTheme.cellFlaggedColor
         case .questioned:
-            return themeManager.gameTheme == .graphite ? Color(red: 0.42, green: 0.35, blue: 0.72).opacity(0.28) : (themeManager.gameTheme == .cyber ? Color(red: 0.62, green: 0.26, blue: 1.0).opacity(0.3) : Color.purple.opacity(0.2))
+            return themeManager.gameTheme == .graphite ? Color(red: 0.42, green: 0.35, blue: 0.72).opacity(0.28) : Color.purple.opacity(0.2)
         case .exploded:
             return themeManager.gameTheme.cellExplodedColor
         case .revealed:
@@ -152,11 +101,11 @@ struct CellView: View {
         case .revealed where !cell.isMine && cell.neighborMines > 0:
             return themeManager.colorForNumber(cell.neighborMines)
         case .flagged:
-            return themeManager.gameTheme == .graphite ? Color(red: 0.89, green: 0.28, blue: 0.24) : (themeManager.gameTheme == .cyber ? Color(red: 1.0, green: 0.28, blue: 0.60) : .red)
+            return themeManager.gameTheme == .graphite ? Color(red: 0.89, green: 0.28, blue: 0.24) : .red
         case .questioned:
-            return themeManager.gameTheme == .graphite ? Color(red: 0.70, green: 0.62, blue: 0.98) : (themeManager.gameTheme == .cyber ? Color(red: 0.70, green: 0.48, blue: 1.0) : .purple)
+            return themeManager.gameTheme == .graphite ? Color(red: 0.70, green: 0.62, blue: 0.98) : .purple
         default:
-            return themeManager.gameTheme == .graphite ? Color.white.opacity(0.92) : (themeManager.gameTheme == .cyber ? Color(red: 0.05, green: 0.12, blue: 0.18) : .primary)
+            return themeManager.gameTheme == .graphite ? Color.white.opacity(0.92) : .primary
         }
     }
     

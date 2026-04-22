@@ -132,24 +132,6 @@ struct GameView: View {
                 .animation(themeManager.enableAnimations ? .easeInOut(duration: 0.16) : nil, value: viewModel.boardStatusMessage)
             }
             
-            if let assessment = viewModel.tacticalAssessment, (viewModel.showGameOverAlert || viewModel.showWinAlert) {
-                VStack {
-                    Spacer(minLength: 0)
-                    tacticalAssessmentBanner(assessment)
-                        .padding(.horizontal, 14)
-                        .padding(.bottom, 24)
-                }
-            }
-            
-            if !viewModel.scanRiskSummary.isEmpty && !viewModel.isScanOverlayVisible && !viewModel.chainHighlights.isEmpty {
-                VStack {
-                    Spacer(minLength: 0)
-                    chainSummaryBanner
-                        .padding(.horizontal, 14)
-                        .padding(.bottom, 88)
-                }
-            }
-            
             // 动画效果层
             ExplosionEffectView()
             ConfettiEffectView()
@@ -185,28 +167,15 @@ struct GameView: View {
     private var backgroundGradient: some View {
         Group {
             if themeManager.useGradientBackground {
-                if themeManager.gameTheme == .cyber {
-                    LinearGradient(
-                        colors: [
-                            Color(red: 0.02, green: 0.05, blue: 0.12),
-                            Color(red: 0.05, green: 0.10, blue: 0.20),
-                            Color(.systemBackground)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    .ignoresSafeArea()
-                } else {
-                    LinearGradient(
-                        colors: [
-                            themeManager.gameTheme.boardBackgroundColor.opacity(0.3),
-                            Color(.systemBackground)
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .ignoresSafeArea()
-                }
+                LinearGradient(
+                    colors: [
+                        themeManager.gameTheme.boardBackgroundColor.opacity(0.3),
+                        Color(.systemBackground)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
             } else {
                 Color(.systemBackground)
                     .ignoresSafeArea()
@@ -306,69 +275,6 @@ struct GameView: View {
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(boardStatusColor.opacity(0.18), lineWidth: 1)
-                )
-        )
-    }
-
-    private func tacticalAssessmentBanner(_ assessment: TacticalAssessment) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text("任务评估 · \(assessment.grade)")
-                    .font(.caption.weight(.bold))
-                    .foregroundColor(colorFromHex(assessment.gradeColorHex))
-                Spacer(minLength: 0)
-                Text(assessment.title)
-                    .font(.caption2.weight(.semibold))
-                    .foregroundColor(.secondary)
-            }
-            Text(assessment.signature)
-                .font(.caption2.monospaced())
-                .foregroundColor(colorFromHex(assessment.gradeColorHex).opacity(0.92))
-            Text(assessment.detail)
-                .font(.caption2)
-                .foregroundColor(.secondary)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(Color(.secondarySystemBackground))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14)
-                        .stroke(colorFromHex(assessment.gradeColorHex).opacity(0.22), lineWidth: 1)
-                )
-        )
-    }
-
-    private func colorFromHex(_ hex: String) -> Color {
-        switch hex {
-        case "#47F5FF": return Color.cyan
-        case "#7CFF8E": return Color.green
-        case "#FFD25E": return Color.orange
-        case "#FF9B5E": return Color.orange.opacity(0.9)
-        case "#FF5E7A": return Color.red
-        default: return .blue
-        }
-    }
-
-    private var chainSummaryBanner: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "point.3.filled.connected.trianglepath.dotted")
-                .font(.caption)
-                .foregroundColor(.cyan)
-            Text(viewModel.scanRiskSummary)
-                .font(.caption2.monospaced())
-                .foregroundColor(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.cyan.opacity(0.16), lineWidth: 1)
                 )
         )
     }

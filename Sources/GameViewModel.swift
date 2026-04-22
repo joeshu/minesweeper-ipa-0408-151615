@@ -36,13 +36,8 @@ class GameViewModel: ObservableObject {
     @Published var lastInteractionAt: Date? = nil
     @Published var boardStatusMessage: String = ""
     @Published var boardStatusDetail: String = ""
-    @Published var tacticalAssessment: TacticalAssessment? = nil
-    @Published var scanUsesRemaining: Int = 2
-    @Published var isScanOverlayVisible: Bool = false
-    @Published var chainHighlights: [(row: Int, col: Int)] = []
-    @Published var chainAnchorHighlights: [(row: Int, col: Int)] = []
-    @Published var chainCandidateHighlights: [(row: Int, col: Int)] = []
-    @Published var scanRiskSummary: String = ""
+    @Published var boardStatusTone: BoardStatusTone = .neutral
+    @Published var newlyUnlockedAchievements: [Achievement] = []
     
     let gameStats = GameStats()
     let soundManager = SoundManager.shared
@@ -78,15 +73,7 @@ class GameViewModel: ObservableObject {
         return false
     }
     
-    private var modeProtocolLabel: String {
-        switch challengeMode {
-        case .none: return "CIVIL-SCAN"
-        case .daily: return "DAILY-OPS"
-        case .timed: return "RUSH-PROTOCOL"
-        case .noGuess: return "PURE-LOGIC"
-        }
-    }
-    
+    private var modeStatusTitle: String {
         switch challengeMode {
         case .none: return "普通模式已开始"
         case .daily: return "每日挑战开始"
@@ -169,13 +156,6 @@ class GameViewModel: ObservableObject {
         if challengeMode == .timed {
             challengeSecondsRemaining = timedChallengeLimit
         }
-        scanUsesRemaining = challengeMode == .none ? 2 : 3
-        isScanOverlayVisible = false
-        chainHighlights = []
-        chainAnchorHighlights = []
-        chainCandidateHighlights = []
-        scanRiskSummary = ""
-        tacticalAssessment = nil
         isGameActive = false
         showGameOverAlert = false
         showWinAlert = false
@@ -475,6 +455,7 @@ class GameViewModel: ObservableObject {
         
         if isShowingHint {
             hapticManager.impact(.light)
+            // 3秒后自动隐藏提示
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
                 self?.isShowingHint = false
                 self?.hintMessage = ""
@@ -483,62 +464,9 @@ class GameViewModel: ObservableObject {
         }
     }
     
-    func activateScanOverlay() {
-        guard gameBoard.gameState == .playing && !isPaused else { return }
-        guard scanUsesRemaining > 0 else {
-            postBoardStatus("扫描次数已用完", detail: "继续依靠当前信息判断。", tone: .warning, lock: 0.08)
-            return
-        }
-        
-        scanUsesRemaining -= 1
-        isScanOverlayVisible = true
-        hintKind = .scan
-        chainHighlights = []
-        chainAnchorHighlights = []
-        chainCandidateHighlights = []
-        scanRiskSummary = buildScanRiskSummary()
-        postBoardStatus("已启动风险扫描", detail: scanRiskSummary, tone: .positive, lock: 0.08)
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) { [weak self] in
-            self?.isScanOverlayVisible = false
-            if self?.hintKind == .scan {
-                self?.hintKind = .none
-            }
-        }
-    }
-    
-    func activateLogicChainHighlight() {
-        guard gameBoard.gameState == .playing && !isPaused else { return }
-        let chain = buildLogicChainHighlights()
-        guard !chain.isEmpty else {
-            postBoardStatus("未找到清晰逻辑链", detail: "先扩展更多信息后再分析。", tone: .warning, lock: 0.08)
-            return
-        }
-        
-        chainHighlights = chain
-        chainAnchorHighlights = Array(chain.prefix(1))
-        chainCandidateHighlights = Array(chain.dropFirst())
-        scanRiskSummary = "链核心 \(chainAnchorHighlights.count) · 候选 \(chainCandidateHighlights.count)"
-        hintKind = .chain
-        postBoardStatus("已高亮逻辑链", detail: scanRiskSummary, tone: .positive, lock: 0.08)
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.2) { [weak self] in
-            self?.chainHighlights = []
-            self?.chainAnchorHighlights = []
-            self?.chainCandidateHighlights = []
-            if self?.hintKind == .chain {
-                self?.hintKind = .none
-            }
-        }
-    }
-    
     private func computeHintDescriptor() -> HintDescriptor {
         if let flagTarget = findFlagRecommendation() {
             return HintDescriptor(position: flagTarget, message: "已高亮建议标雷的位置", kind: .flag)
-        }
-        
-        if let chainTarget = findLogicChainAnchor() {
-            return HintDescriptor(position: chainTarget, message: "已高亮逻辑链核心位置", kind: .chain)
         }
         
         guard let position = gameBoard.getHint() else {
@@ -589,58 +517,7 @@ class GameViewModel: ObservableObject {
         return nil
     }
     
-    private func buildScanRiskSummary() -> String {
-        var low = 0
-        var medium = 0
-        var high = 0
-        
-        for row in 0..<gameBoard.rows {
-            for col in 0..<gameBoard.cols {
-                let cell = gameBoard.cells[row][col]
-                guard cell.isHidden else { continue }
-                if cell.isMine || cell.neighborMines >= 4 {
-                    high += 1
-                } else if cell.neighborMines >= 2 {
-                    medium += 1
-                } else {
-                    low += 1
-                }
-            }
-        }
-        
-        return "低风险 \(low) · 中风险 \(medium) · 高风险 \(high)"
-    }
-
-        for row in 0..<gameBoard.rows {
-            for col in 0..<gameBoard.cols {
-                let cell = gameBoard.cells[row][col]
-                guard cell.isRevealed && cell.neighborMines > 0 else { continue }
-                
-                var highlights: [(row: Int, col: Int)] = [(row, col)]
-                var hiddenNeighbors: [(row: Int, col: Int)] = []
-                
-                for dr in -1...1 {
-                    for dc in -1...1 {
-                        if dr == 0 && dc == 0 { continue }
-                        let nr = row + dr
-                        let nc = col + dc
-                        guard nr >= 0 && nr < gameBoard.rows && nc >= 0 && nc < gameBoard.cols else { continue }
-                        let neighbor = gameBoard.cells[nr][nc]
-                        if neighbor.isHidden || neighbor.isFlagged {
-                            hiddenNeighbors.append((nr, nc))
-                        }
-                    }
-                }
-                
-                if hiddenNeighbors.count >= 2 {
-                    highlights.append(contentsOf: hiddenNeighbors.prefix(4))
-                    return highlights
-                }
-            }
-        }
-        return []
-    }
-
+    private func safeHintConfidence(row: Int, col: Int) -> Bool {
         for dr in -1...1 {
             for dc in -1...1 {
                 if dr == 0 && dc == 0 { continue }
@@ -697,52 +574,6 @@ class GameViewModel: ObservableObject {
         case (.noGuess, .won): return "无猜链路跑通了，判断很干净。"
         case (.noGuess, .lost): return "回到信息链，别急着赌。"
         }
-    }
-
-    private func buildTacticalAssessment(result: GameRecord.GameResult) -> TacticalAssessment {
-        let grade: String
-        let colorHex: String
-        let title: String
-        let detail: String
-        let signature: String
-        
-        if result == .won {
-            if !hasUsedHintInCurrentGame && challengeMode == .noGuess {
-                grade = "S"
-                colorHex = "#47F5FF"
-                title = "逻辑纯净"
-                detail = "无猜链路稳定完成，判断质量很高。"
-                signature = "PURE-LOGIC"
-            } else if elapsedTime < 90 {
-                grade = "A"
-                colorHex = "#7CFF8E"
-                title = "清除高效"
-                detail = "推进节奏很稳，效率表现优秀。"
-                signature = "FAST-CLEAR"
-            } else {
-                grade = "B"
-                colorHex = "#FFD25E"
-                title = "任务完成"
-                detail = "目标达成，可继续压缩决策时间。"
-                signature = "MISSION-DONE"
-            }
-        } else {
-            if hasUsedHintInCurrentGame {
-                grade = "C"
-                colorHex = "#FF9B5E"
-                title = "链路中断"
-                detail = "建议回到高信息密度区域继续判断。"
-                signature = "CHAIN-BREAK"
-            } else {
-                grade = "D"
-                colorHex = "#FF5E7A"
-                title = "风险失控"
-                detail = "失误点已暴露，下一局优先避开相同节奏。"
-                signature = "RISK-OVERLOAD"
-            }
-        }
-        
-        return TacticalAssessment(title: title, detail: detail, grade: grade, gradeColorHex: colorHex, signature: signature)
     }
 
     // MARK: - 自动保存
@@ -810,10 +641,6 @@ class GameViewModel: ObservableObject {
             stopTimer()
             soundManager.playWin()
             hapticManager.gameWon()
-            tacticalAssessment = buildTacticalAssessment(result: .won)
-            if let tacticalAssessment {
-                gameStats.recordAssessment(tacticalAssessment)
-            }
             postBoardStatus("本局胜利", detail: modeCompletionDetail(for: .won), tone: .positive)
             showWinAlert = true
             isGameActive = false
@@ -846,10 +673,6 @@ class GameViewModel: ObservableObject {
             stopTimer()
             soundManager.playLose()
             hapticManager.gameLost()
-            tacticalAssessment = buildTacticalAssessment(result: .lost)
-            if let tacticalAssessment {
-                gameStats.recordAssessment(tacticalAssessment)
-            }
             postBoardStatus("本局失败", detail: modeCompletionDetail(for: .lost), tone: .danger)
             showGameOverAlert = true
             isGameActive = false
@@ -890,13 +713,6 @@ class GameViewModel: ObservableObject {
         isShowingHint = false
         hasUsedHintInCurrentGame = false
         hasProcessedCurrentGameCompletion = false
-        scanUsesRemaining = challengeMode == .none ? 2 : 3
-        isScanOverlayVisible = false
-        chainHighlights = []
-        chainAnchorHighlights = []
-        chainCandidateHighlights = []
-        scanRiskSummary = ""
-        tacticalAssessment = nil
         newlyUnlockedAchievements = []
         gameStateManager.clearUndoStack()
         clearSavedGame()

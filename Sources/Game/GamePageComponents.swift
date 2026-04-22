@@ -2,7 +2,6 @@ import SwiftUI
 
 struct GameTopStatusBar: View {
     @EnvironmentObject var viewModel: GameViewModel
-    @EnvironmentObject var themeManager: ThemeManager
     
     let statusTitle: String
     let statusSubtitle: String
@@ -40,31 +39,16 @@ struct GameTopStatusBar: View {
                 value: viewModel.challengeMode == .timed ? "\(viewModel.challengeSecondsRemaining)s" : viewModel.formattedTime
             )
             
-            if viewModel.scanUsesRemaining > 0 {
-                CompactGameStatChip(
-                    icon: "wave.3.right.circle.fill",
-                    iconColor: .cyan,
-                    value: "\(viewModel.scanUsesRemaining)"
-                )
-            }
-            
-            if !viewModel.scanRiskSummary.isEmpty {
-                Text(viewModel.scanRiskSummary)
-                    .font(.caption2.monospaced())
-                    .foregroundColor(themeManager.gameTheme == .cyber ? .cyan : .secondary)
-                    .lineLimit(1)
-            }
-            
             Spacer(minLength: 0)
             
             ModeBadge(
-                title: viewModel.modeProtocolLabel,
-                color: themeManager.gameTheme == .cyber ? .cyan : modeBadgeColor
+                title: viewModel.challengeMode == .none ? viewModel.difficulty.rawValue : viewModel.challengeMode.badgeTitle,
+                color: modeBadgeColor
             )
         }
         .padding(.horizontal, 6)
         .padding(.vertical, 5)
-        .surfaceCard(radius: 10, fillColor: themeManager.gameTheme == .cyber ? Color.black.opacity(0.22) : Color(.secondarySystemBackground).opacity(0.74), shadowOpacity: themeManager.gameTheme == .cyber ? 0.05 : 0.01)
+        .surfaceCard(radius: 10, fillColor: Color(.secondarySystemBackground).opacity(0.74), shadowOpacity: 0.01)
     }
 }
 
@@ -114,15 +98,6 @@ struct GameBottomControlPanel: View {
                 viewModel.showHint()
             }
             
-            QuickActionButton(
-                icon: "wave.3.right.circle.fill",
-                label: "扫描",
-                isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused && viewModel.scanUsesRemaining > 0,
-                color: .cyan
-            ) {
-                viewModel.activateScanOverlay()
-            }
-            
             Text(viewModel.isPaused ? "暂停" : (viewModel.gameBoard.gameState == .playing ? "进行中" : "结束"))
                 .font(.caption2.weight(.semibold))
                 .foregroundColor(viewModel.isPaused ? .orange : (viewModel.gameBoard.gameState == .playing ? .green : .secondary))
@@ -130,7 +105,7 @@ struct GameBottomControlPanel: View {
         }
         .padding(.horizontal, 5)
         .padding(.vertical, 5)
-        .surfaceCard(radius: 10, fillColor: themeManager.gameTheme == .cyber ? Color.black.opacity(0.18) : Color(.secondarySystemBackground).opacity(0.72), shadowOpacity: themeManager.gameTheme == .cyber ? 0.05 : 0.01)
+        .surfaceCard(radius: 10, fillColor: Color(.secondarySystemBackground).opacity(0.72), shadowOpacity: 0.01)
     }
 }
 
@@ -143,7 +118,7 @@ struct GameBoardContainer: View {
     var body: some View {
         GeometryReader { geometry in
             let availableWidth = geometry.size.width
-            let availableHeight = max(geometry.size.height - boardHeaderReservedHeight, geometry.size.height * 0.96)
+            let availableHeight = max(geometry.size.height - boardHeaderReservedHeight, geometry.size.height * 0.94)
             let cols = CGFloat(viewModel.gameBoard.cols)
             let rows = CGFloat(viewModel.gameBoard.rows)
             let spacing: CGFloat = 2
@@ -151,23 +126,23 @@ struct GameBoardContainer: View {
             let totalSpacingY = (rows - 1) * spacing
             let cellWidth = (availableWidth - totalSpacingX) / cols
             let cellHeight = (availableHeight - totalSpacingY) / rows
-            let cellSize = min(cellWidth, cellHeight, 116)
+            let cellSize = min(cellWidth, cellHeight, 112)
             let boardWidth = cols * cellSize + totalSpacingX
             let boardHeight = rows * cellSize + totalSpacingY
             let offsetX = max(0, (availableWidth - boardWidth) / 2)
             let offsetY = max(0, (availableHeight - boardHeight) / 2)
             
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 4) {
                 HStack(alignment: .center) {
                     Text("棋盘")
-                        .font(.caption2.weight(.bold))
+                        .font(.caption.weight(.bold))
                     Spacer(minLength: 0)
                     Text("\(viewModel.gameBoard.rows)×\(viewModel.gameBoard.cols)")
                         .font(.caption2.weight(.semibold))
                         .foregroundColor(.secondary)
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 3)
-                        .background(Capsule().fill(Color.primary.opacity(0.04)))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 4)
+                        .background(Capsule().fill(Color.primary.opacity(0.05)))
                 }
                 
                 ScrollView([.horizontal, .vertical], showsIndicators: false) {
@@ -179,18 +154,11 @@ struct GameBoardContainer: View {
                                     let isHint = viewModel.isShowingHint &&
                                                 viewModel.hintPosition?.row == row &&
                                                 viewModel.hintPosition?.col == col
-                                    let isChainHighlight = viewModel.chainHighlights.contains { $0.row == row && $0.col == col }
-                                    let isChainAnchor = viewModel.chainAnchorHighlights.contains { $0.row == row && $0.col == col }
-                                    let isChainCandidate = viewModel.chainCandidateHighlights.contains { $0.row == row && $0.col == col }
                                     
                                     CellView(
                                         cell: cell,
                                         cellSize: cellSize,
                                         isHint: isHint,
-                                        isScanOverlayVisible: viewModel.isScanOverlayVisible,
-                                        isChainHighlight: isChainHighlight,
-                                        isChainAnchor: isChainAnchor,
-                                        isChainCandidate: isChainCandidate,
                                         onTap: {
                                             viewModel.revealCell(row: row, col: col)
                                         },
@@ -206,15 +174,15 @@ struct GameBoardContainer: View {
                             }
                         }
                     }
-                    .padding(5)
+                    .padding(6)
                     .background(
-                        RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .fill(themeManager.gameTheme.boardBackgroundColor.opacity(0.995))
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            .fill(themeManager.gameTheme.boardBackgroundColor.opacity(0.99))
                             .overlay(
-                                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                    .stroke(Color.primary.opacity(0.04), lineWidth: 1)
+                                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                    .stroke(Color.primary.opacity(0.05), lineWidth: 1)
                             )
-                            .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+                            .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
                     )
                     .padding(.horizontal, offsetX)
                     .padding(.vertical, offsetY)
