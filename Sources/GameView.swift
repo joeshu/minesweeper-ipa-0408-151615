@@ -485,18 +485,18 @@ struct QuickActionButton: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 2) {
+            VStack(spacing: 1) {
                 Image(systemName: icon)
-                    .font(.caption.weight(.semibold))
+                    .font(.caption2.weight(.semibold))
                 Text(label)
                     .font(.caption2)
                     .lineLimit(1)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 6)
+            .padding(.vertical, 5)
             .background(
-                RoundedRectangle(cornerRadius: 9)
-                    .fill(isEnabled ? color.opacity(0.13) : Color.gray.opacity(0.08))
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(isEnabled ? color.opacity(0.12) : Color.gray.opacity(0.07))
             )
             .foregroundColor(isEnabled ? color : .gray)
         }

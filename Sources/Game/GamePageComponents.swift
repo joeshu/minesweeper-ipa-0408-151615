@@ -10,67 +10,45 @@ struct GameTopStatusBar: View {
     let modeBadgeColor: Color
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .center, spacing: 8) {
-                HStack(spacing: 6) {
-                    Circle()
-                        .fill(statusColor.opacity(0.18))
-                        .frame(width: 8, height: 8)
-                        .overlay(
-                            Circle()
-                                .fill(statusColor)
-                                .frame(width: 5, height: 5)
-                        )
-                    Text(statusTitle)
-                        .font(.caption.weight(.bold))
-                }
-                
+        HStack(spacing: 8) {
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(statusColor.opacity(0.18))
+                    .frame(width: 8, height: 8)
+                    .overlay(
+                        Circle()
+                            .fill(statusColor)
+                            .frame(width: 5, height: 5)
+                    )
+                Text(statusTitle)
+                    .font(.caption.weight(.bold))
                 Text(progressText)
                     .font(.caption2.weight(.semibold))
                     .foregroundColor(statusColor)
-                
-                Spacer(minLength: 0)
-                
-                ModeBadge(
-                    title: viewModel.challengeMode == .none ? viewModel.difficulty.rawValue : viewModel.challengeMode.badgeTitle,
-                    color: modeBadgeColor
-                )
-                
-                ModeBadge(
-                    title: "\(viewModel.gameBoard.rows)×\(viewModel.gameBoard.cols)",
-                    color: .secondary
-                )
             }
             
-            HStack(spacing: 8) {
-                CompactGameStatChip(
-                    icon: "flag.fill",
-                    iconColor: .red,
-                    value: "\(viewModel.remainingMines)"
-                )
-                
-                CompactGameStatChip(
-                    icon: viewModel.challengeMode == .timed ? "timer" : "clock",
-                    iconColor: viewModel.challengeMode == .timed ? .orange : .blue,
-                    value: viewModel.challengeMode == .timed ? "\(viewModel.challengeSecondsRemaining)s" : viewModel.formattedTime
-                )
-                
-                Text(statusSubtitle)
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
+            CompactGameStatChip(
+                icon: "flag.fill",
+                iconColor: .red,
+                value: "\(viewModel.remainingMines)"
+            )
             
-            if viewModel.challengeMode == .noGuess && !viewModel.gameBoard.generationQualityNote.isEmpty {
-                Text(viewModel.gameBoard.generationQualityNote.contains("严格") ? "严格无猜盘面" : "回退增强盘面")
-                    .font(.caption2.weight(.semibold))
-                    .foregroundColor(viewModel.gameBoard.generationQualityNote.contains("严格") ? .green : .orange)
-            }
+            CompactGameStatChip(
+                icon: viewModel.challengeMode == .timed ? "timer" : "clock",
+                iconColor: viewModel.challengeMode == .timed ? .orange : .blue,
+                value: viewModel.challengeMode == .timed ? "\(viewModel.challengeSecondsRemaining)s" : viewModel.formattedTime
+            )
+            
+            Spacer(minLength: 0)
+            
+            ModeBadge(
+                title: viewModel.challengeMode == .none ? viewModel.difficulty.rawValue : viewModel.challengeMode.badgeTitle,
+                color: modeBadgeColor
+            )
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .surfaceCard(radius: 14, fillColor: Color(.secondarySystemBackground).opacity(0.82), shadowOpacity: 0.02)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .surfaceCard(radius: 12, fillColor: Color(.secondarySystemBackground).opacity(0.78), shadowOpacity: 0.01)
     }
 }
 
@@ -79,63 +57,55 @@ struct GameBottomControlPanel: View {
     @Binding var showingNewGameConfirmation: Bool
     
     var body: some View {
-        VStack(spacing: 2) {
-            HStack(spacing: 8) {
-                QuickActionButton(
-                    icon: "arrow.clockwise",
-                    label: "新局",
-                    isEnabled: true,
-                    color: .blue
-                ) {
-                    if viewModel.isGameActive {
-                        showingNewGameConfirmation = true
-                    } else {
-                        viewModel.newGame()
-                    }
-                }
-                
-                QuickActionButton(
-                    icon: "arrow.uturn.backward",
-                    label: "撤销",
-                    isEnabled: viewModel.canUndo && viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
-                    color: .indigo
-                ) {
-                    viewModel.undo()
-                }
-                
-                QuickActionButton(
-                    icon: viewModel.isPaused ? "play.fill" : "pause.fill",
-                    label: viewModel.isPaused ? "继续" : "暂停",
-                    isEnabled: viewModel.isGameActive && viewModel.gameBoard.gameState == .playing,
-                    color: viewModel.isPaused ? .green : .orange
-                ) {
-                    viewModel.togglePause()
-                }
-                
-                QuickActionButton(
-                    icon: "lightbulb.fill",
-                    label: "提示",
-                    isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
-                    color: .yellow
-                ) {
-                    viewModel.showHint()
+        HStack(spacing: 8) {
+            QuickActionButton(
+                icon: "arrow.clockwise",
+                label: "新局",
+                isEnabled: true,
+                color: .blue
+            ) {
+                if viewModel.isGameActive {
+                    showingNewGameConfirmation = true
+                } else {
+                    viewModel.newGame()
                 }
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 8)
-            .surfaceCard(radius: 14, fillColor: Color(.secondarySystemBackground).opacity(0.8), shadowOpacity: 0.01)
             
-            HStack(spacing: 6) {
-                InstructionChip(icon: "hand.tap", text: "点按")
-                InstructionChip(icon: "flag.fill", text: "长按")
-                InstructionChip(icon: "square.grid.3x3.fill", text: "双击")
-                Spacer(minLength: 0)
-                Text(viewModel.isPaused ? "已暂停" : (viewModel.gameBoard.gameState == .playing ? "进行中" : "已结束"))
-                    .font(.caption2.weight(.semibold))
-                    .foregroundColor(viewModel.isPaused ? .orange : (viewModel.gameBoard.gameState == .playing ? .green : .secondary))
+            QuickActionButton(
+                icon: "arrow.uturn.backward",
+                label: "撤销",
+                isEnabled: viewModel.canUndo && viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
+                color: .indigo
+            ) {
+                viewModel.undo()
             }
-            .padding(.horizontal, 4)
+            
+            QuickActionButton(
+                icon: viewModel.isPaused ? "play.fill" : "pause.fill",
+                label: viewModel.isPaused ? "继续" : "暂停",
+                isEnabled: viewModel.isGameActive && viewModel.gameBoard.gameState == .playing,
+                color: viewModel.isPaused ? .green : .orange
+            ) {
+                viewModel.togglePause()
+            }
+            
+            QuickActionButton(
+                icon: "lightbulb.fill",
+                label: "提示",
+                isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
+                color: .yellow
+            ) {
+                viewModel.showHint()
+            }
+            
+            Text(viewModel.isPaused ? "暂停" : (viewModel.gameBoard.gameState == .playing ? "进行中" : "结束"))
+                .font(.caption2.weight(.semibold))
+                .foregroundColor(viewModel.isPaused ? .orange : (viewModel.gameBoard.gameState == .playing ? .green : .secondary))
+                .padding(.horizontal, 6)
         }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 6)
+        .surfaceCard(radius: 12, fillColor: Color(.secondarySystemBackground).opacity(0.76), shadowOpacity: 0.01)
     }
 }
 
@@ -228,19 +198,19 @@ struct CompactGameStatChip: View {
     let value: String
     
     var body: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: 4) {
             Image(systemName: icon)
                 .font(.caption2)
                 .foregroundColor(iconColor)
             Text(value)
-                .font(.caption.weight(.bold))
+                .font(.caption2.weight(.bold))
                 .monospacedDigit()
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 6)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 5)
         .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color(.systemBackground).opacity(0.82))
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color(.systemBackground).opacity(0.8))
         )
     }
 }
