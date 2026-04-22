@@ -72,14 +72,8 @@ struct GameView: View {
                         .environmentObject(viewModel)
                         .environmentObject(themeManager)
                         .padding(.horizontal, 10)
-                        .padding(.top, 6)
-                        .padding(.bottom, 5)
-
-                    if !viewModel.gameBoard.generationQualityNote.isEmpty && viewModel.challengeMode == .noGuess {
-                        generationBanner
-                            .padding(.horizontal, 10)
-                            .padding(.bottom, 6)
-                    }
+                        .padding(.top, 5)
+                        .padding(.bottom, 3)
                 }
                 
                 GameBoardContainer(boardHeaderReservedHeight: boardHeaderReservedHeight)
@@ -117,9 +111,8 @@ struct GameView: View {
                     hintBanner
                         .padding(.horizontal, 16)
                         .padding(.bottom, 84)
+                        .opacity(0.001)
                 }
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-                .animation(themeManager.enableAnimations ? .easeInOut(duration: 0.18) : nil, value: viewModel.hintMessage)
             }
             
             if !viewModel.boardStatusMessage.isEmpty && !viewModel.showGameOverAlert && !viewModel.showWinAlert {
@@ -128,9 +121,8 @@ struct GameView: View {
                     boardStatusBanner
                         .padding(.horizontal, 16)
                         .padding(.bottom, viewModel.hintMessage.isEmpty ? 64 : 128)
+                        .opacity(0.001)
                 }
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-                .animation(themeManager.enableAnimations ? .easeInOut(duration: 0.16) : nil, value: viewModel.boardStatusMessage)
             }
             
             // 动画效果层

@@ -116,108 +116,91 @@ struct GameBottomControlPanel: View {
     @Binding var showingNewGameConfirmation: Bool
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
                 Text("快速操作")
-                    .font(.subheadline.weight(.bold))
+                    .font(.caption.weight(.bold))
                     .foregroundColor(themeManager.gameTheme == .cyber ? Color(red: 0.18, green: 0.30, blue: 0.42) : .primary)
                 
                 Text(viewModel.isPaused ? "暂停中" : (viewModel.gameBoard.gameState == .playing ? "对局进行中" : "等待下一局"))
-                    .font(.caption.weight(.medium))
+                    .font(.caption2.weight(.medium))
                     .foregroundColor(viewModel.isPaused ? .orange : (viewModel.gameBoard.gameState == .playing ? .green : .secondary))
                 
                 Spacer(minLength: 0)
             }
             
-            VStack(alignment: .leading, spacing: 8) {
-                Text("主操作")
-                    .font(.caption2.weight(.semibold))
-                    .foregroundColor(.secondary)
-                
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 7) {
-                        QuickActionButton(
-                            icon: "arrow.clockwise",
-                            label: "新局",
-                            isEnabled: true,
-                            color: .blue
-                        ) {
-                            if viewModel.isGameActive {
-                                showingNewGameConfirmation = true
-                            } else {
-                                viewModel.newGame()
-                            }
-                        }
-                        
-                        QuickActionButton(
-                            icon: "arrow.uturn.backward",
-                            label: "撤销",
-                            isEnabled: viewModel.canUndo && viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
-                            color: .indigo
-                        ) {
-                            viewModel.undo()
-                        }
-                        
-                        QuickActionButton(
-                            icon: viewModel.isPaused ? "play.fill" : "pause.fill",
-                            label: viewModel.isPaused ? "继续" : "暂停",
-                            isEnabled: viewModel.isGameActive && viewModel.gameBoard.gameState == .playing,
-                            color: viewModel.isPaused ? .green : .orange
-                        ) {
-                            viewModel.togglePause()
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 7) {
+                    QuickActionButton(
+                        icon: "arrow.clockwise",
+                        label: "新局",
+                        isEnabled: true,
+                        color: .blue
+                    ) {
+                        if viewModel.isGameActive {
+                            showingNewGameConfirmation = true
+                        } else {
+                            viewModel.newGame()
                         }
                     }
-                    .padding(.vertical, 1)
-                }
-            }
-            
-            VStack(alignment: .leading, spacing: 8) {
-                Text("辅助操作")
-                    .font(.caption2.weight(.semibold))
-                    .foregroundColor(.secondary)
-                
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 7) {
-                        QuickActionButton(
-                            icon: "lightbulb.fill",
-                            label: "提示",
-                            isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
-                            color: .yellow
-                        ) {
-                            viewModel.showHint()
-                        }
-                        
-                        QuickActionButton(
-                            icon: "wave.3.right.circle.fill",
-                            label: "扫描",
-                            isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused && viewModel.scanUsesRemaining > 0,
-                            color: .cyan
-                        ) {
-                            viewModel.activateScanOverlay()
-                        }
-                        
-                        QuickActionButton(
-                            icon: "point.3.filled.connected.trianglepath.dotted",
-                            label: "链路",
-                            isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
-                            color: .mint
-                        ) {
-                            viewModel.activateLogicChainHighlight()
-                        }
+                    
+                    QuickActionButton(
+                        icon: "arrow.uturn.backward",
+                        label: "撤销",
+                        isEnabled: viewModel.canUndo && viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
+                        color: .indigo
+                    ) {
+                        viewModel.undo()
                     }
-                    .padding(.vertical, 1)
+                    
+                    QuickActionButton(
+                        icon: viewModel.isPaused ? "play.fill" : "pause.fill",
+                        label: viewModel.isPaused ? "继续" : "暂停",
+                        isEnabled: viewModel.isGameActive && viewModel.gameBoard.gameState == .playing,
+                        color: viewModel.isPaused ? .green : .orange
+                    ) {
+                        viewModel.togglePause()
+                    }
+                    
+                    QuickActionButton(
+                        icon: "lightbulb.fill",
+                        label: "提示",
+                        isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
+                        color: .yellow
+                    ) {
+                        viewModel.showHint()
+                    }
+                    
+                    QuickActionButton(
+                        icon: "wave.3.right.circle.fill",
+                        label: "扫描",
+                        isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused && viewModel.scanUsesRemaining > 0,
+                        color: .cyan
+                    ) {
+                        viewModel.activateScanOverlay()
+                    }
+                    
+                    QuickActionButton(
+                        icon: "point.3.filled.connected.trianglepath.dotted",
+                        label: "链路",
+                        isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
+                        color: .mint
+                    ) {
+                        viewModel.activateLogicChainHighlight()
+                    }
                 }
+                .padding(.vertical, 1)
             }
         }
         .padding(.horizontal, 10)
-        .padding(.vertical, 10)
+        .padding(.vertical, 8)
         .surfaceCard(
             radius: 16,
-            fillColor: themeManager.gameTheme == .cyber ? Color.white.opacity(0.58) : Color(.secondarySystemBackground).opacity(0.74),
-            strokeOpacity: themeManager.gameTheme == .cyber ? 0.05 : 0.06,
-            shadowOpacity: themeManager.gameTheme == .cyber ? 0.02 : 0.01,
-            shadowRadius: 16,
-            shadowY: 6
+            fillColor: themeManager.gameTheme == .cyber ? Color.white.opacity(0.52) : Color(.secondarySystemBackground).opacity(0.74),
+            strokeOpacity: themeManager.gameTheme == .cyber ? 0.04 : 0.06,
+            shadowOpacity: themeManager.gameTheme == .cyber ? 0.015 : 0.01,
+            shadowRadius: 12,
+            shadowY: 4
         )
     }
 }
@@ -307,9 +290,9 @@ struct GameBoardContainer: View {
             let spacing: CGFloat = 2
             let totalSpacingX = (cols - 1) * spacing
             let totalSpacingY = (rows - 1) * spacing
-            let boardHeaderHeight: CGFloat = hasBoardInsights ? 84 : 42
+            let boardHeaderHeight: CGFloat = hasBoardInsights ? 112 : 54
             let boardInnerPadding: CGFloat = 6
-            let boardAreaHeight = max(availableHeight - boardHeaderHeight - boardInnerPadding * 2, availableHeight * 0.83)
+            let boardAreaHeight = max(availableHeight - boardHeaderHeight - boardInnerPadding * 2, availableHeight * 0.86)
             let cellWidth = (availableWidth - totalSpacingX - boardInnerPadding * 2) / cols
             let cellHeight = (boardAreaHeight - totalSpacingY) / rows
             let cellSize = min(cellWidth, cellHeight, 112)
@@ -364,11 +347,14 @@ struct GameBoardContainer: View {
     }
     
     private var hasBoardInsights: Bool {
-        viewModel.scanRiskSummary != nil || viewModel.chainSummary != nil
+        viewModel.scanRiskSummary != nil ||
+        viewModel.chainSummary != nil ||
+        (!viewModel.gameBoard.generationQualityNote.isEmpty && viewModel.challengeMode == .noGuess) ||
+        !viewModel.boardStatusMessage.isEmpty
     }
     
     private var boardHeader: some View {
-        VStack(alignment: .leading, spacing: hasBoardInsights ? 9 : 5) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .center, spacing: 10) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(themeManager.gameTheme == .cyber ? "战术棋盘" : "棋盘区")
@@ -398,27 +384,45 @@ struct GameBoardContainer: View {
                 }
             }
             
-            if hasBoardInsights {
-                VStack(spacing: 7) {
-                    if let summary = viewModel.scanRiskSummary {
-                        BoardInsightRow(
-                            icon: "wave.3.right.circle.fill",
-                            title: summary.title,
-                            detail: summary.detail,
-                            accent: summary.tone == .safe ? .green : .cyan,
-                            tag: "SCAN"
-                        )
-                    }
-                    
-                    if let summary = viewModel.chainSummary {
-                        BoardInsightRow(
-                            icon: "point.3.filled.connected.trianglepath.dotted",
-                            title: summary.title,
-                            detail: summary.detail,
-                            accent: .mint,
-                            tag: summary.emphasis
-                        )
-                    }
+            VStack(spacing: 6) {
+                if !viewModel.gameBoard.generationQualityNote.isEmpty && viewModel.challengeMode == .noGuess {
+                    BoardInsightRow(
+                        icon: viewModel.gameBoard.generationQualityNote.contains("严格") ? "shield.checkered" : "wand.and.stars",
+                        title: "盘面质量",
+                        detail: viewModel.gameBoard.generationQualityNote,
+                        accent: viewModel.gameBoard.generationQualityNote.contains("严格") ? .green : .orange,
+                        tag: "NO-GUESS"
+                    )
+                }
+                
+                if let summary = viewModel.scanRiskSummary {
+                    BoardInsightRow(
+                        icon: "wave.3.right.circle.fill",
+                        title: summary.title,
+                        detail: summary.detail,
+                        accent: summary.tone == .safe ? .green : .cyan,
+                        tag: "SCAN"
+                    )
+                }
+                
+                if let summary = viewModel.chainSummary {
+                    BoardInsightRow(
+                        icon: "point.3.filled.connected.trianglepath.dotted",
+                        title: summary.title,
+                        detail: summary.detail,
+                        accent: .mint,
+                        tag: summary.emphasis
+                    )
+                }
+                
+                if !viewModel.boardStatusMessage.isEmpty {
+                    BoardInsightRow(
+                        icon: boardStatusIcon,
+                        title: viewModel.boardStatusMessage,
+                        detail: viewModel.boardStatusDetail.isEmpty ? "继续沿当前节奏推进。" : viewModel.boardStatusDetail,
+                        accent: boardStatusColor,
+                        tag: nil
+                    )
                 }
             }
         }
@@ -469,16 +473,16 @@ struct BoardInsightRow: View {
             Image(systemName: icon)
                 .font(.caption.weight(.bold))
                 .foregroundColor(accent)
-                .frame(width: 20)
+                .frame(width: 18)
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 1) {
                 Text(title)
                     .font(.caption.weight(.semibold))
                     .lineLimit(1)
                 Text(detail)
                     .font(.caption2)
                     .foregroundColor(.secondary)
-                    .lineLimit(2)
+                    .lineLimit(1)
             }
             
             Spacer(minLength: 4)
@@ -494,14 +498,14 @@ struct BoardInsightRow: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 8)
-        .padding(.vertical, 7)
+        .padding(.vertical, 6)
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.white.opacity(themeManager.gameTheme == .cyber ? 0.58 : 0.48))
+            RoundedRectangle(cornerRadius: 11, style: .continuous)
+                .fill(Color.white.opacity(themeManager.gameTheme == .cyber ? 0.54 : 0.46))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(accent.opacity(themeManager.gameTheme == .cyber ? 0.18 : 0.10), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 11, style: .continuous)
+                .stroke(accent.opacity(themeManager.gameTheme == .cyber ? 0.16 : 0.10), lineWidth: 1)
         )
     }
 }
