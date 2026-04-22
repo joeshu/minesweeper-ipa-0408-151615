@@ -255,10 +255,17 @@ struct GameView: View {
                         .foregroundColor(boardStatusColor)
                 )
             
-            Text(viewModel.boardStatusMessage)
-                .font(.caption.weight(.semibold))
-                .foregroundColor(.primary)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(viewModel.boardStatusMessage)
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(.primary)
+                if !viewModel.boardStatusDetail.isEmpty {
+                    Text(viewModel.boardStatusDetail)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 8)

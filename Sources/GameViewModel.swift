@@ -34,6 +34,7 @@ class GameViewModel: ObservableObject {
     @Published var challengeSecondsRemaining: Int = 0
     @Published var interactionLockUntil: Date? = nil
     @Published var boardStatusMessage: String = ""
+    @Published var boardStatusDetail: String = ""
     @Published var boardStatusTone: BoardStatusTone = .neutral
     @Published var newlyUnlockedAchievements: [Achievement] = []
     
@@ -62,6 +63,24 @@ class GameViewModel: ObservableObject {
             return Date() < lockUntil
         }
         return false
+    }
+    
+    private var modeStatusTitle: String {
+        switch challengeMode {
+        case .none: return "普通模式已开始"
+        case .daily: return "每日挑战开始"
+        case .timed: return "限时挑战开始"
+        case .noGuess: return "无猜挑战开始"
+        }
+    }
+    
+    private var modeStatusDetail: String {
+        switch challengeMode {
+        case .none: return "先找确定位置。"
+        case .daily: return "今天的成绩只算这张盘。"
+        case .timed: return "优先做确定操作，注意节奏。"
+        case .noGuess: return "优先依靠逻辑链推进。"
+        }
     }
     
     init() {
@@ -261,7 +280,7 @@ class GameViewModel: ObservableObject {
         if !isGameActive {
             startTimer()
             isGameActive = true
-            postBoardStatus("已开始，先找确定位置", tone: .neutral)
+            postBoardStatus(modeStatusTitle, detail: modeStatusDetail, tone: .neutral)
         }
         
         hintPosition = nil
@@ -274,13 +293,13 @@ class GameViewModel: ObservableObject {
         if exploded {
             let position = getCellPosition(row: row, col: col)
             animationManager.triggerExplosion(at: position, in: UIScreen.main.bounds.size)
-            postBoardStatus("踩雷了，先复盘这一步", tone: .danger, lock: 0.35)
+            postBoardStatus("踩雷了", detail: "先复盘这一步，再开下一局。", tone: .danger, lock: 0.35)
         } else {
             let cell = gameBoard.cells[row][col]
             if cell.neighborMines == 0 {
-                postBoardStatus("已自动扩展空白区域", tone: .positive, lock: 0.08)
+                postBoardStatus("已扩展空白区", detail: "继续沿着新信息推进。", tone: .positive, lock: 0.08)
             } else {
-                postBoardStatus("已翻开安全格", tone: .neutral, lock: 0.05)
+                postBoardStatus("已翻开安全格", detail: "继续找确定解。", tone: .neutral, lock: 0.05)
             }
         }
         
@@ -307,7 +326,12 @@ class GameViewModel: ObservableObject {
         gameBoard.toggleFlag(row: row, col: col)
         soundManager.playFlag()
         hapticManager.cellFlagged()
-        postBoardStatus(wasFlagged ? "已取消标记" : "已标记疑似雷区", tone: .warning, lock: 0.06)
+        postBoardStatus(
+            wasFlagged ? "已取消标记" : "已标记疑似雷区",
+            detail: wasFlagged ? "重新判断这块区域。" : "继续核对周围数字。",
+            tone: .warning,
+            lock: 0.06
+        )
         
         if isGameActive {
             autoSave()
@@ -327,9 +351,9 @@ class GameViewModel: ObservableObject {
         if exploded {
             let position = getCellPosition(row: row, col: col)
             animationManager.triggerExplosion(at: position, in: UIScreen.main.bounds.size)
-            postBoardStatus("快开失败，附近判断有误", tone: .danger, lock: 0.35)
+            postBoardStatus("快开失败", detail: "附近判断有误。", tone: .danger, lock: 0.35)
         } else {
-            postBoardStatus("已执行快开", tone: .positive, lock: 0.08)
+            postBoardStatus("已执行快开", detail: "周围已满足条件。", tone: .positive, lock: 0.08)
         }
         
         soundManager.playClick()
@@ -361,7 +385,7 @@ class GameViewModel: ObservableObject {
         canUndo = gameStateManager.canUndo
         hintPosition = nil
         isShowingHint = false
-        postBoardStatus("已撤销上一步", tone: .neutral, lock: 0.05)
+        postBoardStatus("已撤销上一步", detail: "可以重新判断当前局面。", tone: .neutral, lock: 0.05)
         
         hapticManager.impact(.light)
     }
@@ -511,8 +535,9 @@ class GameViewModel: ObservableObject {
         return false
     }
     
-    private func postBoardStatus(_ message: String, tone: BoardStatusTone, lock: TimeInterval = 0) {
+    private func postBoardStatus(_ message: String, detail: String = "", tone: BoardStatusTone, lock: TimeInterval = 0) {
         boardStatusMessage = message
+        boardStatusDetail = detail
         boardStatusTone = tone
         interactionLockUntil = lock > 0 ? Date().addingTimeInterval(lock) : nil
         
@@ -523,6 +548,19 @@ class GameViewModel: ObservableObject {
                     self.interactionLockUntil = nil
                 }
             }
+        }
+    }
+
+    private func modeCompletionDetail(for result: GameRecord.GameResult) -> String {
+        switch (challengeMode, result) {
+        case (.none, .won): return "节奏很稳，继续保持。"
+        case (.none, .lost): return "复盘这一步，下一局很快能追回来。"
+        case (.daily, .won): return "今日挑战已完成。"
+        case (.daily, .lost): return "今日挑战未过，稍后再试一次。"
+        case (.timed, .won): return "你稳住了节奏和判断。"
+        case (.timed, .lost): return "限时模式里优先做确定操作。"
+        case (.noGuess, .won): return "无猜链路跑通了，判断很干净。"
+        case (.noGuess, .lost): return "回到信息链，别急着赌。"
         }
     }
 
@@ -591,6 +629,7 @@ class GameViewModel: ObservableObject {
             stopTimer()
             soundManager.playWin()
             hapticManager.gameWon()
+            postBoardStatus("本局胜利", detail: modeCompletionDetail(for: .won), tone: .positive)
             showWinAlert = true
             isGameActive = false
             
@@ -622,6 +661,7 @@ class GameViewModel: ObservableObject {
             stopTimer()
             soundManager.playLose()
             hapticManager.gameLost()
+            postBoardStatus("本局失败", detail: modeCompletionDetail(for: .lost), tone: .danger)
             showGameOverAlert = true
             isGameActive = false
             
