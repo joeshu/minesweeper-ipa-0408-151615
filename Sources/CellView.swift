@@ -94,6 +94,19 @@ struct CellView: View {
     }
     
     private var scanOverlayColor: Color {
+        if themeManager.gameTheme == .cyber {
+            if cell.isMine {
+                return Color(red: 1.0, green: 0.54, blue: 0.56).opacity(0.18)
+            }
+            if cell.neighborMines >= 3 {
+                return Color(red: 0.98, green: 0.76, blue: 0.32).opacity(0.16)
+            }
+            if cell.neighborMines >= 1 {
+                return Color(red: 0.38, green: 0.86, blue: 0.96).opacity(0.13)
+            }
+            return Color(red: 0.64, green: 0.94, blue: 1.0).opacity(0.10)
+        }
+        
         if cell.isMine {
             return Color.red.opacity(0.18)
         }
@@ -113,7 +126,7 @@ struct CellView: View {
         case .flagged:
             return themeManager.gameTheme.cellFlaggedColor
         case .questioned:
-            return themeManager.gameTheme == .graphite ? Color(red: 0.42, green: 0.35, blue: 0.72).opacity(0.28) : Color.purple.opacity(0.2)
+            return themeManager.gameTheme == .graphite ? Color(red: 0.42, green: 0.35, blue: 0.72).opacity(0.28) : (themeManager.gameTheme == .cyber ? Color(red: 0.64, green: 0.58, blue: 0.96).opacity(0.22) : Color.purple.opacity(0.2))
         case .exploded:
             return themeManager.gameTheme.cellExplodedColor
         case .revealed:
@@ -130,18 +143,18 @@ struct CellView: View {
         case .revealed where !cell.isMine && cell.neighborMines > 0:
             return themeManager.colorForNumber(cell.neighborMines)
         case .flagged:
-            return themeManager.gameTheme == .graphite ? Color(red: 0.89, green: 0.28, blue: 0.24) : .red
+            return themeManager.gameTheme == .graphite ? Color(red: 0.89, green: 0.28, blue: 0.24) : (themeManager.gameTheme == .cyber ? Color(red: 0.92, green: 0.30, blue: 0.48) : .red)
         case .questioned:
-            return themeManager.gameTheme == .graphite ? Color(red: 0.70, green: 0.62, blue: 0.98) : .purple
+            return themeManager.gameTheme == .graphite ? Color(red: 0.70, green: 0.62, blue: 0.98) : (themeManager.gameTheme == .cyber ? Color(red: 0.48, green: 0.42, blue: 0.88) : .purple)
         default:
-            return themeManager.gameTheme == .graphite ? Color.white.opacity(0.92) : .primary
+            return themeManager.gameTheme == .graphite ? Color.white.opacity(0.92) : (themeManager.gameTheme == .cyber ? Color(red: 0.16, green: 0.24, blue: 0.36) : .primary)
         }
     }
     
     private var shadowColor: Color {
         switch cell.state {
         case .revealed where !cell.isMine && cell.neighborMines > 0:
-            return themeManager.colorForNumber(cell.neighborMines).opacity(themeManager.gameTheme == .graphite ? 0.18 : 0.3)
+            return themeManager.colorForNumber(cell.neighborMines).opacity(themeManager.gameTheme == .graphite ? 0.18 : (themeManager.gameTheme == .cyber ? 0.16 : 0.3))
         default:
             return .clear
         }
