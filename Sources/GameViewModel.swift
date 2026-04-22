@@ -95,7 +95,7 @@ class GameViewModel: ObservableObject {
         }
     }
     
-    private var modeProtocolLabel: String {
+    var modeProtocolLabel: String {
         switch challengeMode {
         case .none: return "CIVIL-SCAN"
         case .daily: return "DAILY-OPS"
