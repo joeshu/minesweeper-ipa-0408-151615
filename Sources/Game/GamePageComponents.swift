@@ -11,7 +11,7 @@ struct GameTopStatusBar: View {
     let modeBadgeColor: Color
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top, spacing: 14) {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 9) {
@@ -26,12 +26,13 @@ struct GameTopStatusBar: View {
                         
                         Text(themeManager.gameTheme == .cyber ? "TACTICAL COMMAND" : "对局状态")
                             .font(.system(size: 10.5, weight: .bold, design: .rounded))
-                            .foregroundColor(themeManager.gameTheme == .cyber ? Color(red: 0.28, green: 0.66, blue: 0.88) : .secondary)
+                            .foregroundColor(themeManager.gameTheme == .cyber ? Color(red: 0.24, green: 0.55, blue: 0.76) : .secondary)
                     }
                     
                     HStack(alignment: .firstTextBaseline, spacing: 10) {
                         Text(statusTitle)
                             .font(.title2.weight(.bold))
+                            .foregroundColor(themeManager.gameTheme == .cyber ? Color(red: 0.14, green: 0.22, blue: 0.32) : .primary)
                         Text(progressText)
                             .font(.caption.weight(.semibold))
                             .foregroundColor(statusColor)
@@ -42,7 +43,7 @@ struct GameTopStatusBar: View {
                     
                     Text(statusSubtitle)
                         .font(themeManager.gameTheme == .cyber ? .system(size: 12.5, weight: .medium, design: .rounded) : .subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(themeManager.gameTheme == .cyber ? Color(red: 0.40, green: 0.50, blue: 0.60) : .secondary)
                         .lineLimit(2)
                 }
                 
@@ -115,11 +116,11 @@ struct GameBottomControlPanel: View {
     @Binding var showingNewGameConfirmation: Bool
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 9) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 6) {
                 Text("快速操作")
                     .font(.subheadline.weight(.bold))
-                    .foregroundColor(themeManager.gameTheme == .cyber ? Color(red: 0.20, green: 0.34, blue: 0.46) : .primary)
+                    .foregroundColor(themeManager.gameTheme == .cyber ? Color(red: 0.18, green: 0.30, blue: 0.42) : .primary)
                 
                 Text(viewModel.isPaused ? "暂停中" : (viewModel.gameBoard.gameState == .playing ? "对局进行中" : "等待下一局"))
                     .font(.caption.weight(.medium))
@@ -128,67 +129,84 @@ struct GameBottomControlPanel: View {
                 Spacer(minLength: 0)
             }
             
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 7) {
-                    QuickActionButton(
-                        icon: "arrow.clockwise",
-                        label: "新局",
-                        isEnabled: true,
-                        color: .blue
-                    ) {
-                        if viewModel.isGameActive {
-                            showingNewGameConfirmation = true
-                        } else {
-                            viewModel.newGame()
+            VStack(alignment: .leading, spacing: 8) {
+                Text("主操作")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundColor(.secondary)
+                
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 7) {
+                        QuickActionButton(
+                            icon: "arrow.clockwise",
+                            label: "新局",
+                            isEnabled: true,
+                            color: .blue
+                        ) {
+                            if viewModel.isGameActive {
+                                showingNewGameConfirmation = true
+                            } else {
+                                viewModel.newGame()
+                            }
+                        }
+                        
+                        QuickActionButton(
+                            icon: "arrow.uturn.backward",
+                            label: "撤销",
+                            isEnabled: viewModel.canUndo && viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
+                            color: .indigo
+                        ) {
+                            viewModel.undo()
+                        }
+                        
+                        QuickActionButton(
+                            icon: viewModel.isPaused ? "play.fill" : "pause.fill",
+                            label: viewModel.isPaused ? "继续" : "暂停",
+                            isEnabled: viewModel.isGameActive && viewModel.gameBoard.gameState == .playing,
+                            color: viewModel.isPaused ? .green : .orange
+                        ) {
+                            viewModel.togglePause()
                         }
                     }
-                    
-                    QuickActionButton(
-                        icon: "arrow.uturn.backward",
-                        label: "撤销",
-                        isEnabled: viewModel.canUndo && viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
-                        color: .indigo
-                    ) {
-                        viewModel.undo()
-                    }
-                    
-                    QuickActionButton(
-                        icon: viewModel.isPaused ? "play.fill" : "pause.fill",
-                        label: viewModel.isPaused ? "继续" : "暂停",
-                        isEnabled: viewModel.isGameActive && viewModel.gameBoard.gameState == .playing,
-                        color: viewModel.isPaused ? .green : .orange
-                    ) {
-                        viewModel.togglePause()
-                    }
-                    
-                    QuickActionButton(
-                        icon: "lightbulb.fill",
-                        label: "提示",
-                        isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
-                        color: .yellow
-                    ) {
-                        viewModel.showHint()
-                    }
-                    
-                    QuickActionButton(
-                        icon: "wave.3.right.circle.fill",
-                        label: "扫描",
-                        isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused && viewModel.scanUsesRemaining > 0,
-                        color: .cyan
-                    ) {
-                        viewModel.activateScanOverlay()
-                    }
-                    
-                    QuickActionButton(
-                        icon: "point.3.filled.connected.trianglepath.dotted",
-                        label: "链路",
-                        isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
-                        color: .mint
-                    ) {
-                        viewModel.activateLogicChainHighlight()
-                    }
+                    .padding(.vertical, 1)
                 }
-                .padding(.vertical, 1)
+            }
+            
+            VStack(alignment: .leading, spacing: 8) {
+                Text("辅助操作")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundColor(.secondary)
+                
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 7) {
+                        QuickActionButton(
+                            icon: "lightbulb.fill",
+                            label: "提示",
+                            isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
+                            color: .yellow
+                        ) {
+                            viewModel.showHint()
+                        }
+                        
+                        QuickActionButton(
+                            icon: "wave.3.right.circle.fill",
+                            label: "扫描",
+                            isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused && viewModel.scanUsesRemaining > 0,
+                            color: .cyan
+                        ) {
+                            viewModel.activateScanOverlay()
+                        }
+                        
+                        QuickActionButton(
+                            icon: "point.3.filled.connected.trianglepath.dotted",
+                            label: "链路",
+                            isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused,
+                            color: .mint
+                        ) {
+                            viewModel.activateLogicChainHighlight()
+                        }
+                    }
+                    .padding(.vertical, 1)
+                }
             }
         }
         .padding(.horizontal, 10)
@@ -350,25 +368,26 @@ struct GameBoardContainer: View {
     }
     
     private var boardHeader: some View {
-        VStack(alignment: .leading, spacing: hasBoardInsights ? 10 : 6) {
-            HStack(alignment: .top, spacing: 10) {
-                VStack(alignment: .leading, spacing: 3) {
+        VStack(alignment: .leading, spacing: hasBoardInsights ? 9 : 5) {
+            HStack(alignment: .center, spacing: 10) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text(themeManager.gameTheme == .cyber ? "战术棋盘" : "棋盘区")
                         .font(.caption.weight(.bold))
+                        .foregroundColor(themeManager.gameTheme == .cyber ? Color(red: 0.20, green: 0.38, blue: 0.54) : .primary)
                     if themeManager.gameTheme == .cyber {
                         Text("AURORA GRID")
                             .font(.system(size: 9.5, weight: .semibold, design: .rounded))
-                            .foregroundColor(Color(red: 0.28, green: 0.66, blue: 0.88))
+                            .foregroundColor(Color(red: 0.32, green: 0.62, blue: 0.82))
                     }
                 }
                 
                 Spacer(minLength: 0)
                 
-                HStack(spacing: 7) {
+                HStack(spacing: 6) {
                     BoardMetaChip(
                         title: "尺寸",
                         value: "\(viewModel.gameBoard.rows)×\(viewModel.gameBoard.cols)",
-                        accent: themeManager.gameTheme == .cyber ? Color(red: 0.28, green: 0.74, blue: 0.94) : .secondary
+                        accent: themeManager.gameTheme == .cyber ? Color(red: 0.30, green: 0.68, blue: 0.88) : .secondary
                     )
                     
                     BoardMetaChip(
@@ -380,7 +399,7 @@ struct GameBoardContainer: View {
             }
             
             if hasBoardInsights {
-                HStack(spacing: 8) {
+                VStack(spacing: 7) {
                     if let summary = viewModel.scanRiskSummary {
                         BoardInsightRow(
                             icon: "wave.3.right.circle.fill",
