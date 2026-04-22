@@ -132,6 +132,15 @@ struct GameView: View {
                 .animation(themeManager.enableAnimations ? .easeInOut(duration: 0.16) : nil, value: viewModel.boardStatusMessage)
             }
             
+            if let assessment = viewModel.tacticalAssessment, (viewModel.showGameOverAlert || viewModel.showWinAlert) {
+                VStack {
+                    Spacer(minLength: 0)
+                    tacticalAssessmentBanner(assessment)
+                        .padding(.horizontal, 14)
+                        .padding(.bottom, 24)
+                }
+            }
+            
             // 动画效果层
             ExplosionEffectView()
             ConfettiEffectView()
@@ -292,7 +301,44 @@ struct GameView: View {
         )
     }
 
-    private var boardStatusColor: Color {
+    private func tacticalAssessmentBanner(_ assessment: TacticalAssessment) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text("任务评估 · \(assessment.grade)")
+                    .font(.caption.weight(.bold))
+                    .foregroundColor(colorFromHex(assessment.gradeColorHex))
+                Spacer(minLength: 0)
+                Text(assessment.title)
+                    .font(.caption2.weight(.semibold))
+                    .foregroundColor(.secondary)
+            }
+            Text(assessment.detail)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color(.secondarySystemBackground))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(colorFromHex(assessment.gradeColorHex).opacity(0.22), lineWidth: 1)
+                )
+        )
+    }
+
+    private func colorFromHex(_ hex: String) -> Color {
+        switch hex {
+        case "#47F5FF": return Color.cyan
+        case "#7CFF8E": return Color.green
+        case "#FFD25E": return Color.orange
+        case "#FF9B5E": return Color.orange.opacity(0.9)
+        case "#FF5E7A": return Color.red
+        default: return .blue
+        }
+    }
+
         switch viewModel.boardStatusTone {
         case .neutral: return .blue
         case .positive: return .green

@@ -6,12 +6,21 @@ struct DailyChallengeStatus: Codable {
     let completed: Bool
 }
 
+struct TacticalAssessment {
+    let title: String
+    let detail: String
+    let grade: String
+    let gradeColorHex: String
+}
+
 struct HintDescriptor {
     enum Kind {
         case safe
         case flag
         case risky
         case none
+        case chain
+        case scan
     }
     
     let position: (row: Int, col: Int)?

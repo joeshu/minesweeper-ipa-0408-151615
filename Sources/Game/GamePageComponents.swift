@@ -2,6 +2,7 @@ import SwiftUI
 
 struct GameTopStatusBar: View {
     @EnvironmentObject var viewModel: GameViewModel
+    @EnvironmentObject var themeManager: ThemeManager
     
     let statusTitle: String
     let statusSubtitle: String
@@ -38,6 +39,14 @@ struct GameTopStatusBar: View {
                 iconColor: viewModel.challengeMode == .timed ? .orange : .blue,
                 value: viewModel.challengeMode == .timed ? "\(viewModel.challengeSecondsRemaining)s" : viewModel.formattedTime
             )
+            
+            if viewModel.scanUsesRemaining > 0 {
+                CompactGameStatChip(
+                    icon: "wave.3.right.circle.fill",
+                    iconColor: .cyan,
+                    value: "\(viewModel.scanUsesRemaining)"
+                )
+            }
             
             Spacer(minLength: 0)
             
@@ -96,6 +105,15 @@ struct GameBottomControlPanel: View {
                 color: .yellow
             ) {
                 viewModel.showHint()
+            }
+            
+            QuickActionButton(
+                icon: "wave.3.right.circle.fill",
+                label: "扫描",
+                isEnabled: viewModel.gameBoard.gameState == .playing && !viewModel.isPaused && viewModel.scanUsesRemaining > 0,
+                color: .cyan
+            ) {
+                viewModel.activateScanOverlay()
             }
             
             Text(viewModel.isPaused ? "暂停" : (viewModel.gameBoard.gameState == .playing ? "进行中" : "结束"))
