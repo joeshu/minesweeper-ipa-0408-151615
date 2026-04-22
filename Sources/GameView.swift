@@ -116,7 +116,7 @@ struct GameView: View {
                     Spacer(minLength: 0)
                     hintBanner
                         .padding(.horizontal, 16)
-                        .padding(.bottom, 18)
+                        .padding(.bottom, 84)
                 }
                 .transition(.move(edge: .bottom).combined(with: .opacity))
                 .animation(themeManager.enableAnimations ? .easeInOut(duration: 0.18) : nil, value: viewModel.hintMessage)
@@ -126,8 +126,8 @@ struct GameView: View {
                 VStack {
                     Spacer(minLength: 0)
                     boardStatusBanner
-                        .padding(.horizontal, 14)
-                        .padding(.bottom, viewModel.hintMessage.isEmpty ? 12 : 70)
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, viewModel.hintMessage.isEmpty ? 64 : 128)
                 }
                 .transition(.move(edge: .bottom).combined(with: .opacity))
                 .animation(themeManager.enableAnimations ? .easeInOut(duration: 0.16) : nil, value: viewModel.boardStatusMessage)
@@ -226,46 +226,48 @@ struct GameView: View {
     }
     
     private var hintBanner: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 9) {
             ZStack {
                 Circle()
-                    .fill(hintColor.opacity(0.18))
-                    .frame(width: 30, height: 30)
+                    .fill(hintColor.opacity(0.16))
+                    .frame(width: 24, height: 24)
                 Image(systemName: hintIcon)
                     .foregroundColor(hintColor)
-                    .font(.footnote.weight(.bold))
+                    .font(.caption.weight(.bold))
             }
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 1) {
                 Text(hintTitle)
-                    .font(.caption.weight(.semibold))
+                    .font(.caption2.weight(.semibold))
                     .foregroundColor(hintColor)
                 Text(viewModel.hintMessage)
-                    .font(.subheadline)
+                    .font(.caption.weight(.semibold))
                     .foregroundColor(.primary)
+                    .lineLimit(2)
             }
-            Spacer()
+            Spacer(minLength: 0)
         }
-        .padding(12)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 9)
         .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(Color(.secondarySystemBackground))
+            RoundedRectangle(cornerRadius: 13)
+                .fill(Color(.secondarySystemBackground).opacity(0.96))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 14)
-                        .stroke(hintColor.opacity(0.35), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 13)
+                        .stroke(hintColor.opacity(0.24), lineWidth: 1)
                 )
-                .shadow(color: hintColor.opacity(0.08), radius: 6, x: 0, y: 2)
+                .shadow(color: hintColor.opacity(0.06), radius: 5, x: 0, y: 2)
         )
     }
     
     private var boardStatusBanner: some View {
         HStack(spacing: 8) {
             Circle()
-                .fill(boardStatusColor.opacity(0.18))
-                .frame(width: 18, height: 18)
+                .fill(boardStatusColor.opacity(0.16))
+                .frame(width: 16, height: 16)
                 .overlay(
                     Image(systemName: boardStatusIcon)
-                        .font(.caption2.weight(.bold))
+                        .font(.system(size: 8, weight: .bold))
                         .foregroundColor(boardStatusColor)
                 )
             
@@ -273,22 +275,24 @@ struct GameView: View {
                 Text(viewModel.boardStatusMessage)
                     .font(.caption.weight(.semibold))
                     .foregroundColor(.primary)
+                    .lineLimit(1)
                 if !viewModel.boardStatusDetail.isEmpty {
                     Text(viewModel.boardStatusDetail)
                         .font(.caption2)
                         .foregroundColor(.secondary)
+                        .lineLimit(1)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.horizontal, 10)
-        .padding(.vertical, 8)
+        .padding(.vertical, 7)
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+            RoundedRectangle(cornerRadius: 11)
+                .fill(Color(.secondarySystemBackground).opacity(0.96))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(boardStatusColor.opacity(0.18), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 11)
+                        .stroke(boardStatusColor.opacity(0.14), lineWidth: 1)
                 )
         )
     }
