@@ -11,33 +11,50 @@ struct GameTopStatusBar: View {
     let modeBadgeColor: Color
     
     var body: some View {
-        HStack(alignment: .center, spacing: 10) {
-            VStack(alignment: .leading, spacing: 5) {
-                HStack(spacing: 7) {
-                    Circle()
-                        .fill(statusColor.opacity(0.18))
-                        .frame(width: 9, height: 9)
-                        .overlay(
-                            Circle()
-                                .fill(statusColor)
-                                .frame(width: 5, height: 5)
-                        )
-                    Text(statusTitle)
-                        .font(.subheadline.weight(.bold))
-                    Text(progressText)
-                        .font(.caption.weight(.semibold))
-                        .foregroundColor(statusColor)
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 8) {
+                        Circle()
+                            .fill(statusColor.opacity(0.18))
+                            .frame(width: 10, height: 10)
+                            .overlay(
+                                Circle()
+                                    .fill(statusColor)
+                                    .frame(width: 5, height: 5)
+                            )
+                        
+                        Text(themeManager.gameTheme == .cyber ? "TACTICAL COMMAND" : "对局状态")
+                            .font(.system(size: 10, weight: .bold, design: .rounded))
+                            .foregroundColor(themeManager.gameTheme == .cyber ? Color(red: 0.28, green: 0.66, blue: 0.88) : .secondary)
+                    }
+                    
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Text(statusTitle)
+                            .font(.title3.weight(.bold))
+                        Text(progressText)
+                            .font(.caption.weight(.semibold))
+                            .foregroundColor(statusColor)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 5)
+                            .background(Capsule().fill(statusColor.opacity(0.12)))
+                    }
+                    
+                    Text(statusSubtitle)
+                        .font(themeManager.gameTheme == .cyber ? .system(size: 12, weight: .medium, design: .rounded) : .caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(2)
                 }
                 
-                Text(statusSubtitle)
-                    .font(themeManager.gameTheme == .cyber ? .system(size: 11, weight: .medium, design: .rounded) : .caption)
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
+                Spacer(minLength: 0)
+                
+                ModeBadge(
+                    title: viewModel.modeProtocolLabel,
+                    color: modeBadgeColor
+                )
             }
             
-            Spacer(minLength: 0)
-            
-            HStack(spacing: 6) {
+            HStack(spacing: 8) {
                 CompactGameStatChip(
                     icon: "flag.fill",
                     iconColor: .red,
@@ -58,17 +75,14 @@ struct GameTopStatusBar: View {
                     )
                 }
                 
-                ModeBadge(
-                    title: viewModel.modeProtocolLabel,
-                    color: modeBadgeColor
-                )
+                Spacer(minLength: 0)
             }
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 12)
         .background(cardBackground)
         .overlay(cardOverlay)
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
     
     @ViewBuilder
@@ -76,22 +90,22 @@ struct GameTopStatusBar: View {
         if themeManager.gameTheme == .cyber {
             LinearGradient(
                 colors: [
-                    Color.white.opacity(0.9),
-                    Color(red: 0.88, green: 0.96, blue: 1.0).opacity(0.94)
+                    Color.white.opacity(0.94),
+                    Color(red: 0.88, green: 0.96, blue: 1.0).opacity(0.96)
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
         } else {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color(.secondarySystemBackground).opacity(0.74))
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(.secondarySystemBackground).opacity(0.78))
         }
     }
     
     @ViewBuilder
     private var cardOverlay: some View {
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .stroke(themeManager.gameTheme == .cyber ? Color(red: 0.34, green: 0.74, blue: 0.94).opacity(0.22) : Color.primary.opacity(0.04), lineWidth: 1)
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .stroke(themeManager.gameTheme == .cyber ? Color(red: 0.34, green: 0.74, blue: 0.94).opacity(0.24) : Color.primary.opacity(0.05), lineWidth: 1)
     }
 }
 
@@ -448,24 +462,30 @@ struct BoardInsightRow: View {
 }
 
 struct CompactGameStatChip: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    
     let icon: String
     let iconColor: Color
     let value: String
     
     var body: some View {
-        HStack(spacing: 3) {
+        HStack(spacing: 4) {
             Image(systemName: icon)
-                .font(.caption2)
+                .font(.caption2.weight(.semibold))
                 .foregroundColor(iconColor)
             Text(value)
-                .font(.caption2.weight(.bold))
+                .font(.caption.weight(.bold))
                 .monospacedDigit()
         }
-        .padding(.horizontal, 5)
-        .padding(.vertical, 4)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
         .background(
-            RoundedRectangle(cornerRadius: 7)
-                .fill(Color(.systemBackground).opacity(0.78))
+            RoundedRectangle(cornerRadius: 9, style: .continuous)
+                .fill(themeManager.gameTheme == .cyber ? Color.white.opacity(0.72) : Color(.systemBackground).opacity(0.82))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 9, style: .continuous)
+                .stroke(Color.primary.opacity(themeManager.gameTheme == .cyber ? 0.06 : 0.04), lineWidth: 1)
         )
     }
 }

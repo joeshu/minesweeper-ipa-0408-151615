@@ -66,13 +66,13 @@ struct GameView: View {
                     )
                     .environmentObject(viewModel)
                     .padding(.horizontal, 10)
-                    .padding(.top, 6)
+                    .padding(.top, 5)
                     
                     GameBottomControlPanel(showingNewGameConfirmation: $showingNewGameConfirmation)
                         .environmentObject(viewModel)
                         .padding(.horizontal, 10)
-                        .padding(.top, 8)
-                        .padding(.bottom, 6)
+                        .padding(.top, 6)
+                        .padding(.bottom, 5)
 
                     if !viewModel.gameBoard.generationQualityNote.isEmpty && viewModel.challengeMode == .noGuess {
                         generationBanner
