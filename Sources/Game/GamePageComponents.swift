@@ -429,6 +429,24 @@ struct GameBoardContainer: View {
         .padding(.horizontal, 2)
     }
     
+    private var boardStatusColor: Color {
+        switch viewModel.boardStatusTone {
+        case .neutral: return .blue
+        case .positive: return .green
+        case .warning: return .orange
+        case .danger: return .red
+        }
+    }
+    
+    private var boardStatusIcon: String {
+        switch viewModel.boardStatusTone {
+        case .neutral: return "circle.fill"
+        case .positive: return "checkmark"
+        case .warning: return "flag.fill"
+        case .danger: return "xmark"
+        }
+    }
+    
     @ViewBuilder
     private var boardSurface: some View {
         RoundedRectangle(cornerRadius: 24, style: .continuous)
