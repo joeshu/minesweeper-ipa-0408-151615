@@ -12,7 +12,7 @@ struct GameTopStatusBar: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .top, spacing: 14) {
+            HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 9) {
                         Circle()
@@ -45,62 +45,42 @@ struct GameTopStatusBar: View {
                         .font(themeManager.gameTheme == .cyber ? .system(size: 12.5, weight: .medium, design: .rounded) : .subheadline)
                         .foregroundColor(themeManager.gameTheme == .cyber ? Color(red: 0.40, green: 0.50, blue: 0.60) : .secondary)
                         .lineLimit(2)
-                }
-                
-                Spacer(minLength: 0)
-                
-                ModeBadge(
-                    title: viewModel.modeProtocolLabel,
-                    color: modeBadgeColor
-                )
-            }
-            
-            HStack(spacing: 10) {
-                CompactGameStatChip(
-                    icon: "flag.fill",
-                    iconColor: .red,
-                    value: "\(viewModel.remainingMines)"
-                )
-                
-                CompactGameStatChip(
-                    icon: viewModel.challengeMode == .timed ? "timer" : "clock",
-                    iconColor: viewModel.challengeMode == .timed ? .orange : .blue,
-                    value: viewModel.challengeMode == .timed ? "\(viewModel.challengeSecondsRemaining)s" : viewModel.formattedTime
-                )
-                
-                if viewModel.scanUsesRemaining > 0 {
-                    CompactGameStatChip(
-                        icon: "wave.3.right.circle.fill",
-                        iconColor: .cyan,
-                        value: "\(viewModel.scanUsesRemaining)"
-                    )
-                }
-                
-                Spacer(minLength: 0)
-            }
-            
-            if hasTopStatusInsights {
-                VStack(spacing: 6) {
-                    if !viewModel.gameBoard.generationQualityNote.isEmpty && viewModel.challengeMode == .noGuess {
-                        TopStatusInsightRow(
-                            icon: viewModel.gameBoard.generationQualityNote.contains("严格") ? "shield.checkered" : "wand.and.stars",
-                            title: "盘面质量",
-                            detail: viewModel.gameBoard.generationQualityNote,
-                            accent: viewModel.gameBoard.generationQualityNote.contains("严格") ? .green : .orange,
-                            tag: "NO-GUESS"
-                        )
-                    }
                     
-                    if !viewModel.boardStatusMessage.isEmpty {
-                        TopStatusInsightRow(
-                            icon: boardStatusIcon,
-                            title: viewModel.boardStatusMessage,
-                            detail: viewModel.boardStatusDetail.isEmpty ? "继续沿当前节奏推进。" : viewModel.boardStatusDetail,
-                            accent: boardStatusColor,
-                            tag: nil
+                    HStack(spacing: 10) {
+                        CompactGameStatChip(
+                            icon: "flag.fill",
+                            iconColor: .red,
+                            value: "\(viewModel.remainingMines)"
                         )
+                        
+                        CompactGameStatChip(
+                            icon: viewModel.challengeMode == .timed ? "timer" : "clock",
+                            iconColor: viewModel.challengeMode == .timed ? .orange : .blue,
+                            value: viewModel.challengeMode == .timed ? "\(viewModel.challengeSecondsRemaining)s" : viewModel.formattedTime
+                        )
+                        
+                        if viewModel.scanUsesRemaining > 0 {
+                            CompactGameStatChip(
+                                icon: "wave.3.right.circle.fill",
+                                iconColor: .cyan,
+                                value: "\(viewModel.scanUsesRemaining)"
+                            )
+                        }
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                
+                VStack(alignment: .trailing, spacing: 8) {
+                    ModeBadge(
+                        title: viewModel.modeProtocolLabel,
+                        color: modeBadgeColor
+                    )
+                    
+                    if hasTopStatusInsights {
+                        topStatusSlot
+                    }
+                }
+                .frame(width: 112, alignment: .topTrailing)
             }
         }
         .padding(.horizontal, 14)
@@ -114,21 +94,33 @@ struct GameTopStatusBar: View {
         (!viewModel.gameBoard.generationQualityNote.isEmpty && viewModel.challengeMode == .noGuess) || !viewModel.boardStatusMessage.isEmpty
     }
     
+    @ViewBuilder
+    private var topStatusSlot: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            if !viewModel.gameBoard.generationQualityNote.isEmpty && viewModel.challengeMode == .noGuess {
+                TopStatusMiniSlot(
+                    title: "盘面质量",
+                    value: "NO-GUESS",
+                    accent: viewModel.gameBoard.generationQualityNote.contains("严格") ? Color.green : Color.orange
+                )
+            }
+            
+            if !viewModel.boardStatusMessage.isEmpty {
+                TopStatusMiniSlot(
+                    title: "当前进展",
+                    value: viewModel.boardStatusMessage,
+                    accent: boardStatusColor
+                )
+            }
+        }
+    }
+    
     private var boardStatusColor: Color {
         switch viewModel.boardStatusTone {
         case .neutral: return .blue
         case .positive: return .green
         case .warning: return .orange
         case .danger: return .red
-        }
-    }
-    
-    private var boardStatusIcon: String {
-        switch viewModel.boardStatusTone {
-        case .neutral: return "circle.fill"
-        case .positive: return "checkmark"
-        case .warning: return "flag.fill"
-        case .danger: return "xmark"
         }
     }
     
@@ -153,6 +145,36 @@ struct GameTopStatusBar: View {
     private var cardOverlay: some View {
         RoundedRectangle(cornerRadius: 17, style: .continuous)
             .stroke(themeManager.gameTheme == .cyber ? Color(red: 0.28, green: 0.66, blue: 0.88).opacity(0.18) : Color.primary.opacity(0.05), lineWidth: 1)
+    }
+}
+
+struct TopStatusMiniSlot: View {
+    let title: String
+    let value: String
+    let accent: Color
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(title)
+                .font(.system(size: 9, weight: .semibold, design: .rounded))
+                .foregroundColor(.secondary)
+                .lineLimit(1)
+            Text(value)
+                .font(.caption.weight(.bold))
+                .foregroundColor(accent)
+                .lineLimit(2)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 7)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color.white.opacity(0.58))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(accent.opacity(0.12), lineWidth: 1)
+        )
     }
 }
 
