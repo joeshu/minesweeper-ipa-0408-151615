@@ -35,6 +35,7 @@ class GameViewModel: ObservableObject {
     @Published var interactionLockUntil: Date? = nil
     @Published var boardStatusMessage: String = ""
     @Published var boardStatusTone: BoardStatusTone = .neutral
+    @Published var newlyUnlockedAchievements: [Achievement] = []
     
     let gameStats = GameStats()
     let soundManager = SoundManager.shared
